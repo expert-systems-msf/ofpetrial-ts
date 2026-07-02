@@ -22,8 +22,8 @@
 
 ## 3. Configuration d'essai (trial-setup)
 
-- [ ] 3.1 Porter `prepPlot` (défauts dérivés, validation des paramètres) — parité JSON avec les fixtures PlotInfo à 1 cm près
-- [ ] 3.2 Porter `prepRate` (doses explicites, intervalle, designType par défaut, rankSeq) — parité JSON avec les fixtures RateInfo
+- [x] 3.1 Porter `prepPlot` (défauts dérivés, validation des paramètres) — parité JSON avec les fixtures PlotInfo à 1 cm près
+- [x] 3.2 Porter `prepRate` (doses explicites, intervalle, designType par défaut, rankSeq) — parité JSON avec les fixtures RateInfo
 
 ## 4. Découpage du champ (plot-layout) — jalon : parité géométrique verte
 

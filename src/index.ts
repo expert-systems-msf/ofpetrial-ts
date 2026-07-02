@@ -8,6 +8,7 @@ export type {
   InputDesign,
   InputLayout,
   PlotInfo,
+  RateData,
   RateInfo,
   SoilFragment,
   TrialDesign,
@@ -33,3 +34,6 @@ export { toUtm, toWgs, utmEpsg, utmProjString, utmZone } from "./projection.js";
 
 export type { Rng } from "./rng.js";
 export { createRng } from "./rng.js";
+
+export type { PrepPlotOptions, PrepRateOptions } from "./trial-setup.js";
+export { findPlotWidth, getLcm, getRates, prepPlot, prepRate } from "./trial-setup.js";

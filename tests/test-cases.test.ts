@@ -6,6 +6,7 @@ import { readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { convUnit, convertRates } from "../src/units.js";
+import { findPlotWidth, getRates } from "../src/trial-setup.js";
 import { relClose } from "../test-cases-runner/compare.js";
 
 interface SharedCase {
@@ -32,6 +33,19 @@ const registry: Record<string, CaseRunner> = {
       input.unit as string,
       input.rate as number,
       (input.conversionType as "to_n_equiv" | "from_n_equiv" | undefined) ?? "to_n_equiv",
+    ),
+  getRates: (input) =>
+    getRates(
+      input.minRate as number,
+      input.maxRate as number,
+      input.gcRate as number,
+      input.numLevels as number,
+    ),
+  findPlotWidth: (input) =>
+    findPlotWidth(
+      input.sectionWidth as number,
+      input.harvesterWidth as number,
+      input.maxPlotWidth as number,
     ),
 };
 

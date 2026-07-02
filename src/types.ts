@@ -1,30 +1,46 @@
 // Public data types — see openspec/changes/port-ofpetrial-ts/design.md (D3).
 import type { Feature, FeatureCollection, LineString } from "geojson";
 
-/** Plot layout parameters (R: prep_plot output). */
+/**
+ * Plot layout parameters (R: prep_plot output, one row).
+ * All lengths are stored in meters regardless of the input unit system,
+ * exactly like R (imperial inputs are converted on the way in).
+ */
 export interface PlotInfo {
   input_name: string;
-  unit: string;
+  unit_system: "imperial" | "metric";
+  machine_width: number;
+  section_num: number;
+  section_width: number;
+  harvester_width: number;
   plot_width: number;
-  plot_length: number;
-  harvester_width?: number;
-  machine_width?: number;
-  headland_length?: number;
-  side_length?: number;
-  min_plot_length?: number;
-  max_plot_length?: number;
+  headland_length: number;
+  side_length: number;
+  min_plot_length: number;
+  max_plot_length: number;
 }
 
-/** Rate design parameters (R: prep_rate output). */
+/** One trial rate and its rank (R: rates_data row). */
+export interface RateData {
+  rate: number;
+  rate_rank: number;
+}
+
+/** Rate design parameters (R: prep_rate output, one row). */
 export interface RateInfo {
   input_name: string;
+  rates_data: RateData[];
+  /** null mirrors R's NA — the ls default applies at assignment time. */
+  design_type: string | null;
+  num_rates: number;
+  gc_rate: number;
   unit: string;
-  rates: number[];
-  design_type: string;
-  min_rate?: number;
-  max_rate?: number;
-  num_rates?: number;
-  rate_jump_threshold?: number;
+  tgt_rate_original: number[];
+  /** Nitrogen-equivalent rates (informational; see convertRates deviations). */
+  tgt_rate_equiv: number[];
+  rank_seq_ws: number[] | null;
+  rank_seq_as: number[] | null;
+  rate_jump_threshold: number | null;
 }
 
 /**

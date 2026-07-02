@@ -57,14 +57,25 @@ test_that("prep_rate derives rates from min/max/num anchored on gc_rate", {
 })
 
 test_that("prep_rate accepts every ported design type", {
-  for (dt in c("ls", "str", "rstr", "rb", "sparse")) {
+  # ls/str/rstr/rb keep the given order with sequential ranks
+  for (dt in c("ls", "str", "rstr", "rb")) {
     ri <- seed_rate_info(design_type = dt)
     expect_equal(ri$design_type, dt)
+    expect_equal(ri$rates_data[[1]]$rate, seed_rates)
+    expect_equal(ri$rates_data[[1]]$rate_rank, 1:5)
   }
-  # ejca requires an even number of rates
+  # sparse moves gc_rate to the front (rank 1)
+  ri_sp <- prep_rate(seed_plot_info(), gc_rate = 32000, unit = "seeds",
+                     rates = seed_rates, design_type = "sparse")
+  expect_equal(ri_sp$rates_data[[1]]$rate[1], 32000)
+  expect_equal(ri_sp$rates_data[[1]]$rate_rank, 1:5)
+  expect_setequal(ri_sp$rates_data[[1]]$rate, seed_rates)
+  # ejca requires an even number of rates, sequential ranks
   ri <- prep_rate(seed_plot_info(), gc_rate = 34000, unit = "seeds",
                   rates = c(20000, 26000, 38000, 44000), design_type = "ejca")
   expect_equal(ri$design_type, "ejca")
+  expect_equal(ri$rates_data[[1]]$rate, c(20000, 26000, 38000, 44000))
+  expect_equal(ri$rates_data[[1]]$rate_rank, 1:4)
 })
 
 test_that("prep_rate carries rank sequences and rate jump threshold", {

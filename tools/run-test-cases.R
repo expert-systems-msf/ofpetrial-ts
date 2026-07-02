@@ -29,6 +29,12 @@ registry <- list(
   convertRates = function(input) {
     conversion_type <- if (is.null(input$conversionType)) "to_n_equiv" else input$conversionType
     get("convert_rates", ofp)(input$inputName, input$unit, input$rate, conversion_type)
+  },
+  getRates = function(input) {
+    get("get_rates", ofp)(input$minRate, input$maxRate, input$gcRate, input$numLevels)
+  },
+  findPlotWidth = function(input) {
+    get("find_plotwidth", ofp)(input$sectionWidth, input$harvesterWidth, input$maxPlotWidth)
   }
 )
 
