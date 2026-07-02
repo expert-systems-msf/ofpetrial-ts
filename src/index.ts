@@ -40,3 +40,6 @@ export { findPlotWidth, getLcm, getRates, prepPlot, prepRate } from "./trial-set
 
 export type { MakeExpPlotsOptions } from "./plot-layout.js";
 export { makeExpPlots } from "./plot-layout.js";
+
+export type { AssignRatesOptions, ChangeRatesOptions } from "./rate-assignment.js";
+export { addBlocks, assignRates, assignRatesConditional, changeRates } from "./rate-assignment.js";

@@ -36,11 +36,11 @@
 
 ## 5. Attribution des doses (rate-assignment) — jalon : propriétés vertes
 
-- [ ] 5.1 Porter les stratégies de rangs (`gen_basic_rank_ws`, `get_starting_rank_as_ls`, `get_design_for_second`, `make_design_for_2_by_2`, etc.) pour `ls`, `str`, `rstr`, `rb`, `ejca`, `sparse` (liste vérifiée 0.1.3 ; `ejca` = nombre pair de doses ; défaut NA → `ls` + joint designing pour deux intrants) sur le RNG seedable, avec `rateJumpThreshold`
-- [ ] 5.2 Assembler `assignRates` (mono et deux-intrants) — tests de propriétés : équilibre, déterminisme par seed, une dose par parcelle
-- [ ] 5.3 Porter `assignRatesConditional` (design partiel deux-intrants + `get_design_for_second`) — test : combinaisons jointes équilibrées, corrélation < 0.3, erreurs sur design invalide
-- [ ] 5.4 Porter `addBlocks` (partitionnement grille 2D : `block_row`/`block_col` par division entière sur `numRates`, blocs de bord partiels tolérés, `plot_id_within_block`) — test : parité exacte `block_id` + `plot_id_within_block` avec la fixture R sur design figé
-- [ ] 5.5 Porter `changeRates` (rateBy all/strip/plot avec matrice en mode plot, `inputName` requis en multi-intrant, erreurs sur cibles inexistantes — déviations vs R documentées dans le spec et parity-map)
+- [x] 5.1 Porter les stratégies de rangs (`gen_basic_rank_ws`, `get_starting_rank_as_ls`, `get_design_for_second`, `make_design_for_2_by_2`, etc.) pour `ls`, `str`, `rstr`, `rb`, `ejca`, `sparse` (liste vérifiée 0.1.3 ; `ejca` = nombre pair de doses ; défaut NA → `ls` + joint designing pour deux intrants) sur le RNG seedable, avec `rateJumpThreshold`
+- [x] 5.2 Assembler `assignRates` (mono et deux-intrants) — tests de propriétés : équilibre, déterminisme par seed, une dose par parcelle
+- [x] 5.3 Porter `assignRatesConditional` (design partiel deux-intrants + `get_design_for_second`) — test : combinaisons jointes équilibrées, corrélation < 0.3, erreurs sur design invalide
+- [x] 5.4 Porter `addBlocks` (partitionnement grille 2D : `block_row`/`block_col` par division entière sur `numRates`, blocs de bord partiels tolérés, `plot_id_within_block`) — test : parité exacte `block_id` + `plot_id_within_block` avec la fixture R sur design figé
+- [x] 5.5 Porter `changeRates` (rateBy all/strip/plot avec matrice en mode plot, `inputName` requis en multi-intrant, erreurs sur cibles inexistantes — déviations vs R documentées dans le spec et parity-map)
 
 ## 6. Diagnostics (design-diagnostics) — jalon : parité numérique 1e-6 sur designs figés
 

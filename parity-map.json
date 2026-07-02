@@ -43,31 +43,51 @@
       "rFunction": "assign_rates",
       "tsFile": "src/rate-assignment.ts",
       "tsSymbol": "assignRates",
-      "testCases": [],
-      "status": "pending"
+      "testCases": [
+        "src/rate-assignment.test.ts",
+        "tests/parity-rate-assignment.test.ts"
+      ],
+      "status": "ported",
+      "deviations": [
+        "seedable splitmix32 RNG instead of R RNG: randomized designs verified by properties, not sequences (design D4)",
+        "sparse design ported from source semantics — the R 0.1.3 assign branch is broken with modern data.table (verified), no execution parity possible"
+      ]
     },
     {
       "rFunction": "assign_rates_conditional",
       "tsFile": "src/rate-assignment.ts",
       "tsSymbol": "assignRatesConditional",
-      "testCases": [],
-      "status": "pending"
+      "testCases": [
+        "src/rate-assignment.test.ts"
+      ],
+      "status": "ported",
+      "deviations": [
+        "partial-design flow only (one dosed + one geometry-only input); R also supports conditioning a third input on a fully-dosed two-input design — not ported (spec: périmètre réduit)",
+        "reuses the stored rate_rank instead of recomputing .GRP by rate (numbering-only difference)"
+      ]
     },
     {
       "rFunction": "add_blocks",
       "tsFile": "src/rate-assignment.ts",
       "tsSymbol": "addBlocks",
-      "testCases": [],
-      "status": "pending"
+      "testCases": [
+        "tests/parity-rate-assignment.test.ts"
+      ],
+      "status": "ported",
+      "deviations": []
     },
     {
       "rFunction": "change_rates",
       "tsFile": "src/rate-assignment.ts",
       "tsSymbol": "changeRates",
-      "testCases": [],
-      "status": "pending",
+      "testCases": [
+        "tests/parity-rate-assignment.test.ts"
+      ],
+      "status": "ported",
       "deviations": [
-        "targets the named input; R's input_name filter is a tautology and always modifies the first input"
+        "targets the named input; R's input_name filter is a tautology and always modifies the first input",
+        "unknown strip/plot targets throw ValidationError; R silently no-ops",
+        "plot mode requires strictly ascending plotIds; R positionally mis-assigns matrix rows otherwise"
       ]
     },
     {
