@@ -1,0 +1,70 @@
+[
+  [
+    {
+      "input_name": "seed",
+      "rates_data": [
+        {
+          "rate": 20000,
+          "rate_rank": 1
+        },
+        {
+          "rate": 26000,
+          "rate_rank": 2
+        },
+        {
+          "rate": 32000,
+          "rate_rank": 3
+        },
+        {
+          "rate": 38000,
+          "rate_rank": 4
+        },
+        {
+          "rate": 44000,
+          "rate_rank": 5
+        }
+      ],
+      "design_type": null,
+      "num_rates": 5,
+      "gc_rate": 34000,
+      "unit": "seeds",
+      "tgt_rate_original": [20000, 26000, 32000, 38000, 44000],
+      "tgt_rate_equiv": [20000, 26000, 32000, 38000, 44000],
+      "rank_seq_ws": null,
+      "rank_seq_as": null,
+      "rate_jump_threshold": null
+    }
+  ],
+  [
+    {
+      "input_name": "NH3",
+      "rates_data": [
+        {
+          "rate": 110,
+          "rate_rank": 1
+        },
+        {
+          "rate": 155,
+          "rate_rank": 2
+        },
+        {
+          "rate": 200,
+          "rate_rank": 3
+        },
+        {
+          "rate": 290,
+          "rate_rank": 4
+        }
+      ],
+      "design_type": null,
+      "num_rates": 4,
+      "gc_rate": 200,
+      "unit": "kg",
+      "tgt_rate_original": [110, 155, 200, 290],
+      "tgt_rate_equiv": [222.889054083383, 314.070939844767, 405.252825606151, 587.616597128919],
+      "rank_seq_ws": null,
+      "rank_seq_as": null,
+      "rate_jump_threshold": null
+    }
+  ]
+]

@@ -1,0 +1,8 @@
+{
+"type": "FeatureCollection",
+"name": "ab-line",
+"xy_coordinate_resolution": 1e-09,
+"features": [
+{"type":"Feature","properties":{"ab_id":1},"geometry":{"type":"LineString","coordinates":[[-16.696305327,39.119505008],[-16.696311531,39.125373758]]}}
+]
+}

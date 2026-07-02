@@ -1,0 +1,30 @@
+{
+  "ofpetrialVersion": "0.1.3",
+  "rVersion": "4.6.0",
+  "seed": 20260702,
+  "generatedCases": [
+    {
+      "name": "simple1",
+      "inputs": [
+        "seed"
+      ]
+    },
+    {
+      "name": "two-input",
+      "inputs": [
+        "seed",
+        "NH3"
+      ]
+    },
+    {
+      "name": "with-holes",
+      "inputs": [
+        "seed"
+      ]
+    }
+  ],
+  "unitSystems": [
+    "imperial",
+    "metric"
+  ]
+}
