@@ -4,10 +4,10 @@
 
 - [x] 1.1 Créer le dépôt public `expert-systems-msf/ofpetrial-ts` (LICENSE GPL-3, README anglais avec attribution ofpetrial/Taro Mieno et al. ; nom npm `ofpetrial-ts` vérifié libre) ; cloner dans `~/Documents/GitHub/ofpetrial-ts` et y déménager ce change OpenSpec ; tout le dépôt en anglais
 - [x] 1.2 Scaffolder le paquet : TypeScript strict, ESM, build tsup, tests vitest, lint, CI GitHub Actions (typecheck + tests), publication npm sur tag
-- [ ] 1.3 Définir les types publics : `PlotInfo`, `RateInfo`, `ExpData`, `TrialDesign` (GeoJSON + attributs, D3), erreurs typées
-- [ ] 1.4 Module unités : conversions impérial/métrique (ft/m, ac/ha, doses), testé unitairement contre les constantes R
-- [ ] 1.5 Module projection : WGS84 ↔ UTM via proj4, choix de zone depuis le centroïde (parité avec la logique R), aller-retour testé < 1 mm
-- [ ] 1.6 RNG seedable (PCG32/splitmix, ~30 lignes) + tests de déterminisme
+- [x] 1.3 Définir les types publics : `PlotInfo`, `RateInfo`, `ExpData`, `TrialDesign` (GeoJSON + attributs, D3), erreurs typées
+- [x] 1.4 Module unités : conversions impérial/métrique (ft/m, ac/ha, doses), testé unitairement contre les constantes R
+- [x] 1.5 Module projection : WGS84 ↔ UTM via proj4, choix de zone depuis le centroïde (parité avec la logique R), aller-retour testé < 1 mm
+- [x] 1.6 RNG seedable (PCG32/splitmix, ~30 lignes) + tests de déterminisme
 
 ## 2. Fixtures R (golden master)
 
