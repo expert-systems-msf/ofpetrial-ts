@@ -37,3 +37,6 @@ export { createRng } from "./rng.js";
 
 export type { PrepPlotOptions, PrepRateOptions } from "./trial-setup.js";
 export { findPlotWidth, getLcm, getRates, prepPlot, prepRate } from "./trial-setup.js";
+
+export type { MakeExpPlotsOptions } from "./plot-layout.js";
+export { makeExpPlots } from "./plot-layout.js";

@@ -46,7 +46,9 @@ export interface RateInfo {
 /**
  * Output of makeExpPlots, input of assignRates.
  * plot_id restarts at 1 within each strip_id — only the (strip_id, plot_id)
- * pair identifies a plot (see plotKey below).
+ * pair identifies a plot (see plotKey below). Caveat, inherited from R: when
+ * a boundary hole splits a strip into disjoint pieces, plot_id restarts per
+ * piece, so (strip_id, plot_id) can repeat within such a strip.
  */
 export interface InputLayout {
   plotInfo: PlotInfo;
@@ -91,7 +93,12 @@ export interface SoilFragment {
   values: Record<string, number>;
 }
 
-/** Canonical plot key: `"${stripId}:${plotId}"` — matches SoilFragment.plotKey. */
+/**
+ * Canonical plot key: `"${stripId}:${plotId}"` — matches SoilFragment.plotKey.
+ * NOT guaranteed unique on fields with holes: R (and this port) restarts
+ * plot_id per strip piece, so hole-split strips repeat keys. Consumers that
+ * need a unique identity must key by feature, not by plotKey.
+ */
 export function plotKey(stripId: number, plotId: number): string {
   return `${stripId}:${plotId}`;
 }

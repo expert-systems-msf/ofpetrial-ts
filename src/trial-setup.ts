@@ -9,7 +9,7 @@ import { ValidationError } from "./types.js";
 import type { PlotInfo, RateData, RateInfo } from "./types.js";
 
 /** R round(): IEC 60559 half-to-even, unlike Math.round's half-up. */
-function roundHalfEven(x: number): number {
+export function roundHalfEven(x: number): number {
   const floor = Math.floor(x);
   const diff = x - floor;
   if (diff > 0.5) return floor + 1;

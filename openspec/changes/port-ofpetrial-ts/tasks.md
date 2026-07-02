@@ -27,12 +27,12 @@
 
 ## 4. Découpage du champ (plot-layout) — jalon : parité géométrique verte
 
-- [ ] 4.1 Porter les primitives internes de layout (`find_center`, `make_plot_width_line`, rotation du repère sur l'ab-line, génération des bandes)
-- [ ] 4.2 Porter la subdivision bandes → parcelles + tournières (contraintes min/max longueur, headland/side length)
-- [ ] 4.3 Porter le rognage bandes ∩ contour via `@turf/intersect` (wrapper Turf sur `polygon-clipping` — pas d'import direct, pas de dépendance supplémentaire) + réparation d'entrée unkink+buffer(0) (équivalent st_make_valid)
-- [ ] 4.3b **SI** la parité géométrique sur le cas pathologique échoue après 4.3 (recouvrement < 99 % après réparation), intégrer `geos-wasm` comme fallback de réparation et revalider — critère de sortie : parité verte sur tous les cas incluant le pathologique
-- [ ] 4.4 Assembler `makeExpPlots` (mono et deux-intrants, ajustement mutuel des largeurs) — tests de parité : recouvrement ≥ 99 % (`intersection/r.area`), centroïdes ≤ 10 cm, mêmes strip_id/plot_id sur les 3 cas de fixtures (impérial + métrique)
-- [ ] 4.5 Cas d'erreur : ab-line absente, contour irréparable, paramètres incohérents
+- [x] 4.1 Porter les primitives internes de layout (`find_center`, `make_plot_width_line`, rotation du repère sur l'ab-line, génération des bandes)
+- [x] 4.2 Porter la subdivision bandes → parcelles + tournières (contraintes min/max longueur, headland/side length)
+- [x] 4.3 Porter le rognage bandes ∩ contour via `@turf/intersect` (wrapper Turf sur `polygon-clipping` — pas d'import direct, pas de dépendance supplémentaire) + réparation d'entrée unkink+buffer(0) (équivalent st_make_valid)
+- [x] 4.3b **SI** la parité géométrique sur le cas pathologique échoue après 4.3 (recouvrement < 99 % après réparation), intégrer `geos-wasm` comme fallback de réparation et revalider — critère de sortie : parité verte sur tous les cas incluant le pathologique
+- [x] 4.4 Assembler `makeExpPlots` (mono et deux-intrants, ajustement mutuel des largeurs) — tests de parité : recouvrement ≥ 99 % (`intersection/r.area`), centroïdes ≤ 10 cm, mêmes strip_id/plot_id sur les 3 cas de fixtures (impérial + métrique)
+- [x] 4.5 Cas d'erreur : ab-line absente, contour irréparable, paramètres incohérents
 
 ## 5. Attribution des doses (rate-assignment) — jalon : propriétés vertes
 

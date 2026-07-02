@@ -29,8 +29,15 @@
       "rFunction": "make_exp_plots",
       "tsFile": "src/plot-layout.ts",
       "tsSymbol": "makeExpPlots",
-      "testCases": [],
-      "status": "pending"
+      "testCases": [
+        "tests/parity-plot-layout.test.ts"
+      ],
+      "status": "ported",
+      "deviations": [
+        "ablineType \"non\": R yields NULL ab_lines; TS computes the free-mode ab-line (InputLayout.abLine is non-nullable)",
+        "band-boundary clipping via exact scanline in the rotated frame (equivalent to st_intersection on axis-aligned strips); @turf/union//difference for headland dissolve/subtract",
+        "plot_id can repeat within a strip split by boundary holes (R restarts per piece) — matches R behavior, contradicts naive key uniqueness"
+      ]
     },
     {
       "rFunction": "assign_rates",
