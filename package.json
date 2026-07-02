@@ -27,7 +27,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "typecheck": "tsc --noEmit",
-    "lint": "eslint src"
+    "lint": "eslint src tests test-cases-runner"
   },
   "keywords": [
     "agriculture",
@@ -40,6 +40,7 @@
     "@turf/area": "^7.2.0",
     "@turf/boolean-point-in-polygon": "^7.2.0",
     "@turf/centroid": "^7.2.0",
+    "@turf/helpers": "^7.2.0",
     "@turf/intersect": "^7.2.0",
     "@turf/unkink-polygon": "^7.2.0",
     "fflate": "^0.8.2",
@@ -48,6 +49,7 @@
   },
   "devDependencies": {
     "@types/geojson": "^7946.0.16",
+    "@types/node": "^26.1.0",
     "@types/proj4": "^2.5.6",
     "eslint": "^9.30.0",
     "tsup": "^8.5.0",

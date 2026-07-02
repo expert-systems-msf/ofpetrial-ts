@@ -57,16 +57,14 @@ describe("convertRates", () => {
     expect(convertRates("seed", "seeds", 34000)).toBe(34000);
   });
 
-  it("falls back to factor 1 for an unknown (input, unit) combination", () => {
-    // urea in gallons is not in the table -> factor 1 (R message path)
+  it("falls back to factor 1 for an unknown (input, unit) combination (deviation: R yields numeric(0))", () => {
     expect(convertRates("urea", "gallons", 55)).toBe(55);
   });
 
-  it("re-expresses metric kg rates per hectare in kg N", () => {
-    // R: rate kg -> pounds, factor x lb->kg x ha->acres
+  it("re-expresses metric kg rates per hectare in kg N (deviation: R yields numeric(0))", () => {
+    // kg -> pounds, then (fallback factor 1) x lb->kg x ha->acres
     const rate = 100;
-    const expected =
-      rate * (1 / 0.45359237) * 1 * 0.45359237 * (1 / 0.40468564224); // chicken_manure_kg factor 1
+    const expected = rate * (1 / 0.45359237) * 1 * 0.45359237 * (1 / 0.40468564224);
     expect(convertRates("chicken_manure", "kg", rate)).toBeCloseTo(expected, 10);
   });
 

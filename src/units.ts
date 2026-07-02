@@ -96,10 +96,23 @@ export const INPUT_UNIT_CONVERSION_TABLE: ReadonlyArray<{
  * Port of R `convert_rates(input_name, unit, rate, conversion_type)`.
  * Converts an input dose to its nitrogen-equivalent rate ("to_n_equiv",
  * default) or back ("from_n_equiv"). Unknown input names pass through
- * unchanged, and an unknown (input, unit) combination falls back to factor 1
- * — both faithful to R 0.1.3. Metric rates (liters, kg) are first converted
+ * unchanged (faithful to R). Metric rates (liters, kg) are first converted
  * to imperial units, then the resulting factor is re-expressed per hectare
- * in kg. See `LITERS_TO_GALLONS` for the one documented deviation.
+ * in kg.
+ *
+ * Documented deviations from R 0.1.3 (verified by direct execution; these
+ * paths all return the empty vector `numeric(0)` upstream, which has no TS
+ * equivalent and would poison downstream math):
+ * - `unit = "liters"`: R looks up a liters->gallons pair missing from its
+ *   generic table; TS applies the exact `LITERS_TO_GALLONS` factor.
+ * - Unknown (input, unit) combination: R's intended fallback to factor 1 is
+ *   dead code (the empty data.frame lookup is still `numeric`), so R yields
+ *   `numeric(0)`; TS actually applies the fallback factor 1.
+ * - Metric `kg` rates whose table row is kg-only (e.g. chicken_manure): R
+ *   converts kg->lb then looks up `<input>_lb`, which misses, hitting the
+ *   dead-fallback path above; TS falls back to factor 1.
+ * These paths are excluded from R parity in parity-map.json; the affected
+ * value (`tgt_rate_equiv`) is informational only in the ported scope.
  */
 export function convertRates(
   inputName: string,

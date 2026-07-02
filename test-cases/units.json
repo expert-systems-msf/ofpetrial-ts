@@ -1,0 +1,93 @@
+{
+  "suite": "units",
+  "cases": [
+    {
+      "name": "convUnit 150 feet -> meters",
+      "function": "convUnit",
+      "input": { "value": 150, "from": "feet", "to": "meters" },
+      "expected": 45.72,
+      "tolerance": 1e-6,
+      "rParity": true
+    },
+    {
+      "name": "convUnit 2.5 hectares -> acres",
+      "function": "convUnit",
+      "input": { "value": 2.5, "from": "hectares", "to": "acres" },
+      "expected": 6.1776345366791343,
+      "tolerance": 1e-6,
+      "rParity": true
+    },
+    {
+      "name": "convUnit 75 kg -> pounds",
+      "function": "convUnit",
+      "input": { "value": 75, "from": "kg", "to": "pounds" },
+      "expected": 165.34669663865819,
+      "tolerance": 1e-6,
+      "rParity": true
+    },
+    {
+      "name": "convUnit 3 acres -> m2 (upstream truncated factor)",
+      "function": "convUnit",
+      "input": { "value": 3, "from": "acres", "to": "m2" },
+      "expected": 12140.569265999999,
+      "tolerance": 1e-6,
+      "rParity": true
+    },
+    {
+      "name": "convertRates NH3 10 gallons to N-equivalent",
+      "function": "convertRates",
+      "input": { "inputName": "NH3", "unit": "gallons", "rate": 10 },
+      "expected": 42,
+      "tolerance": 1e-6,
+      "rParity": true
+    },
+    {
+      "name": "convertRates urea 100 lb to N-equivalent",
+      "function": "convertRates",
+      "input": { "inputName": "urea", "unit": "lb", "rate": 100 },
+      "expected": 46,
+      "tolerance": 1e-6,
+      "rParity": true
+    },
+    {
+      "name": "convertRates uan32 2 gallons to N-equivalent",
+      "function": "convertRates",
+      "input": { "inputName": "uan32", "unit": "gallons", "rate": 2 },
+      "expected": 7.08,
+      "tolerance": 1e-6,
+      "rParity": true
+    },
+    {
+      "name": "convertRates from_n_equiv inverts NH3 gallons",
+      "function": "convertRates",
+      "input": { "inputName": "NH3", "unit": "gallons", "rate": 42, "conversionType": "from_n_equiv" },
+      "expected": 10,
+      "tolerance": 1e-6,
+      "rParity": true
+    },
+    {
+      "name": "convertRates unknown input passes through",
+      "function": "convertRates",
+      "input": { "inputName": "seed", "unit": "seeds", "rate": 34000 },
+      "expected": 34000,
+      "tolerance": 1e-6,
+      "rParity": true
+    },
+    {
+      "name": "convertRates unknown (input, unit) combo falls back to 1 (R: numeric(0), dead fallback)",
+      "function": "convertRates",
+      "input": { "inputName": "urea", "unit": "gallons", "rate": 55 },
+      "expected": 55,
+      "tolerance": 1e-6,
+      "rParity": false
+    },
+    {
+      "name": "convertRates metric kg re-expressed per hectare (R: numeric(0), kg->lb lookup miss)",
+      "function": "convertRates",
+      "input": { "inputName": "chicken_manure", "unit": "kg", "rate": 100 },
+      "expected": 247.10538146716535,
+      "tolerance": 1e-6,
+      "rParity": false
+    }
+  ]
+}
