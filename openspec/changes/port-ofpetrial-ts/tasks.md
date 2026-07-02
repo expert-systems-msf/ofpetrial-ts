@@ -16,9 +16,9 @@
 - [x] 2.3 Écrire les utilitaires de comparaison du harnais : recouvrement surfacique `intersection(ts,r).area / r.area ≥ 99 %`, distance de centroïdes ≤ 10 cm, égalité numérique relative (1e-6 pour tous les diagnostics sur données pré-calculées par R — y compris corrélations sur fragments —, 1e-3 uniquement pour les corrélations issues de la jointure spatiale Turf.js complète de `checkOrthoWithChars`)
 - [x] 2.4 Définir le format neutre des cas de test (`test-cases/*.json` : entrées, sorties attendues, tolérances) + exécuteur R testthat (découverte automatique des cas, génération/validation des références)
 - [x] 2.5 Exécuteur TypeScript vitest consommant les mêmes `test-cases/` (découverte automatique, mêmes tolérances)
-- [ ] 2.6 Couverture R : script `covr` sur le périmètre porté (11 fonctions + internes, exclusions viz/rapport versionnées), seuil ≥ 95 %, rapport archivé ; ajouter des cas partagés jusqu'au seuil
-- [ ] 2.7 Créer `parity-map.json` (fonction R → fichier+symbole TS → cas de test) + vérification CI **limitée au job de publication (tag `v*` seulement, pas les branches)** pour ne pas bloquer le développement incrémental — rempli au fil des groupes 3 à 7
-- [ ] 2.8 Script `tools/upstream-sync` : diff des sources R entre deux versions (périmètre porté), croisement avec parity-map, régénération références+fixtures, relance double suite, rapport de liste de travail ; documenter la procédure de montée de version
+- [x] 2.6 Couverture R : script `covr` sur le périmètre porté (11 fonctions + internes, exclusions viz/rapport versionnées), seuil ≥ 95 %, rapport archivé ; ajouter des cas partagés jusqu'au seuil
+- [x] 2.7 Créer `parity-map.json` (fonction R → fichier+symbole TS → cas de test) + vérification CI **limitée au job de publication (tag `v*` seulement, pas les branches)** pour ne pas bloquer le développement incrémental — rempli au fil des groupes 3 à 7
+- [x] 2.8 Script `tools/upstream-sync` : diff des sources R entre deux versions (périmètre porté), croisement avec parity-map, régénération références+fixtures, relance double suite, rapport de liste de travail ; documenter la procédure de montée de version
 
 ## 3. Configuration d'essai (trial-setup)
 
