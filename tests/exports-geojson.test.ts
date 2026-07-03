@@ -65,7 +65,7 @@ describe("writeGeoJson — RFC 7946 shape", () => {
     expect(fc.features.length).toBe(features.length);
     for (const f of fc.features) {
       expect(f.type).toBe("Feature");
-      expect(Object.keys(f.properties).sort((a, b) => a.localeCompare(b))).toEqual([
+      expect(Object.keys(f.properties).toSorted((a, b) => a.localeCompare(b))).toEqual([
         "plot_id",
         "rate",
         "strip_id",

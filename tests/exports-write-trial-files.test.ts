@@ -16,7 +16,7 @@ describe("writeTrialFiles — ext=shp", () => {
     const td = loadTrialDesign("two-input", "imperial", ["seed", "NH3"]);
     const zip = writeTrialFiles(td, { ext: "shp" });
     const files = unzipSync(zip);
-    const paths = Object.keys(files).sort((a, b) => a.localeCompare(b));
+    const paths = Object.keys(files).toSorted((a, b) => a.localeCompare(b));
 
     const rootFiles = paths.filter((p) => !p.includes("/"));
     expect(rootFiles).toEqual([]);
@@ -42,7 +42,7 @@ describe("writeTrialFiles — ext=shp", () => {
       "seed/seed.prj",
       "seed/seed.shp",
       "seed/seed.shx",
-    ].sort((a, b) => a.localeCompare(b));
+    ].toSorted((a, b) => a.localeCompare(b));
     expect(paths).toEqual(expected);
   });
 });
@@ -51,13 +51,13 @@ describe("writeTrialFiles — ext=geojson", () => {
   it("mono-input design: <inputName>/<inputName>.geojson, ab-line, harvester", () => {
     const td = loadTrialDesign("simple1", "imperial", ["seed"]);
     const zip = writeTrialFiles(td, { ext: "geojson" });
-    const paths = Object.keys(unzipSync(zip)).sort((a, b) => a.localeCompare(b));
+    const paths = Object.keys(unzipSync(zip)).toSorted((a, b) => a.localeCompare(b));
     expect(paths).toEqual(
       [
         "harvester-ab-line/harvester-ab-line.geojson",
         "seed/ab-line.geojson",
         "seed/seed.geojson",
-      ].sort((a, b) => a.localeCompare(b))
+      ].toSorted((a, b) => a.localeCompare(b))
     );
   });
 });
@@ -66,7 +66,7 @@ describe("writeTrialFiles — ext=isoxml", () => {
   it("no ab-lines, no harvester dir; TASKDATA/TASKDATA.XML per input (ISO 11783-10 naming)", () => {
     const td = loadTrialDesign("two-input", "imperial", ["seed", "NH3"]);
     const zip = writeTrialFiles(td, { ext: "isoxml" });
-    const paths = Object.keys(unzipSync(zip)).sort((a, b) => a.localeCompare(b));
+    const paths = Object.keys(unzipSync(zip)).toSorted((a, b) => a.localeCompare(b));
     expect(paths).toEqual(["NH3/TASKDATA/TASKDATA.XML", "seed/TASKDATA/TASKDATA.XML"]);
   });
 });
@@ -89,7 +89,7 @@ describe("writeTrialFilesToDisk", () => {
     try {
       await writeTrialFilesToDisk(td, dir, { ext: "geojson" });
       const seedEntries = await readdir(join(dir, "seed"));
-      const seedFiles = seedEntries.sort((a, b) => a.localeCompare(b));
+      const seedFiles = seedEntries.toSorted((a, b) => a.localeCompare(b));
       expect(seedFiles).toEqual(["ab-line.geojson", "seed.geojson"]);
       const harvesterFiles = await readdir(join(dir, "harvester-ab-line"));
       expect(harvesterFiles).toEqual(["harvester-ab-line.geojson"]);

@@ -117,7 +117,7 @@ describe("assignRates: single input (ls design, task 5.2)", () => {
     for (const [, plots] of byStrip) {
       const counts = new Map<number, number>();
       for (const p of plots) counts.set(p.rate, (counts.get(p.rate) ?? 0) + 1);
-      const values = [...counts.values()];
+      const values = counts.values().toArray();
       expect(Math.max(...values) - Math.min(...values)).toBeLessThanOrEqual(1);
     }
   });
@@ -280,7 +280,7 @@ describe("assignRatesConditional (task 5.3)", () => {
 
     const counts = new Map<number, number>();
     for (const r of ranksB) counts.set(r, (counts.get(r) ?? 0) + 1);
-    const values = [...counts.values()];
+    const values = counts.values().toArray();
     expect(Math.max(...values) - Math.min(...values)).toBeLessThanOrEqual(
       Math.ceil(ranksB.length * 0.2)
     );
@@ -377,7 +377,7 @@ describe("assignRates: str / rstr / rb / ejca designs (task 5.1)", () => {
     for (const ranks of byBlock.values()) {
       const counts = new Map<number, number>();
       for (const r of ranks) counts.set(r, (counts.get(r) ?? 0) + 1);
-      const values = [...counts.values()];
+      const values = counts.values().toArray();
       // partial border blocks: counts differ by at most 1
       expect(Math.max(...values) - Math.min(...values)).toBeLessThanOrEqual(1);
       if (ranks.length % numberRates === 0) {
@@ -422,7 +422,8 @@ describe("hole-split strips: feature order is preserved, never re-sorted by plot
   it("the fixture actually contains a hole-split strip (duplicate plot_ids)", () => {
     const seen = new Set<string>();
     let hasDuplicate = false;
-    for (const f of layout.inputs[0]!.plots.features) {
+    const features = layout.inputs[0]!.plots.features;
+    for (const f of features) {
       const { stripId, plotId } = expProperties(f);
       const key = `${stripId}:${plotId}`;
       if (seen.has(key)) hasDuplicate = true;
@@ -453,7 +454,8 @@ describe("hole-split strips: feature order is preserved, never re-sorted by plot
     const td = assignRates(layout, rateInfo, { seed: 42 });
     const basicSeq = genBasicRankWs(5, null);
     const byStrip = new Map<number, number[]>();
-    for (const f of td.inputs[0]!.plots.features) {
+    const features = td.inputs[0]!.plots.features;
+    for (const f of features) {
       const { stripId, rateRank } = expProperties(f);
       const array = byStrip.get(stripId) ?? [];
       array.push(rateRank);
@@ -499,7 +501,7 @@ describe("rank-sequence primitives: exact values verified against R (ofpetrial 0
   it("getStartingRankAsLs: permutation of 1..n, deterministic by seed, R diagonal property", () => {
     const rankSeqWs = genBasicRankWs(5, null);
     const seq = getStartingRankAsLs(rankSeqWs, createRng(42));
-    expect([...seq].sort((a, b) => a - b)).toEqual([1, 2, 3, 4, 5]);
+    expect(seq.toSorted((a, b) => a - b)).toEqual([1, 2, 3, 4, 5]);
     expect(getStartingRankAsLs(rankSeqWs, createRng(42))).toEqual(seq);
 
     // R filter property: no diagonal (up or down) of the rotated-rank matrix
@@ -520,7 +522,7 @@ describe("rank-sequence primitives: exact values verified against R (ofpetrial 0
 
   it("getStartingRankAs: permutation of 1..n, deterministic by seed", () => {
     const seq = getStartingRankAs(4, createRng(7));
-    expect([...seq].sort((a, b) => a - b)).toEqual([1, 2, 3, 4]);
+    expect(seq.toSorted((a, b) => a - b)).toEqual([1, 2, 3, 4]);
     expect(getStartingRankAs(4, createRng(7))).toEqual(seq);
     expect(getStartingRankAs(1, createRng(7))).toEqual([1]);
   });
@@ -528,8 +530,8 @@ describe("rank-sequence primitives: exact values verified against R (ofpetrial 0
   it("getRankForRb: complete permutation per numRates chunk, distinct remainder, deterministic", () => {
     const ranks = getRankForRb(5, 12, createRng(3));
     expect(ranks).toHaveLength(12);
-    expect(ranks.slice(0, 5).sort((a, b) => a - b)).toEqual([1, 2, 3, 4, 5]);
-    expect(ranks.slice(5, 10).sort((a, b) => a - b)).toEqual([1, 2, 3, 4, 5]);
+    expect(ranks.slice(0, 5).toSorted((a, b) => a - b)).toEqual([1, 2, 3, 4, 5]);
+    expect(ranks.slice(5, 10).toSorted((a, b) => a - b)).toEqual([1, 2, 3, 4, 5]);
     const remainder = ranks.slice(10);
     expect(new Set(remainder).size).toBe(2);
     for (const r of remainder) {

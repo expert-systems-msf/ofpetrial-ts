@@ -535,7 +535,8 @@ describe("cross-validation: assignRates designs stay within R's reference range 
       const td = assignRates(expData, rateInfo, { seed });
 
       const result = checkOrthoWithChars(td, soilLayer, SOIL_VARS);
-      for (const c of result[0]!.correlations) {
+      const correlations = result[0]!.correlations;
+      for (const c of correlations) {
         const range = reference.perVar[c.var];
         expect(range, `var ${c.var} missing from crossval-reference.json`).toBeDefined();
         expect(

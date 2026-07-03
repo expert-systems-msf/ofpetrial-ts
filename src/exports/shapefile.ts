@@ -68,7 +68,7 @@ function signedArea(ring: Ring): number {
 }
 
 function reversed(ring: Ring): Ring {
-  return [...ring].reverse();
+  return ring.toReversed();
 }
 
 /**

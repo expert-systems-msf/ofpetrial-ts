@@ -107,7 +107,8 @@ describe("addBlocks parity with R (task 5.4)", () => {
 describe("changeRates (task 5.5)", () => {
   function rateByKey(td: TrialDesign): Map<string, number> {
     const map = new Map<string, number>();
-    for (const f of td.inputs[0]!.plots.features) {
+    const features = td.inputs[0]!.plots.features;
+    for (const f of features) {
       const p = f.properties as { strip_id: number; plot_id: number; rate: number };
       map.set(`${p.strip_id}:${p.plot_id}`, p.rate);
     }

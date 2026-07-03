@@ -26,7 +26,7 @@ describe("ISOXML terminal-import layout (task 7.5)", () => {
   it("multi input: one TASKDATA dir per input subdirectory", () => {
     const td = loadTrialDesign("two-input", "imperial", ["seed", "NH3"]);
     const files = unzipSync(writeTrialFiles(td, { ext: "isoxml" }));
-    expect(Object.keys(files).sort((a, b) => a.localeCompare(b))).toEqual([
+    expect(Object.keys(files).toSorted((a, b) => a.localeCompare(b))).toEqual([
       "NH3/TASKDATA/TASKDATA.XML",
       "seed/TASKDATA/TASKDATA.XML",
     ]);

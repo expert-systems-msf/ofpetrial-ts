@@ -63,7 +63,7 @@ describe("createRng", () => {
       const shuffled = rng.shuffle(input);
       expect(shuffled).not.toBe(input);
       expect(input).toEqual([1, 2, 3, 4, 5, 6, 7, 8]); // untouched
-      expect([...shuffled].sort((x, y) => x - y)).toEqual(input);
+      expect(shuffled.toSorted((x, y) => x - y)).toEqual(input);
     });
 
     it("is deterministic for a given seed", () => {
