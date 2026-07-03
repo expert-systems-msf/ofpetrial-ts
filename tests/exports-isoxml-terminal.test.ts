@@ -156,7 +156,9 @@ describe("ISOXML field boundary and guidance lines (task 7.3 extension)", () => 
       attributes: PartfieldAttrs;
     };
     const abLineFixture: { features: { geometry: { coordinates: [number, number][] } }[] } =
-      JSON.parse(readFileSync(join(root, "fixtures/simple1/imperial/seed/ab-line.geojson"), "utf8"));
+      JSON.parse(
+        readFileSync(join(root, "fixtures/simple1/imperial/seed/ab-line.geojson"), "utf8")
+      );
     const harvesterFixture: { features: { geometry: { coordinates: [number, number][] } }[] } =
       JSON.parse(
         readFileSync(join(root, "fixtures/simple1/imperial/seed/harvester-ab-line.geojson"), "utf8")
@@ -173,7 +175,10 @@ describe("ISOXML field boundary and guidance lines (task 7.3 extension)", () => 
     expect(abPattern.attributes.GuidancePatternType).toBe("1"); // AB line
     const abLsg = abPattern.attributes.LineString![0]!;
     expect(abLsg.attributes.LineStringType).toBe("5"); // Guidance Pattern
-    const abPoints = abLsg.attributes.Point!.map((p) => [p.attributes.PointEast, p.attributes.PointNorth]);
+    const abPoints = abLsg.attributes.Point!.map((p) => [
+      p.attributes.PointEast,
+      p.attributes.PointNorth,
+    ]);
     const expectedAbPoints = abLineFixture.features[0]!.geometry.coordinates;
     expect(abPoints).toHaveLength(expectedAbPoints.length);
     for (const [i, [east, north]] of abPoints.entries()) {
@@ -185,10 +190,9 @@ describe("ISOXML field boundary and guidance lines (task 7.3 extension)", () => 
       (p) => p.attributes.GuidancePatternDesignator === "harvester-1"
     )!;
     expect(harvesterPattern).toBeDefined();
-    const harvesterPoints = harvesterPattern.attributes.LineString![0]!.attributes.Point!.map((p) => [
-      p.attributes.PointEast,
-      p.attributes.PointNorth,
-    ]);
+    const harvesterPoints = harvesterPattern.attributes.LineString![0]!.attributes.Point!.map(
+      (p) => [p.attributes.PointEast, p.attributes.PointNorth]
+    );
     const expectedHarvesterPoints = harvesterFixture.features[0]!.geometry.coordinates;
     expect(harvesterPoints).toHaveLength(expectedHarvesterPoints.length);
     for (const [i, [east, north]] of harvesterPoints.entries()) {
@@ -210,10 +214,14 @@ describe("ISOXML field boundary and guidance lines (task 7.3 extension)", () => 
       const partfield = manager.getEntitiesOfTag(TAGS.Partfield)[0] as unknown as {
         attributes: PartfieldAttrs;
       };
-      expect((partfield.attributes.PolygonnonTreatmentZoneonly ?? []).length).toBeGreaterThanOrEqual(1);
+      expect(
+        (partfield.attributes.PolygonnonTreatmentZoneonly ?? []).length
+      ).toBeGreaterThanOrEqual(1);
       const guidanceGroups = partfield.attributes.GuidanceGroup ?? [];
       expect(guidanceGroups).toHaveLength(1);
-      expect((guidanceGroups[0]!.attributes.GuidancePattern ?? []).length).toBeGreaterThanOrEqual(2);
+      expect((guidanceGroups[0]!.attributes.GuidancePattern ?? []).length).toBeGreaterThanOrEqual(
+        2
+      );
       expect(manager.getWarnings()).toEqual([]);
     }
   });
