@@ -699,18 +699,30 @@ function isUtmEpsg(epsg: number): boolean {
  * `rate_design = select(trial_design, rate)` is plots + headlands). Unlike
  * the vector-fragment path, this is a per-polygon mean, not per-fragment.
  *
+ * Row orientation follows `raster.yres`'s sign (negative = north-up, row 0
+ * at maxY; positive = south-up, row 0 at minY) — both are handled.
+ *
  * If the raster's CRS is not WGS84, the design polygons are reprojected into
  * it (proj4, reusing projection.ts's UTM helpers) rather than resampling the
  * raster — cheaper, and exact for the point-in-polygon test either way.
- * Raster CRSs outside WGS84/UTM throw explicitly (out of scope: see
+ * A raster with no CRS at all (`epsg: null`, missing/unknown GeoKeys) throws:
+ * silently assuming WGS84 would mis-place every cell for projected rasters.
+ * Raster CRSs outside WGS84/UTM also throw explicitly (out of scope: see
  * projection.ts, which only derives WGS84<->UTM transforms).
  */
 export function extractRasterMeans(
   design: FeatureCollection,
   raster: RasterGrid
 ): RasterPlotMean[] {
-  const needsReprojection = raster.epsg !== null && raster.epsg !== 4326;
-  if (needsReprojection && !isUtmEpsg(raster.epsg!)) {
+  if (raster.epsg === null) {
+    throw new ValidationError(
+      "extractRasterMeans: the raster carries no CRS (missing or unrecognized GeoTIFF GeoKeys). " +
+        "Supply a georeferenced GeoTIFF whose CRS is WGS84 (EPSG:4326) or a UTM zone " +
+        "(EPSG:326xx north / 327xx south)."
+    );
+  }
+  const needsReprojection = raster.epsg !== 4326;
+  if (needsReprojection && !isUtmEpsg(raster.epsg)) {
     throw new ValidationError(
       `extractRasterMeans: unsupported raster CRS (EPSG:${raster.epsg}). Only WGS84 (EPSG:4326) ` +
         "and UTM zones (EPSG:326xx north / 327xx south) are supported; reproject the design " +
@@ -718,28 +730,36 @@ export function extractRasterMeans(
     );
   }
 
-  const minX = raster.bbox[0];
-  const maxY = raster.bbox[3];
-  const { width, height, xres, yres, data } = raster;
+  const [minX, minY, , maxY] = raster.bbox;
+  const { width, height, xres, data } = raster;
+  // yres is SIGNED (see RasterGrid): negative = north-up (row 0 at maxY),
+  // positive = south-up (row 0 at minY).
+  const northUp = raster.yres < 0;
+  const yresAbs = Math.abs(raster.yres);
+  // Fractional row index of a y coordinate, respecting orientation.
+  const rowOf = (y: number): number => (northUp ? (maxY - y) / yresAbs : (y - minY) / yresAbs);
   const results: RasterPlotMean[] = [];
 
   for (const feature of design.features) {
     const rawGeom = feature.geometry as Polygon | MultiPolygon | null;
     if (!rawGeom) continue;
-    const geom = needsReprojection ? projectGeom(rawGeom, raster.epsg!) : rawGeom;
+    const geom = needsReprojection ? projectGeom(rawGeom, raster.epsg) : rawGeom;
     const properties = feature.properties as DesignProperties;
     const dBbox = bboxOfGeom(geom);
     const dFeature = asFeature(geom);
 
     const colLo = Math.max(0, Math.floor((dBbox[0] - minX) / xres) - 1);
     const colHi = Math.min(width - 1, Math.ceil((dBbox[2] - minX) / xres) + 1);
-    const rowLo = Math.max(0, Math.floor((maxY - dBbox[3]) / yres) - 1);
-    const rowHi = Math.min(height - 1, Math.ceil((maxY - dBbox[1]) / yres) + 1);
+    // With a north-up raster rowOf(ymax) < rowOf(ymin); south-up flips that.
+    const rowA = rowOf(dBbox[1]);
+    const rowB = rowOf(dBbox[3]);
+    const rowLo = Math.max(0, Math.floor(Math.min(rowA, rowB)) - 1);
+    const rowHi = Math.min(height - 1, Math.ceil(Math.max(rowA, rowB)) + 1);
 
     let sum = 0;
     let count = 0;
     for (let row = rowLo; row <= rowHi; row++) {
-      const cellY = maxY - (row + 0.5) * yres;
+      const cellY = northUp ? maxY - (row + 0.5) * yresAbs : minY + (row + 0.5) * yresAbs;
       for (let col = colLo; col <= colHi; col++) {
         const value = data[row * width + col]!;
         if (Number.isNaN(value)) continue;

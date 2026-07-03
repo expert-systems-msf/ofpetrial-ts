@@ -124,6 +124,35 @@ compute_raster_correlation <- function(means, var) {
   list(var = var, corWithRate = stats::cor(means$rate, means$mean, use = "complete.obs"))
 }
 
+# Sanity gate: ofpetrial:::summarize_chars (the ACTUAL internal the exported
+# factor summary claims to replicate, ggplot figures and all) must reproduce
+# the written per-class table exactly — same classes in the same order, same
+# rate_mean/rate_sd.
+verify_factor_summary <- function(trial_design, soil_sf, written) {
+  ref <- ofpetrial:::summarize_chars(trial_design, soil_sf, "musym")$summary_data[[1]]
+  stopifnot(nrow(ref) == nrow(written))
+  stopifnot(identical(as.character(ref$musym), as.character(written$class)))
+  for (pair in list(c("rate_mean", "rateMean"), c("rate_sd", "rateSd"))) {
+    r <- ref[[pair[[1]]]]
+    w <- written[[pair[[2]]]]
+    stopifnot(identical(is.na(r), is.na(w)))
+    ok <- is.na(r) | abs(r - w) <= 1e-9 * pmax(1, abs(r))
+    stopifnot(all(ok))
+  }
+}
+
+# Sanity gate: ofpetrial:::summarize_chars' SpatRaster branch must reproduce
+# the written raster correlation, and recomputing the correlation from the
+# written per-plot means must agree too — tying the means table to the same
+# terra::extract output that produced the correlation.
+verify_raster_fixtures <- function(trial_design, rast, means, written_cor) {
+  ref_cor <- ofpetrial:::summarize_chars(trial_design, rast, "slope")$summary_data[[1]]$cor_with_rate
+  tol <- 1e-9 * max(1, abs(ref_cor))
+  stopifnot(abs(written_cor$corWithRate - ref_cor) <= tol)
+  cor_from_means <- stats::cor(means$rate, means$mean, use = "complete.obs")
+  stopifnot(abs(cor_from_means - ref_cor) <= tol)
+}
+
 # Alignment fragments: check_alignment's interior up to (but excluding) its
 # data.table aggregation — one row per harvester-strip x experiment-plot
 # intersection fragment (ha_area = harvester strip area clipped to the field).
@@ -259,11 +288,13 @@ run_case <- function(case_name, unit_system, inputs, boundary, abline, soil_sf, 
       factor_fragments <- compute_fragments(td$trial_design[[i]], soil_sf, "musym")
       write_json_file(factor_fragments, file.path(in_dir, "factor-fragments.json"))
       factor_summary <- compute_factor_summary(factor_fragments, "musym")
+      verify_factor_summary(td$trial_design[[i]], soil_sf, factor_summary)
       write_json_file(factor_summary, file.path(in_dir, "factor-summary.json"))
 
       raster_means <- compute_raster_plot_means(td$trial_design[[i]], slope_rast, "slope")
-      write_json_file(raster_means, file.path(in_dir, "raster-plot-means.json"))
       raster_cor <- compute_raster_correlation(raster_means, "slope")
+      verify_raster_fixtures(td$trial_design[[i]], slope_rast, raster_means, raster_cor)
+      write_json_file(raster_means, file.path(in_dir, "raster-plot-means.json"))
       write_json_file(raster_cor, file.path(in_dir, "raster-correlations.json"))
     }
   }

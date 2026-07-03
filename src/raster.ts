@@ -6,17 +6,22 @@
 import { fromArrayBuffer } from "geotiff";
 
 /**
- * Decoded single-band raster: band-1 cell values in row-major order (row 0 =
- * north/top, matching the GeoTIFF/terra convention), plus the geo transform
- * needed to compute cell-center coordinates.
+ * Decoded single-band raster: band cell values in row-major order, plus the
+ * geo transform needed to compute cell-center coordinates. Row orientation
+ * is carried by `yres`'s sign — do not assume north-up.
  */
 export interface RasterGrid {
   width: number;
   height: number;
   /** [minX, minY, maxX, maxY] in the raster's native CRS units. */
   bbox: [number, number, number, number];
-  /** Pixel size (always positive), in the raster's native CRS units. */
+  /** Pixel width (always positive), in the raster's native CRS units. */
   xres: number;
+  /**
+   * SIGNED pixel height (geotiff.js getResolution convention): negative for
+   * the usual north-up rasters (row 0 = north/top), positive for south-up
+   * rasters (row 0 = south/bottom). extractRasterMeans handles both.
+   */
   yres: number;
   /** Row-major band values, length width*height. NaN marks nodata cells. */
   data: Float64Array;
@@ -45,7 +50,8 @@ function epsgFromGeoKeys(geoKeys: Partial<Record<string, unknown>> | null): numb
  * raw bytes. Mirrors `terra::rast(path)` + implicit band-1 selection on the R
  * side closely enough for check_ortho_with_chars' raster branch: same cell
  * grid, same nodata handling (both the file's declared nodata value and
- * literal NaN cells are treated as missing).
+ * literal NaN cells are treated as missing). The y-resolution is kept SIGNED
+ * (negative = north-up) so south-up rasters keep their orientation.
  */
 export async function readGeoTiffRaster(bytes: Uint8Array, band = 0): Promise<RasterGrid> {
   // Copy to a zero-offset ArrayBuffer: geotiff.js requires ArrayBuffer, and a
@@ -57,8 +63,7 @@ export async function readGeoTiffRaster(bytes: Uint8Array, band = 0): Promise<Ra
   const width = image.getWidth();
   const height = image.getHeight();
   const [minX, minY, maxX, maxY] = image.getBoundingBox() as [number, number, number, number];
-  const [xres, yresSigned] = image.getResolution() as [number, number];
-  const yres = Math.abs(yresSigned);
+  const [xres, yres] = image.getResolution() as [number, number];
   const nodata = image.getGDALNoData();
 
   const rasters = await image.readRasters({ samples: [band], interleave: false });

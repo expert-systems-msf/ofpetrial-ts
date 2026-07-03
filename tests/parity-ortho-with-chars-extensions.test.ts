@@ -19,6 +19,8 @@ import type { Feature, FeatureCollection, LineString } from "geojson";
 import { checkOrthoWithChars, extractRasterMeans } from "../src/diagnostics.js";
 import type { RasterSoilData } from "../src/diagnostics.js";
 import { readGeoTiffRaster } from "../src/raster.js";
+import type { RasterGrid } from "../src/raster.js";
+import { ValidationError } from "../src/types.js";
 import type { InputDesign, PlotInfo, SoilFragment, TrialDesign } from "../src/types.js";
 import { relClose } from "../test-cases-runner/compare.js";
 
@@ -68,14 +70,6 @@ function buildTrialDesign(caseDir: string, inputName: string): TrialDesign {
     guidanceLines: { type: "FeatureCollection", features: [] },
   };
   return { inputs: [input], seed: 20_260_702 };
-}
-
-function fullDesignFC(td: TrialDesign): FeatureCollection {
-  const input = td.inputs[0]!;
-  return {
-    type: "FeatureCollection",
-    features: [...input.plots.features, ...input.headlands.features],
-  };
 }
 
 const UNIT_SYSTEMS = ["imperial", "metric"] as const;
@@ -141,23 +135,27 @@ describe("checkOrthoWithChars raster branch — full TS GeoTIFF path (1e-3)", ()
   for (const unitSystem of UNIT_SYSTEMS) {
     it(`matches R's per-plot means and correlation for simple1/${unitSystem} (extractRasterMeans)`, async () => {
       const caseDir = `fixtures/simple1/${unitSystem}`;
-      const td = buildTrialDesign(caseDir, "seed");
       const rasterBytes = loadBytes("fixtures/slope.tif");
       const raster = await readGeoTiffRaster(rasterBytes);
 
       const expectedMeans = load<RasterPlotMeanRow[]>(`${caseDir}/seed/raster-plot-means.json`);
       const expectedCor = load<RasterCorrelationRef>(`${caseDir}/seed/raster-correlations.json`);
 
-      const actualMeans = extractRasterMeans(fullDesignFC(td), raster);
+      // Pass the frozen trial-design.geojson directly: its feature order is
+      // exactly the R trial_design row order raster-plot-means.json was
+      // exported in, so rows can be compared by index position (a Map keyed
+      // on plotKey would collapse duplicate keys, e.g. multiple "headland"
+      // rows on multi-piece headlands).
+      const design = load<FeatureCollection>(`${caseDir}/seed/trial-design.geojson`);
+      const actualMeans = extractRasterMeans(design, raster);
       expect(actualMeans).toHaveLength(expectedMeans.length);
 
-      const expectedByKey = new Map(expectedMeans.map((m) => [m.plotKey, m]));
       let mismatched = 0;
-      for (const a of actualMeans) {
-        const e = expectedByKey.get(a.plotKey);
-        expect(e, `missing R reference for plotKey ${a.plotKey}`).toBeDefined();
-        expect(a.rate, `rate mismatch at ${a.plotKey}`).toBe(e!.rate);
-        if (!relClose(a.mean, e!.mean, 1e-3)) mismatched += 1;
+      for (const [index, e] of expectedMeans.entries()) {
+        const a = actualMeans[index]!;
+        expect(a.plotKey, `plotKey order mismatch at row ${index}`).toBe(e.plotKey);
+        expect(a.rate, `rate mismatch at row ${index} (${e.plotKey})`).toBe(e.rate);
+        if (!relClose(a.mean, e.mean, 1e-3)) mismatched += 1;
       }
       const mismatchRatio = mismatched / actualMeans.length;
       expect(
@@ -198,6 +196,89 @@ describe("checkOrthoWithChars raster branch — full TS GeoTIFF path (1e-3)", ()
     const raster = await readGeoTiffRaster(loadBytes("fixtures/slope.tif"));
     const soilData: RasterSoilData = { raster, variable: "slope" };
     expect(() => checkOrthoWithChars(td, soilData, ["not_slope"])).toThrow(/slope/);
+  });
+});
+
+// !===========================================================
+// ! extractRasterMeans unit tests — orientation & CRS guards
+// !===========================================================
+
+/**
+ * 2x2 synthetic grid over bbox [0,0]..[2,2] (WGS84), cell centers at
+ * x in {0.5, 1.5}, y in {0.5, 1.5}. Geographic values:
+ *   north row (y=1.5): 10 (west), 20 (east)
+ *   south row (y=0.5): 30 (west), 40 (east)
+ */
+function syntheticGrid(orientation: "north-up" | "south-up"): RasterGrid {
+  const northUp = orientation === "north-up";
+  return {
+    width: 2,
+    height: 2,
+    bbox: [0, 0, 2, 2],
+    xres: 1,
+    // Signed y-resolution: negative = row 0 at maxY, positive = row 0 at minY.
+    yres: northUp ? -1 : 1,
+    // Row-major storage flips with orientation for the SAME geographic scene.
+    data: northUp ? new Float64Array([10, 20, 30, 40]) : new Float64Array([30, 40, 10, 20]),
+    epsg: 4326,
+  };
+}
+
+/** Rectangle polygon design feature covering [x0,y0]..[x1,y1]. */
+function rectDesign(x0: number, y0: number, x1: number, y1: number): FeatureCollection {
+  return {
+    type: "FeatureCollection",
+    features: [
+      {
+        type: "Feature",
+        properties: { rate: 1, strip_id: 1, plot_id: 1 },
+        geometry: {
+          type: "Polygon",
+          coordinates: [
+            [
+              [x0, y0],
+              [x1, y0],
+              [x1, y1],
+              [x0, y1],
+              [x0, y0],
+            ],
+          ],
+        },
+      },
+    ],
+  };
+}
+
+describe("extractRasterMeans orientation and CRS guards", () => {
+  it("south-up raster (positive yres) yields the same geographic means as its north-up twin", () => {
+    // Upper half (y 1..2) contains only the north-row centers (y=1.5): 10, 20.
+    const upperHalf = rectDesign(0, 1, 2, 2);
+    // Lower half (y 0..1) contains only the south-row centers (y=0.5): 30, 40.
+    const lowerHalf = rectDesign(0, 0, 2, 1);
+
+    for (const orientation of ["north-up", "south-up"] as const) {
+      const grid = syntheticGrid(orientation);
+      expect(extractRasterMeans(upperHalf, grid)[0]!.mean, `${orientation} upper half`).toBe(15);
+      expect(extractRasterMeans(lowerHalf, grid)[0]!.mean, `${orientation} lower half`).toBe(35);
+    }
+  });
+
+  it("full-extent polygon averages all four cells regardless of orientation", () => {
+    const full = rectDesign(0, 0, 2, 2);
+    expect(extractRasterMeans(full, syntheticGrid("north-up"))[0]!.mean).toBe(25);
+    expect(extractRasterMeans(full, syntheticGrid("south-up"))[0]!.mean).toBe(25);
+  });
+
+  it("throws ValidationError when the raster carries no CRS (epsg: null)", () => {
+    const grid = { ...syntheticGrid("north-up"), epsg: null };
+    expect(() => extractRasterMeans(rectDesign(0, 0, 2, 2), grid)).toThrow(ValidationError);
+    expect(() => extractRasterMeans(rectDesign(0, 0, 2, 2), grid)).toThrow(/georeferenced/);
+  });
+
+  it("throws ValidationError on a non-WGS84, non-UTM raster CRS", () => {
+    const grid = { ...syntheticGrid("north-up"), epsg: 3857 };
+    expect(() => extractRasterMeans(rectDesign(0, 0, 2, 2), grid)).toThrow(ValidationError);
+    expect(() => extractRasterMeans(rectDesign(0, 0, 2, 2), grid)).toThrow(/3857/);
   });
 });
 
