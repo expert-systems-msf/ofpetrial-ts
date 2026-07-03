@@ -128,8 +128,16 @@ describe("makeExpPlots parity with R fixtures", () => {
             const rByKey = groupByKey(rPlots.features as PolyFeature[]);
             const tsByKey = groupByKey(layout.plots.features as PolyFeature[]);
 
-            expect([...tsByKey.keys()].sort((a, b) => a.localeCompare(b))).toEqual(
-              [...rByKey.keys()].sort((a, b) => a.localeCompare(b))
+            expect(
+              tsByKey
+                .keys()
+                .toArray()
+                .toSorted((a, b) => a.localeCompare(b))
+            ).toEqual(
+              rByKey
+                .keys()
+                .toArray()
+                .toSorted((a, b) => a.localeCompare(b))
             );
             expect(layout.plots.features).toHaveLength(rPlots.features.length);
 

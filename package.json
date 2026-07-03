@@ -68,7 +68,7 @@
     "vitest": "^3.2.4"
   },
   "engines": {
-    "node": ">=20"
+    "node": ">=22"
   },
   "author": "expert-systems-msf",
   "bugs": "https://github.com/expert-systems-msf/ofpetrial-ts/issues",

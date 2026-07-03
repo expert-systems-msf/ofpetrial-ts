@@ -83,7 +83,7 @@ function cleanRing(ring: Pt[]): Ring | null {
 /** Sorted merge of possibly overlapping intervals. */
 function mergeIntervals(list: Interval[]): Interval[] {
   if (list.length === 0) return [];
-  const sorted = [...list].sort((a, b) => a[0] - b[0]);
+  const sorted = list.toSorted((a, b) => a[0] - b[0]);
   const out: Interval[] = [[sorted[0]![0], sorted[0]![1]]];
   for (let index = 1; index < sorted.length; index++) {
     const [s, e] = sorted[index]!;
@@ -199,7 +199,7 @@ function samplePointInRing(ring: Ring): Pt | null {
   const ys = ring
     .slice(0, n)
     .map((p) => p[1])
-    .sort((a, b) => a - b);
+    .toSorted((a, b) => a - b);
   const yMid = ys[Math.floor(n / 2)]!;
   for (const v of [yMid + 1e-9, yMid - 1e-9, (ys[0]! + ys[n - 1]!) / 2]) {
     const intervals = ringIntervalsAt(ring, v);
@@ -292,7 +292,7 @@ function unkinkRing(ring: Ring): Ring[] {
 
 /** Rewinds a ring to counter-clockwise orientation. */
 function toCcw(ring: Ring): Ring {
-  return signedRingArea(ring) >= 0 ? ring : [...ring].reverse();
+  return signedRingArea(ring) >= 0 ? ring : ring.toReversed();
 }
 
 /**

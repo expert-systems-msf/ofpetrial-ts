@@ -109,9 +109,9 @@ for (const { caseDir, inputs } of CASES) {
           join(ROOT, `fixtures/${caseDir}/${unit}/r-exports/trial-design-seed.prj`),
           "utf8"
         );
-        for (const path of Object.keys(files)) {
+        for (const [path, content] of Object.entries(files)) {
           if (path.endsWith(".prj")) {
-            expect(new TextDecoder().decode(files[path]!)).toBe(rPrj);
+            expect(new TextDecoder().decode(content)).toBe(rPrj);
           }
         }
       });

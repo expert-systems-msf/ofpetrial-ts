@@ -1,9 +1,10 @@
 {
   "compilerOptions": {
-    "target": "ES2022",
+    "target": "ES2023",
     "module": "ESNext",
     "moduleResolution": "bundler",
-    "lib": ["ES2022"],
+    // ES2023: Array.toSorted/toReversed; ESNext.Iterator: Iterator.prototype.toArray (Node 22, see engines)
+    "lib": ["ES2023", "ESNext.Iterator"],
     "strict": true,
     "noUncheckedIndexedAccess": true,
     "exactOptionalPropertyTypes": true,

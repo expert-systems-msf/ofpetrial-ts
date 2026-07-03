@@ -55,7 +55,7 @@ function mean(values: number[]): number {
 }
 
 function median(values: number[]): number {
-  const sorted = [...values].sort((a, b) => a - b);
+  const sorted = values.toSorted((a, b) => a - b);
   const mid = Math.floor(sorted.length / 2);
   return sorted.length % 2 === 0 ? (sorted[mid - 1]! + sorted[mid]!) / 2 : sorted[mid]!;
 }
@@ -318,11 +318,11 @@ export function getStartingRankAsLs(rankSeqWs: number[], rng: Rng): number[] {
 
   if (numberRates >= 9) {
     const temporary = range(1, numberRates);
-    const out = new Array<number>(numberRates);
+    const out: number[] = Array.from({ length: numberRates });
     const evenPositions: number[] = [];
     for (let index = 0; index < numberRates; index++)
       if ((index + 1) % 2 === 0) evenPositions.push(index);
-    const evenValsReversed = evenPositions.map((index) => temporary[index]!).reverse();
+    const evenValsReversed = evenPositions.map((index) => temporary[index]!).toReversed();
     for (const [k, index] of evenPositions.entries()) {
       out[index] = evenValsReversed[k]!;
     }
@@ -397,7 +397,7 @@ function assignLs(
   // sequences skipped — no effect on the returned design).
 
   const stripGroups = groupByStrip(plots);
-  const stripIds = [...stripGroups.keys()];
+  const stripIds = stripGroups.keys().toArray();
   const maxStripId = stripIds.length === 0 ? 0 : Math.max(...stripIds);
   const fullStartSeqLong = repeatArray(rankSeqAs!, Math.ceil(maxStripId / numberRates) + 5);
 
@@ -511,7 +511,7 @@ function assignRstr(
 ): Map<Feature, RateData> {
   const numberRates = ratesData.length;
   const stripGroups = groupByStrip(plots);
-  const stripIds = [...stripGroups.keys()];
+  const stripIds = stripGroups.keys().toArray();
   const maxStripId = stripIds.length === 0 ? 0 : Math.max(...stripIds);
   const blocks = Math.max(1, Math.ceil(maxStripId / numberRates));
   const startRankAs: number[] = [];
@@ -554,7 +554,7 @@ function assignEjca(
   ratesData: RateData[],
   rateJumpThreshold: number | null
 ): Map<Feature, RateData> {
-  const sorted = [...ratesData].sort((a, b) => a.rate_rank - b.rate_rank);
+  const sorted = ratesData.toSorted((a, b) => a.rate_rank - b.rate_rank);
   const medianRank = median(sorted.map((r) => r.rate_rank));
   const tiers: Array<{ rates: RateData[]; isOddStrip: boolean }> = [
     { rates: sorted.filter((r) => r.rate_rank < medianRank), isOddStrip: true },
@@ -569,14 +569,16 @@ function assignEjca(
     const numberLevels = tier.rates.length;
     const basicSeq = genBasicRankWs(numberLevels, rateJumpThreshold);
 
-    const stripIds = [...stripGroups.keys()]
+    const stripIds = stripGroups
+      .keys()
       .filter((sid) => (sid % 2 === 1) === tier.isOddStrip)
-      .sort((a, b) => a - b);
+      .toArray()
+      .toSorted((a, b) => a - b);
 
     const rows: Feature[] = [];
     stripIds.forEach((sid, groupIndex) => {
       const feats = stripGroups.get(sid)!;
-      rows.push(...((groupIndex + 1) % 2 === 0 ? [...feats].reverse() : feats));
+      rows.push(...((groupIndex + 1) % 2 === 0 ? feats.toReversed() : feats));
     });
 
     const rankInTierSeq = repeatArray(basicSeq, Math.ceil(rows.length / numberLevels)).slice(
@@ -791,7 +793,9 @@ export function getDesignForSecond(
   const epsg = firstEpsg(secondFeatures);
   const centroids = secondFeatures.map((f) => utmCentroid(f, epsg));
   const n = numberPlots;
-  const invDistribution: number[][] = Array.from({ length: n }, () => new Array<number>(n).fill(0));
+  const invDistribution: number[][] = Array.from({ length: n }, () =>
+    Array.from({ length: n }, () => 0)
+  );
   for (let index = 0; index < n; index++) {
     for (let index_ = 0; index_ < n; index_++) {
       if (index !== index_)
@@ -814,14 +818,14 @@ export function getDesignForSecond(
     stripIndex.set(stripId, array);
   }
 
-  const rateTable: number[] = new Array<number>(numberPlots);
+  const rateTable: number[] = Array.from({ length: numberPlots });
 
   for (let rowIndex = 0; rowIndex < numberPlots; rowIndex++) {
     const { stripId, plotId } = plotProperties(secondFeatures[rowIndex]!);
     const rateRank1st = firstDesignRates[rowIndex]!;
 
+    let rateRank2nd: number;
     if (stripId === 1) {
-      let rateRank2nd: number;
       if (plotId === 1) {
         rateRank2nd = rng.nextInt(numberRates) + 1;
       } else {
@@ -836,8 +840,6 @@ export function getDesignForSecond(
         const tied = candidates.filter((c) => c.cases === minCases);
         rateRank2nd = rng.sample(tied, 1)[0]!.rateRank2;
       }
-      rateTable[rowIndex] = rateRank2nd;
-      updateComb(rateRank1st, rateRank2nd);
     } else {
       const previousIndices = stripIndex.get(stripId - 1) ?? [];
       let nearestIndex = previousIndices[0] ?? rowIndex - 1;
@@ -851,7 +853,7 @@ export function getDesignForSecond(
       }
       const rateRank2ndNb = rateTable[nearestIndex]!;
       const rateRank2ndPrevious = rateTable[rowIndex - 1]!;
-      const rateRank2nd = findRate(
+      rateRank2nd = findRate(
         rowIndex,
         plotId,
         { rateRank1st, rateRank2ndNb, rateRank2ndPrev: rateRank2ndPrevious },
@@ -860,9 +862,9 @@ export function getDesignForSecond(
         W,
         rng
       );
-      rateTable[rowIndex] = rateRank2nd;
-      updateComb(rateRank1st, rateRank2nd);
     }
+    rateTable[rowIndex] = rateRank2nd;
+    updateComb(rateRank1st, rateRank2nd);
   }
 
   const result = new Map<Feature, RateData>();

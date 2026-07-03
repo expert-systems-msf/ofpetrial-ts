@@ -27,7 +27,7 @@ function signedArea(ring: Ring): number {
 /** Right-hand rule: exterior ring CCW (area > 0), hole rings CW (area < 0). */
 function rightHandRing(ring: Ring, isExterior: boolean): Ring {
   const isCcw = signedArea(ring) > 0;
-  return isCcw === isExterior ? ring : [...ring].reverse();
+  return isCcw === isExterior ? ring : ring.toReversed();
 }
 
 function fixPolygonWinding(geometry: Polygon | MultiPolygon): Polygon | MultiPolygon {
