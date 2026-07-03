@@ -122,12 +122,14 @@
       "tsFile": "src/diagnostics.ts",
       "tsSymbol": "checkOrthoWithChars",
       "testCases": [
-        "tests/parity-diagnostics.test.ts"
+        "tests/parity-diagnostics.test.ts",
+        "tests/parity-ortho-with-chars-extensions.test.ts"
       ],
       "status": "ported",
       "deviations": [
-        "vector polygon/point layers with numeric variables only (factor summaries and raster layers out of ported scope; character vars throw ValidationError)",
-        "no ggplot output: correlations table only; public spatialJoin utility exposes the fragments"
+        "no ggplot output: correlations/summary tables only; public spatialJoin utility exposes the fragments",
+        "raster layers supported via GeoTIFF (readGeoTiffRaster + extractRasterMeans, terra::extract fun=mean cell-center semantics, north-up and south-up); raster CRS must be WGS84 or UTM-reprojectable, unknown EPSG throws",
+        "character/factor variables return per-class rate mean/sd (factorSummaries field, additive to the result shape)"
       ]
     },
     {

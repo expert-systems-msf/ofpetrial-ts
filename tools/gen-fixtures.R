@@ -19,6 +19,7 @@ suppressPackageStartupMessages({
   library(dplyr)
   library(jsonlite)
   library(data.table)
+  library(terra)
 })
 
 SEED <- 20260702
@@ -87,6 +88,69 @@ compute_correlations <- function(fragments, vars) {
     list(var = v, corWithRate = m[1, 2])
   })
   cors
+}
+
+# Factor/character summary: summarize_indiv_char's character branch, over the
+# SAME st_intersection fragments as the numeric vars (compute_fragments is
+# generic in `vars` and works unmodified for a character column) — unweighted
+# mean(rate)/sd(rate) grouped by class, first-appearance order (data.table's
+# default `by=`, no sort).
+compute_factor_summary <- function(fragments, var) {
+  dt <- data.table::as.data.table(fragments)
+  out <- dt[, .(rateMean = mean(rate), rateSd = stats::sd(rate)), by = var]
+  data.frame(class = out[[var]], rateMean = out$rateMean, rateSd = out$rateSd)
+}
+
+# Raster branch: check_ortho_with_chars' SpatRaster path (summarize_chars) —
+# terra::extract(raster, rate_design, fun = mean, na.rm = TRUE) over the FULL
+# trial design (plots + headlands), one row per design polygon (per-plot
+# mean, not per-fragment — see diagnose.R and diagnostics.ts's
+# extractRasterMeans docstring for why this differs from the vector path).
+compute_raster_plot_means <- function(trial_design, rast, var) {
+  design <- dplyr::select(trial_design, rate, strip_id, plot_id, type)
+  ext <- terra::extract(rast, dplyr::select(design, rate), fun = mean, na.rm = TRUE)
+  design_df <- sf::st_drop_geometry(design)
+  plot_key <- ifelse(
+    design_df$type == "headland",
+    "headland",
+    paste0(design_df$strip_id, ":", design_df$plot_id)
+  )
+  data.frame(plotKey = plot_key, rate = design_df$rate, mean = ext[[var]])
+}
+
+# Reference correlation for the raster branch: unweighted cor(use =
+# "complete.obs") between rate and the per-plot raster mean.
+compute_raster_correlation <- function(means, var) {
+  list(var = var, corWithRate = stats::cor(means$rate, means$mean, use = "complete.obs"))
+}
+
+# Sanity gate: ofpetrial:::summarize_chars (the ACTUAL internal the exported
+# factor summary claims to replicate, ggplot figures and all) must reproduce
+# the written per-class table exactly — same classes in the same order, same
+# rate_mean/rate_sd.
+verify_factor_summary <- function(trial_design, soil_sf, written) {
+  ref <- ofpetrial:::summarize_chars(trial_design, soil_sf, "musym")$summary_data[[1]]
+  stopifnot(nrow(ref) == nrow(written))
+  stopifnot(identical(as.character(ref$musym), as.character(written$class)))
+  for (pair in list(c("rate_mean", "rateMean"), c("rate_sd", "rateSd"))) {
+    r <- ref[[pair[[1]]]]
+    w <- written[[pair[[2]]]]
+    stopifnot(identical(is.na(r), is.na(w)))
+    ok <- is.na(r) | abs(r - w) <= 1e-9 * pmax(1, abs(r))
+    stopifnot(all(ok))
+  }
+}
+
+# Sanity gate: ofpetrial:::summarize_chars' SpatRaster branch must reproduce
+# the written raster correlation, and recomputing the correlation from the
+# written per-plot means must agree too — tying the means table to the same
+# terra::extract output that produced the correlation.
+verify_raster_fixtures <- function(trial_design, rast, means, written_cor) {
+  ref_cor <- ofpetrial:::summarize_chars(trial_design, rast, "slope")$summary_data[[1]]$cor_with_rate
+  tol <- 1e-9 * max(1, abs(ref_cor))
+  stopifnot(abs(written_cor$corWithRate - ref_cor) <= tol)
+  cor_from_means <- stats::cor(means$rate, means$mean, use = "complete.obs")
+  stopifnot(abs(cor_from_means - ref_cor) <= tol)
 }
 
 # Alignment fragments: check_alignment's interior up to (but excluding) its
@@ -167,7 +231,7 @@ verify_ortho_fragments <- function(frags, expected_cor) {
   stopifnot(abs(cor_check - expected_cor) <= 1e-9 * max(1, abs(expected_cor)))
 }
 
-run_case <- function(case_name, unit_system, inputs, boundary, abline, soil_sf, soil_vars) {
+run_case <- function(case_name, unit_system, inputs, boundary, abline, soil_sf, soil_vars, slope_rast) {
   case_dir <- file.path(OUT, case_name, unit_system)
   dir.create(case_dir, recursive = TRUE, showWarnings = FALSE)
 
@@ -217,6 +281,22 @@ run_case <- function(case_name, unit_system, inputs, boundary, abline, soil_sf, 
     write_json_file(fragments, file.path(in_dir, "fragments.json"))
     correlations <- if (nrow(fragments) > 0) compute_correlations(fragments, soil_vars) else list()
     write_json_file(correlations, file.path(in_dir, "correlations.json"))
+
+    # -- raster + factor fixtures (additive, simple1 only: the soil layer and
+    # slope.tif both only cover that field's extent) --
+    if (case_name == "simple1") {
+      factor_fragments <- compute_fragments(td$trial_design[[i]], soil_sf, "musym")
+      write_json_file(factor_fragments, file.path(in_dir, "factor-fragments.json"))
+      factor_summary <- compute_factor_summary(factor_fragments, "musym")
+      verify_factor_summary(td$trial_design[[i]], soil_sf, factor_summary)
+      write_json_file(factor_summary, file.path(in_dir, "factor-summary.json"))
+
+      raster_means <- compute_raster_plot_means(td$trial_design[[i]], slope_rast, "slope")
+      raster_cor <- compute_raster_correlation(raster_means, "slope")
+      verify_raster_fixtures(td$trial_design[[i]], slope_rast, raster_means, raster_cor)
+      write_json_file(raster_means, file.path(in_dir, "raster-plot-means.json"))
+      write_json_file(raster_cor, file.path(in_dir, "raster-correlations.json"))
+    }
   }
 
   # -- checks --
@@ -267,11 +347,17 @@ abline_holes <- st_read(file.path(ED, "ab_line_for_field_with_holes.shp"), quiet
 ssurgo <- st_read(file.path(ED, "ssurgo-simple1.shp"), quiet = TRUE)
 soil_vars <- names(ssurgo)[vapply(st_drop_geometry(ssurgo), is.numeric, logical(1))]
 
+# Raster soil layer for the SpatRaster branch of check_ortho_with_chars
+# (simple1 only — its extent matches the simple1 field, same as ssurgo above).
+slope_rast <- terra::rast(file.path(ED, "slope.tif"))
+
 unlink(OUT, recursive = TRUE)
 dir.create(OUT, showWarnings = FALSE)
 
 # The shared soil layer, reprojected to WGS84 for the TS spatial-join tests.
 write_geojson(st_transform(ssurgo, 4326), file.path(OUT, "ssurgo-simple1.geojson"))
+# Versioned copy of the raster asset so TS tests can read it directly.
+file.copy(file.path(ED, "slope.tif"), file.path(OUT, "slope.tif"), overwrite = TRUE)
 
 # --- case definitions --------------------------------------------------------
 # plot_args/rate_args are unit-system-specific; imperial mirrors the package
@@ -331,7 +417,7 @@ for (us in unit_systems) {
   for (cd in case_defs) {
     message(sprintf("== case %s / %s ==", cd$name, us))
     inputs <- lapply(cd$input_factories, function(f) f(us))
-    run_case(cd$name, us, inputs, cd$boundary, cd$abline, ssurgo, soil_vars)
+    run_case(cd$name, us, inputs, cd$boundary, cd$abline, ssurgo, soil_vars, slope_rast)
   }
 }
 

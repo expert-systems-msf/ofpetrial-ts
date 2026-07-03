@@ -90,7 +90,12 @@ export interface SoilFragment {
   /** `"${strip_id}:${plot_id}"` or `"headland"`. */
   plotKey: string;
   rate: number;
-  values: Record<string, number>;
+  /**
+   * varName -> value. Numeric soil properties (correlation branch) and
+   * character/factor soil properties (per-class rate_mean/rate_sd branch,
+   * R: summarize_indiv_char) share this record — see checkOrthoWithChars.
+   */
+  values: Record<string, number | string>;
 }
 
 /**
