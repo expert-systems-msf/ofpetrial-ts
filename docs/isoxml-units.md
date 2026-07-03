@@ -123,3 +123,24 @@ requirement), leaving 254 usable codes, assigned starting at `1`.
 - Guidance lines (applicator/harvester ab-lines) are not exported to ISOXML
   (ISOXML guidance patterns, `GPN`/`GST`/`LSG` guidance sets, are out of the
   beta scope per spec.md).
+
+## Terminal import
+
+ISO 11783-10 terminals scan the storage medium root for
+`TASKDATA/TASKDATA.XML`.
+
+- **Single-input designs**: `writeTrialFiles(td, { ext: "isoxml" })` places
+  the file at exactly `TASKDATA/TASKDATA.XML` inside the zip — unzip the
+  archive onto the medium root and the terminal finds it directly.
+- **Multi-input designs**: each input gets its own
+  `<inputName>/TASKDATA/TASKDATA.XML`. A terminal reads ONE `TASKDATA/`
+  directory per medium, so copy the chosen input's `TASKDATA/` folder to the
+  medium root for each transfer (e.g. `cp -r seed/TASKDATA /Volumes/USB/`),
+  one input at a time.
+
+Validated with the reference JS implementation
+([dev4Agriculture `isoxml`](https://github.com/dev4Agriculture/isoxml-js),
+the parser behind isoxml.online): both layouts import with zero parser
+warnings and correct partfield/task/treatment-zone structure
+(`tests/exports-isoxml-terminal.test.ts`). The export stays **beta** until a
+run on physical terminal hardware confirms it end-to-end.
