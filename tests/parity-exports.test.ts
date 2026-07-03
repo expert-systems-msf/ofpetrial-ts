@@ -167,8 +167,8 @@ describe("writeTrialFiles(ext=isoxml) — two-input DDI mapping (imperial)", () 
     const zip = writeTrialFiles(td, { ext: "isoxml" });
     const files = unzipSync(zip);
 
-    const seedXml = new TextDecoder().decode(files["seed/TASKDATA.XML"]!);
-    const nh3Xml = new TextDecoder().decode(files["NH3/TASKDATA.XML"]!);
+    const seedXml = new TextDecoder().decode(files["seed/TASKDATA/TASKDATA.XML"]!);
+    const nh3Xml = new TextDecoder().decode(files["NH3/TASKDATA/TASKDATA.XML"]!);
 
     const seedPdvs = parseTags(seedXml).filter((t) => t.name === "PDV");
     const nh3Pdvs = parseTags(nh3Xml).filter((t) => t.name === "PDV");

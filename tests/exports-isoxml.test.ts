@@ -153,7 +153,7 @@ describe("writeIsoxml — metric units (hectare basis, kg and liters DDI mapping
       ],
     };
     const files = unzipSync(writeTrialFiles(td, { ext: "isoxml" }));
-    return new TextDecoder().decode(files["tiny/TASKDATA.XML"]!);
+    return new TextDecoder().decode(files["TASKDATA/TASKDATA.XML"]!);
   }
 
   it("kg/ha -> DDI 0006 with mg/m2 conversion over 10 000 m2 (200 kg/ha -> 20000)", async () => {
@@ -181,7 +181,7 @@ describe("writeIsoxml — metric units (hectare basis, kg and liters DDI mapping
     const { unzipSync } = await import("fflate");
     const td = loadTrialDesign("two-input", "metric", ["seed", "NH3"]);
     const files = unzipSync(writeTrialFiles(td, { ext: "isoxml" }));
-    const nh3Pdvs = parseTags(new TextDecoder().decode(files["NH3/TASKDATA.XML"]!)).filter(
+    const nh3Pdvs = parseTags(new TextDecoder().decode(files["NH3/TASKDATA/TASKDATA.XML"]!)).filter(
       (t) => t.name === "PDV"
     );
     expect(nh3Pdvs.length).toBeGreaterThan(0);

@@ -7,7 +7,8 @@
 //   <inputName>/ab-line.<ext>
 //   harvester-ab-line/harvester-ab-line.<ext>
 // ISOXML exception (ISO 11783-10 terminals look for this exact name):
-//   <inputName>/TASKDATA.XML   — no ab-lines, no harvester-ab-line dir.
+//   TASKDATA/TASKDATA.XML (single input) or <inputName>/TASKDATA/TASKDATA.XML
+//   (multi-input) — no ab-lines, no harvester-ab-line dir.
 import { zipSync } from "fflate";
 import type { Feature, FeatureCollection, LineString, MultiPolygon, Polygon } from "geojson";
 import type { InputDesign, TrialDesign } from "../types.js";
@@ -150,7 +151,14 @@ export function writeTrialFiles(td: TrialDesign, opts: WriteTrialFilesOptions): 
         geometry: f.geometry as Polygon | MultiPolygon,
         rate: f.properties["rate"] as number,
       }));
-      entries[`${inputName}/TASKDATA.XML`] = writeIsoxml(plots, {
+      // ISO 11783-10 terminals scan the medium root for TASKDATA/TASKDATA.XML.
+      // Single input: emit exactly that, so unzipping onto a USB stick imports
+      // directly. Multiple inputs: one TASKDATA dir per input subdirectory —
+      // copy ONE input's TASKDATA/ folder to the medium root per transfer
+      // (docs/isoxml-units.md, "Terminal import").
+      const isoxmlPath =
+        td.inputs.length === 1 ? "TASKDATA/TASKDATA.XML" : `${inputName}/TASKDATA/TASKDATA.XML`;
+      entries[isoxmlPath] = writeIsoxml(plots, {
         inputName,
         unitSystem: input.plotInfo.unit_system,
         rateUnit,

@@ -63,11 +63,11 @@ describe("writeTrialFiles — ext=geojson", () => {
 });
 
 describe("writeTrialFiles — ext=isoxml", () => {
-  it("no ab-lines, no harvester dir; TASKDATA.XML per input (ISO 11783-10 naming)", () => {
+  it("no ab-lines, no harvester dir; TASKDATA/TASKDATA.XML per input (ISO 11783-10 naming)", () => {
     const td = loadTrialDesign("two-input", "imperial", ["seed", "NH3"]);
     const zip = writeTrialFiles(td, { ext: "isoxml" });
     const paths = Object.keys(unzipSync(zip)).sort();
-    expect(paths).toEqual(["NH3/TASKDATA.XML", "seed/TASKDATA.XML"]);
+    expect(paths).toEqual(["NH3/TASKDATA/TASKDATA.XML", "seed/TASKDATA/TASKDATA.XML"]);
   });
 });
 
