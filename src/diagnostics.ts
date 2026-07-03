@@ -515,6 +515,11 @@ function designPlotKey(properties: DesignProperties): string {
  * property (R's numeric and factor/character columns both feed
  * `summarize_indiv_char`) — vector soil layers only; raster (`SpatRaster`)
  * layers go through `extractRasterMeans` instead, see checkOrthoWithChars.
+ *
+ * `design` is a FLATTENED FeatureCollection (experiment plots + headlands in
+ * one collection, each feature carrying rate/strip_id/plot_id/type props),
+ * not a TrialDesign. From a TrialDesign input:
+ * `{ type: "FeatureCollection", features: [...input.plots.features, ...input.headlands.features] }`.
  */
 export function spatialJoin(
   design: FeatureCollection,
@@ -709,6 +714,9 @@ function isUtmEpsg(epsg: number): boolean {
  * silently assuming WGS84 would mis-place every cell for projected rasters.
  * Raster CRSs outside WGS84/UTM also throw explicitly (out of scope: see
  * projection.ts, which only derives WGS84<->UTM transforms).
+ *
+ * Like `spatialJoin`, `design` is a FLATTENED FeatureCollection (plots +
+ * headlands merged), not a TrialDesign.
  */
 export function extractRasterMeans(
   design: FeatureCollection,
@@ -841,7 +849,15 @@ export function checkOrthoWithChars(
     if (soilData.length === 0) {
       throw new ValidationError("checkOrthoWithChars received an empty soil fragment table.");
     }
-    sampleValues = soilData[0]!.values;
+    const first = soilData[0]!;
+    if (typeof first.values !== "object" || first.values === null) {
+      throw new ValidationError(
+        "checkOrthoWithChars: each SoilFragment must be { plotKey, rate, values: { <var>: ... } }. " +
+          "Flat rows (e.g. R fixture fragments.json: { plotKey, rate, clay, ... }) must be mapped " +
+          "into the values object first: rows.map(({ plotKey, rate, ...values }) => ({ plotKey, rate, values }))."
+      );
+    }
+    sampleValues = first.values;
     for (const v of variables) {
       if (!Object.hasOwn(sampleValues, v)) {
         throw new ValidationError(

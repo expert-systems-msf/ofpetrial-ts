@@ -21,6 +21,7 @@ import type { RasterSoilData } from "../src/diagnostics.js";
 import { readGeoTiffRaster } from "../src/raster.js";
 import type { RasterGrid } from "../src/raster.js";
 import { ValidationError } from "../src/types.js";
+import { loadTrialDesign } from "./exports-fixtures.js";
 import type { InputDesign, PlotInfo, SoilFragment, TrialDesign } from "../src/types.js";
 import { relClose } from "../test-cases-runner/compare.js";
 
@@ -428,5 +429,16 @@ describe("checkOrthoWithChars mixed numeric + factor vars", () => {
     expect(result[0]!.correlations[0]!.var).toBe("clay");
     expect(result[0]!.factorSummaries).toHaveLength(1);
     expect(result[0]!.factorSummaries[0]!.var).toBe("musym");
+  });
+});
+
+describe("SoilFragment shape validation (DX)", () => {
+  it("rejects flat fragment rows with a ValidationError explaining the mapping", () => {
+    const td = loadTrialDesign("simple1", "imperial", ["seed"]);
+    const flatRows = [
+      { plotKey: "1:1", rate: 34_000, clay: 25.1 },
+    ] as unknown as SoilFragment[];
+    expect(() => checkOrthoWithChars(td, flatRows, ["clay"])).toThrow(ValidationError);
+    expect(() => checkOrthoWithChars(td, flatRows, ["clay"])).toThrow(/values/);
   });
 });
