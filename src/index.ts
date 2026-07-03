@@ -49,15 +49,23 @@ export type {
   AlignmentOverlapRow,
   AlignmentResult,
   CharCorrelation,
+  FactorClassSummary,
+  FactorVarSummary,
   OrthoInputsFragment,
   OrthoWithCharsResult,
+  RasterPlotMean,
+  RasterSoilData,
 } from "./diagnostics.js";
 export {
   checkAlignment,
   checkOrthoInputs,
   checkOrthoWithChars,
+  extractRasterMeans,
   spatialJoin,
 } from "./diagnostics.js";
+
+export type { RasterGrid } from "./raster.js";
+export { readGeoTiffRaster } from "./raster.js";
 
 export type { WriteTrialFilesExt, WriteTrialFilesOptions } from "./exports/write-trial-files.js";
 export { writeTrialFiles, writeTrialFilesToDisk } from "./exports/write-trial-files.js";
