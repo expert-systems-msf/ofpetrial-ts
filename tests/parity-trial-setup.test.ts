@@ -23,7 +23,11 @@ interface FixtureParams {
   num_rates?: number;
 }
 
-function fixtureDirs(): Array<{ caseName: string; unitSystem: "imperial" | "metric"; dir: string }> {
+function fixtureDirs(): Array<{
+  caseName: string;
+  unitSystem: "imperial" | "metric";
+  dir: string;
+}> {
   const out: Array<{ caseName: string; unitSystem: "imperial" | "metric"; dir: string }> = [];
   for (const caseName of readdirSync(FIXTURES)) {
     const casePath = join(FIXTURES, caseName);
@@ -73,7 +77,7 @@ describe("prepPlot / prepRate parity with R fixtures", () => {
             // 1 cm tolerance (task 3.1)
             expect(
               Math.abs(ts[field] - (r[field] as number)),
-              `${field}: ${ts[field]} vs R ${String(r[field])}`,
+              `${field}: ${ts[field]} vs R ${String(r[field])}`
             ).toBeLessThanOrEqual(0.01);
           }
         });

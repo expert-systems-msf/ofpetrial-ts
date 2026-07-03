@@ -33,13 +33,9 @@ describe("getRates", () => {
 
   it("puts more levels on the roomier side of gcRate", () => {
     const high = getRates(100, 260, 120, 5);
-    expect(high.filter((r) => r > 120).length).toBeGreaterThan(
-      high.filter((r) => r < 120).length,
-    );
+    expect(high.filter((r) => r > 120).length).toBeGreaterThan(high.filter((r) => r < 120).length);
     const low = getRates(100, 260, 240, 5);
-    expect(low.filter((r) => r < 240).length).toBeGreaterThan(
-      low.filter((r) => r > 240).length,
-    );
+    expect(low.filter((r) => r < 240).length).toBeGreaterThan(low.filter((r) => r > 240).length);
   });
 
   it("always includes gcRate on asymmetric splits", () => {
@@ -167,16 +163,16 @@ describe("prepRate", () => {
         unit: "seeds",
         rates: [20000, 27000, 41000, 48000],
         designType: "sparse",
-      }),
+      })
     ).toThrow(ValidationError);
   });
 
   it("rejects odd ejca rate counts and unknown design types", () => {
     expect(() =>
-      prepRate(pi, { gcRate: 1, unit: "lb", rates: [1, 2, 3], designType: "ejca" }),
+      prepRate(pi, { gcRate: 1, unit: "lb", rates: [1, 2, 3], designType: "ejca" })
     ).toThrow(/odd number/);
     expect(() =>
-      prepRate(pi, { gcRate: 1, unit: "lb", rates: [1, 2, 3], designType: "jcls" }),
+      prepRate(pi, { gcRate: 1, unit: "lb", rates: [1, 2, 3], designType: "jcls" })
     ).toThrow(/design type/);
   });
 

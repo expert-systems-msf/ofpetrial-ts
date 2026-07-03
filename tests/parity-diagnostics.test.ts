@@ -25,7 +25,11 @@ import {
   checkOrthoWithChars,
   spatialJoin,
 } from "../src/diagnostics.js";
-import type { AlignmentFragment, AlignmentOverlapRow, OrthoInputsFragment } from "../src/diagnostics.js";
+import type {
+  AlignmentFragment,
+  AlignmentOverlapRow,
+  OrthoInputsFragment,
+} from "../src/diagnostics.js";
 import { assignRates } from "../src/rate-assignment.js";
 import { ValidationError } from "../src/types.js";
 import type { InputDesign, PlotInfo, RateInfo, SoilFragment, TrialDesign } from "../src/types.js";
@@ -45,7 +49,11 @@ function loadFragments(relPath: string): SoilFragment[] {
   const rows = load<Array<Record<string, unknown>>>(relPath);
   return rows.map((row) => {
     const { plotKey, rate, ...values } = row;
-    return { plotKey: plotKey as string, rate: rate as number, values: values as Record<string, number> };
+    return {
+      plotKey: plotKey as string,
+      rate: rate as number,
+      values: values as Record<string, number>,
+    };
   });
 }
 
@@ -56,7 +64,11 @@ const emptyAbLine: Feature<LineString> = {
 };
 
 /** Builds an InputDesign straight from the frozen per-input fixtures (no RNG involved). */
-function inputDesignFromFixture(caseDir: string, inputName: string, plotInfo: PlotInfo): InputDesign {
+function inputDesignFromFixture(
+  caseDir: string,
+  inputName: string,
+  plotInfo: PlotInfo
+): InputDesign {
   const geojson = load<FeatureCollection>(`${caseDir}/${inputName}/trial-design.geojson`);
   const plots: Feature[] = [];
   const headlands: Feature[] = [];
@@ -64,7 +76,9 @@ function inputDesignFromFixture(caseDir: string, inputName: string, plotInfo: Pl
     const type = (f.properties as { type: string }).type;
     (type === "headland" ? headlands : plots).push(f);
   }
-  const guidanceLines = load<FeatureCollection>(`${caseDir}/${inputName}/harvester-ab-line.geojson`);
+  const guidanceLines = load<FeatureCollection>(
+    `${caseDir}/${inputName}/harvester-ab-line.geojson`
+  );
   return {
     plotInfo,
     rateInfo: null,
@@ -77,7 +91,9 @@ function inputDesignFromFixture(caseDir: string, inputName: string, plotInfo: Pl
 
 function trialDesignFromFixture(caseDir: string, inputNames: string[]): TrialDesign {
   const plotInfos = load<PlotInfo[][]>(`${caseDir}/plot-info.json`);
-  const inputs = inputNames.map((name, i) => inputDesignFromFixture(caseDir, name, plotInfos[i]![0]!));
+  const inputs = inputNames.map((name, i) =>
+    inputDesignFromFixture(caseDir, name, plotInfos[i]![0]!)
+  );
   return { inputs, seed: 20260702 };
 }
 
@@ -101,25 +117,37 @@ const LIVE_JOIN_TOL = 1e-3;
  * within LIVE_JOIN_TOL. The precomputed-mode tests below match R's labels
  * exactly, with no offset allowance.
  */
-function expectAlignmentMatches(actual: AlignmentOverlapRow[], expected: AlignmentOverlapRow[]): void {
+function expectAlignmentMatches(
+  actual: AlignmentOverlapRow[],
+  expected: AlignmentOverlapRow[]
+): void {
   expect(actual.length).toBe(expected.length);
   expect(actual.length).toBeGreaterThan(0);
   const offset = actual[0]!.ha_strip_id - expected[0]!.ha_strip_id;
   for (let i = 0; i < expected.length; i++) {
     const a = actual[i]!;
     const e = expected[i]!;
-    expect(a.ha_strip_id - offset, `ha_strip_id offset consistency at row ${i}`).toBe(e.ha_strip_id);
+    expect(a.ha_strip_id - offset, `ha_strip_id offset consistency at row ${i}`).toBe(
+      e.ha_strip_id
+    );
     expect(a.strip_id, `strip_id at row ${i}`).toBe(e.strip_id);
-    expect(relClose(a.area, e.area, LIVE_JOIN_TOL), `area at row ${i}: ${a.area} vs ${e.area}`).toBe(true);
+    expect(
+      relClose(a.area, e.area, LIVE_JOIN_TOL),
+      `area at row ${i}: ${a.area} vs ${e.area}`
+    ).toBe(true);
     expect(relClose(a.ha_area, e.ha_area, LIVE_JOIN_TOL), `ha_area at row ${i}`).toBe(true);
     expect(
       relClose(a.total_intersecting_ha_area, e.total_intersecting_ha_area, LIVE_JOIN_TOL),
-      `total_intersecting_ha_area at row ${i}`,
+      `total_intersecting_ha_area at row ${i}`
     ).toBe(true);
-    expect(relClose(a.intersecting_pct, e.intersecting_pct, LIVE_JOIN_TOL), `intersecting_pct at row ${i}`).toBe(
-      true,
-    );
-    expect(relClose(a.dominant_pct, e.dominant_pct, LIVE_JOIN_TOL), `dominant_pct at row ${i}`).toBe(true);
+    expect(
+      relClose(a.intersecting_pct, e.intersecting_pct, LIVE_JOIN_TOL),
+      `intersecting_pct at row ${i}`
+    ).toBe(true);
+    expect(
+      relClose(a.dominant_pct, e.dominant_pct, LIVE_JOIN_TOL),
+      `dominant_pct at row ${i}`
+    ).toBe(true);
   }
 }
 
@@ -132,7 +160,10 @@ const ALL_CASES: Array<{ name: string; inputNames: string[] }> = [
 ];
 
 /** Exact-row comparison for the precomputed mode: same R rows in, 1e-6 out. */
-function expectAlignmentExact(actual: AlignmentOverlapRow[], expected: AlignmentOverlapRow[]): void {
+function expectAlignmentExact(
+  actual: AlignmentOverlapRow[],
+  expected: AlignmentOverlapRow[]
+): void {
   expect(actual.length).toBe(expected.length);
   for (let i = 0; i < expected.length; i++) {
     const a = actual[i]!;
@@ -146,7 +177,9 @@ function expectAlignmentExact(actual: AlignmentOverlapRow[], expected: Alignment
       "intersecting_pct",
       "dominant_pct",
     ] as const) {
-      expect(relClose(a[col], e[col], 1e-6), `${col} at row ${i}: ${a[col]} vs ${e[col]}`).toBe(true);
+      expect(relClose(a[col], e[col], 1e-6), `${col} at row ${i}: ${a[col]} vs ${e[col]}`).toBe(
+        true
+      );
     }
   }
 }
@@ -162,11 +195,11 @@ describe("checkAlignment parity with R — precomputed fragments (task 6.1, 1e-6
         const caseDir = `fixtures/${testCase.name}/${unitSystem}`;
         const td = trialDesignFromFixture(caseDir, testCase.inputNames);
         const fragments = testCase.inputNames.map((name) =>
-          load<AlignmentFragment[]>(`${caseDir}/${name}/alignment-fragments.json`),
+          load<AlignmentFragment[]>(`${caseDir}/${name}/alignment-fragments.json`)
         );
-        const expected = load<{ alignment: Array<{ inputName: string; overlapData: AlignmentOverlapRow[] }> }>(
-          `${caseDir}/checks.json`,
-        );
+        const expected = load<{
+          alignment: Array<{ inputName: string; overlapData: AlignmentOverlapRow[] }>;
+        }>(`${caseDir}/checks.json`);
 
         const result = checkAlignment(td, fragments);
         expect(result).toHaveLength(testCase.inputNames.length);
@@ -193,9 +226,9 @@ describe("checkAlignment live-geometry integration (task 6.1)", () => {
     it(`matches R's overlapData for simple1/${unitSystem}`, () => {
       const caseDir = `fixtures/simple1/${unitSystem}`;
       const td = trialDesignFromFixture(caseDir, ["seed"]);
-      const expected = load<{ alignment: Array<{ inputName: string; overlapData: AlignmentOverlapRow[] }> }>(
-        `${caseDir}/checks.json`,
-      );
+      const expected = load<{
+        alignment: Array<{ inputName: string; overlapData: AlignmentOverlapRow[] }>;
+      }>(`${caseDir}/checks.json`);
 
       const result = checkAlignment(td);
       expect(result).toHaveLength(1);
@@ -207,9 +240,9 @@ describe("checkAlignment live-geometry integration (task 6.1)", () => {
   it("matches R's overlapData for both inputs of two-input/imperial", () => {
     const caseDir = "fixtures/two-input/imperial";
     const td = trialDesignFromFixture(caseDir, ["seed", "NH3"]);
-    const expected = load<{ alignment: Array<{ inputName: string; overlapData: AlignmentOverlapRow[] }> }>(
-      `${caseDir}/checks.json`,
-    );
+    const expected = load<{
+      alignment: Array<{ inputName: string; overlapData: AlignmentOverlapRow[] }>;
+    }>(`${caseDir}/checks.json`);
 
     const result = checkAlignment(td);
     expect(result).toHaveLength(2);
@@ -275,7 +308,9 @@ describe("checkOrthoWithChars parity with R — precomputed fragments (task 6.3a
     it(`matches R's correlations for simple1/${unitSystem}/seed`, () => {
       const caseDir = `fixtures/simple1/${unitSystem}`;
       const fragments = loadFragments(`${caseDir}/seed/fragments.json`);
-      const expected = load<Array<{ var: string; corWithRate: number }>>(`${caseDir}/seed/correlations.json`);
+      const expected = load<Array<{ var: string; corWithRate: number }>>(
+        `${caseDir}/seed/correlations.json`
+      );
       const plotInfo = load<PlotInfo[][]>(`${caseDir}/plot-info.json`)[0]![0]!;
 
       const td: TrialDesign = {
@@ -298,9 +333,10 @@ describe("checkOrthoWithChars parity with R — precomputed fragments (task 6.3a
       for (const e of expected) {
         const a = result[0]!.correlations.find((c) => c.var === e.var);
         expect(a, `missing correlation for ${e.var}`).toBeDefined();
-        expect(relClose(a!.corWithRate, e.corWithRate, 1e-6), `${e.var}: ${a!.corWithRate} vs ${e.corWithRate}`).toBe(
-          true,
-        );
+        expect(
+          relClose(a!.corWithRate, e.corWithRate, 1e-6),
+          `${e.var}: ${a!.corWithRate} vs ${e.corWithRate}`
+        ).toBe(true);
       }
     });
   }
@@ -308,7 +344,9 @@ describe("checkOrthoWithChars parity with R — precomputed fragments (task 6.3a
   it("matches R's correlations for two-input/imperial/NH3", () => {
     const caseDir = "fixtures/two-input/imperial";
     const fragments = loadFragments(`${caseDir}/NH3/fragments.json`);
-    const expected = load<Array<{ var: string; corWithRate: number }>>(`${caseDir}/NH3/correlations.json`);
+    const expected = load<Array<{ var: string; corWithRate: number }>>(
+      `${caseDir}/NH3/correlations.json`
+    );
     const plotInfo = load<PlotInfo[][]>(`${caseDir}/plot-info.json`)[1]![0]!;
 
     const td: TrialDesign = {
@@ -338,7 +376,9 @@ describe("spatialJoin + checkOrthoWithChars integration (task 6.3b, 1e-3)", () =
     const caseDir = "fixtures/simple1/imperial";
     const designGeojson = load<FeatureCollection>(`${caseDir}/seed/trial-design.geojson`);
     const soilLayer = load<FeatureCollection>("fixtures/ssurgo-simple1.geojson");
-    const expected = load<Array<{ var: string; corWithRate: number }>>(`${caseDir}/seed/correlations.json`);
+    const expected = load<Array<{ var: string; corWithRate: number }>>(
+      `${caseDir}/seed/correlations.json`
+    );
     const plotInfo = load<PlotInfo[][]>(`${caseDir}/plot-info.json`)[0]![0]!;
 
     const plots: Feature[] = [];
@@ -366,9 +406,10 @@ describe("spatialJoin + checkOrthoWithChars integration (task 6.3b, 1e-3)", () =
     for (const e of expected) {
       const a = result[0]!.correlations.find((c) => c.var === e.var);
       expect(a, `missing correlation for ${e.var}`).toBeDefined();
-      expect(relClose(a!.corWithRate, e.corWithRate, 1e-3), `${e.var}: ${a!.corWithRate} vs ${e.corWithRate}`).toBe(
-        true,
-      );
+      expect(
+        relClose(a!.corWithRate, e.corWithRate, 1e-3),
+        `${e.var}: ${a!.corWithRate} vs ${e.corWithRate}`
+      ).toBe(true);
     }
   });
 
@@ -399,29 +440,35 @@ describe("checkOrthoWithChars error cases (task 6.3)", () => {
   };
 
   it("throws ValidationError when vars is empty", () => {
-    expect(() => checkOrthoWithChars(stubTd, { type: "FeatureCollection", features: [] }, [])).toThrow(
-      ValidationError,
-    );
+    expect(() =>
+      checkOrthoWithChars(stubTd, { type: "FeatureCollection", features: [] }, [])
+    ).toThrow(ValidationError);
   });
 
   it("throws ValidationError naming the missing variable (FeatureCollection mode)", () => {
     const soilLayer = load<FeatureCollection>("fixtures/ssurgo-simple1.geojson");
-    expect(() => checkOrthoWithChars(stubTd, soilLayer, ["not_a_real_column"])).toThrow(/not_a_real_column/);
+    expect(() => checkOrthoWithChars(stubTd, soilLayer, ["not_a_real_column"])).toThrow(
+      /not_a_real_column/
+    );
   });
 
   it("throws ValidationError naming the missing variable (precomputed fragments mode)", () => {
     const fragments = loadFragments("fixtures/simple1/imperial/seed/fragments.json");
-    expect(() => checkOrthoWithChars(stubTd, fragments, ["not_a_real_column"])).toThrow(/not_a_real_column/);
-  });
-
-  it("throws ValidationError on an empty soil layer (FeatureCollection mode)", () => {
-    expect(() => checkOrthoWithChars(stubTd, { type: "FeatureCollection", features: [] }, ["clay"])).toThrow(
-      ValidationError,
+    expect(() => checkOrthoWithChars(stubTd, fragments, ["not_a_real_column"])).toThrow(
+      /not_a_real_column/
     );
   });
 
+  it("throws ValidationError on an empty soil layer (FeatureCollection mode)", () => {
+    expect(() =>
+      checkOrthoWithChars(stubTd, { type: "FeatureCollection", features: [] }, ["clay"])
+    ).toThrow(ValidationError);
+  });
+
   it("throws ValidationError on an empty fragment table (precomputed mode)", () => {
-    expect(() => checkOrthoWithChars(stubTd, [] as SoilFragment[], ["clay"])).toThrow(ValidationError);
+    expect(() => checkOrthoWithChars(stubTd, [] as SoilFragment[], ["clay"])).toThrow(
+      ValidationError
+    );
   });
 });
 
@@ -464,7 +511,12 @@ describe("cross-validation: assignRates designs stay within R's reference range 
     }
     // Strip any frozen rate/rate_rank so assignRates treats this as a fresh layout.
     const layoutPlots = plots.map((f) => {
-      const { rate: _rate, rate_rank: _rank, type: _type, ...rest } = f.properties as Record<string, unknown>;
+      const {
+        rate: _rate,
+        rate_rank: _rank,
+        type: _type,
+        ...rest
+      } = f.properties as Record<string, unknown>;
       return { ...f, properties: rest };
     });
 
@@ -488,17 +540,20 @@ describe("cross-validation: assignRates designs stay within R's reference range 
         expect(range, `var ${c.var} missing from crossval-reference.json`).toBeDefined();
         expect(
           c.corWithRate,
-          `seed ${seed}, var ${c.var}: ${c.corWithRate} below R envelope [${range!.min}, ${range!.max}] - ${MARGIN}`,
+          `seed ${seed}, var ${c.var}: ${c.corWithRate} below R envelope [${range!.min}, ${range!.max}] - ${MARGIN}`
         ).toBeGreaterThanOrEqual(range!.min - MARGIN);
         expect(
           c.corWithRate,
-          `seed ${seed}, var ${c.var}: ${c.corWithRate} above R envelope [${range!.min}, ${range!.max}] + ${MARGIN}`,
+          `seed ${seed}, var ${c.var}: ${c.corWithRate} above R envelope [${range!.min}, ${range!.max}] + ${MARGIN}`
         ).toBeLessThanOrEqual(range!.max + MARGIN);
         // Secondary sanity bound: the coarse absolute threshold from the
         // original task instructions. Much weaker than the R envelope above —
         // kept only as a tripwire in case the fixture is ever regenerated
         // with a degenerate range.
-        expect(Math.abs(c.corWithRate), `seed ${seed}, var ${c.var}: |cor| sanity`).toBeLessThanOrEqual(0.3);
+        expect(
+          Math.abs(c.corWithRate),
+          `seed ${seed}, var ${c.var}: |cor| sanity`
+        ).toBeLessThanOrEqual(0.3);
       }
     }
   }, 30000);

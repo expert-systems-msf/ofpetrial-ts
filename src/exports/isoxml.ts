@@ -52,13 +52,19 @@ const DDI_BY_UNIT: Record<string, DdiMapping> = {
 };
 
 /** Converts one target rate to its ISOXML DDI raw integer value. Exported for the unit test in docs/isoxml-units.md's worked examples. */
-export function rateToDdiValue(rate: number, unitSystem: "imperial" | "metric", rateUnit: string): {
+export function rateToDdiValue(
+  rate: number,
+  unitSystem: "imperial" | "metric",
+  rateUnit: string
+): {
   ddiHex: string;
   raw: number;
 } {
   const mapping = DDI_BY_UNIT[rateUnit];
   if (!mapping) {
-    throw new ExportError(`No ISOXML DDI mapping for rate unit "${rateUnit}" (see docs/isoxml-units.md)`);
+    throw new ExportError(
+      `No ISOXML DDI mapping for rate unit "${rateUnit}" (see docs/isoxml-units.md)`
+    );
   }
   const areaM2 = unitSystem === "imperial" ? ACRE_M2 : HECTARE_M2;
   const perM2 = (rate * mapping.toDdiUnitPerM2) / areaM2;
@@ -157,7 +163,7 @@ export function writeIsoxml(plots: IsoxmlPlotInput[], opts: IsoxmlOptions): Uint
   // "undefined zone" convention, leaving 254 usable codes.
   if (byRate.size > 254) {
     throw new ExportError(
-      `writeIsoxml: ${byRate.size} distinct rates exceed the 254 usable TreatmentZoneCode values (xs:unsignedByte, max 254, 0 reserved)`,
+      `writeIsoxml: ${byRate.size} distinct rates exceed the 254 usable TreatmentZoneCode values (xs:unsignedByte, max 254, 0 reserved)`
     );
   }
 

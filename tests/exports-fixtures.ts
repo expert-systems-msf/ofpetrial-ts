@@ -18,14 +18,14 @@ function load<T>(relPath: string): T {
 export function loadTrialDesign(
   caseDir: string,
   unit: "imperial" | "metric",
-  inputNames: string[],
+  inputNames: string[]
 ): TrialDesign {
   const plotInfoRaw = load<PlotInfo[][]>(`fixtures/${caseDir}/${unit}/plot-info.json`).flat();
   const rateInfoRaw = load<RateInfo[][]>(`fixtures/${caseDir}/${unit}/rate-info.json`).flat();
 
   const inputs: InputDesign[] = inputNames.map((inputName) => {
     const trialDesign = load<FeatureCollection>(
-      `fixtures/${caseDir}/${unit}/${inputName}/trial-design.geojson`,
+      `fixtures/${caseDir}/${unit}/${inputName}/trial-design.geojson`
     );
     const plots: FeatureCollection = {
       type: "FeatureCollection",
@@ -35,9 +35,11 @@ export function loadTrialDesign(
       type: "FeatureCollection",
       features: trialDesign.features.filter((f) => f.properties?.["type"] === "headland"),
     };
-    const abLineFc = load<FeatureCollection>(`fixtures/${caseDir}/${unit}/${inputName}/ab-line.geojson`);
+    const abLineFc = load<FeatureCollection>(
+      `fixtures/${caseDir}/${unit}/${inputName}/ab-line.geojson`
+    );
     const guidanceLines = load<FeatureCollection>(
-      `fixtures/${caseDir}/${unit}/${inputName}/harvester-ab-line.geojson`,
+      `fixtures/${caseDir}/${unit}/${inputName}/harvester-ab-line.geojson`
     );
     const plotInfo = plotInfoRaw.find((p) => p.input_name === inputName);
     if (!plotInfo) throw new Error(`no plot-info fixture for input "${inputName}"`);

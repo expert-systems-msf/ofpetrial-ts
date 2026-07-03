@@ -131,7 +131,7 @@ function ringIntervalsAt(ring: Ring, v: number): Interval[] {
   // an odd count means a kinked/degenerate ring slipped through repair.
   if (xs.length % 2 !== 0) {
     throw new GeometryError(
-      `odd crossing count (${xs.length}) at v=${v}: ring is not simple after repair`,
+      `odd crossing count (${xs.length}) at v=${v}: ring is not simple after repair`
     );
   }
   xs.sort((a, b) => a - b);
@@ -156,7 +156,8 @@ function distToRings(pt: Pt, rings: Ring[]): number {
       const dx = x2 - x1;
       const dy = y2 - y1;
       const len2 = dx * dx + dy * dy;
-      const t = len2 === 0 ? 0 : Math.max(0, Math.min(1, ((pt[0] - x1) * dx + (pt[1] - y1) * dy) / len2));
+      const t =
+        len2 === 0 ? 0 : Math.max(0, Math.min(1, ((pt[0] - x1) * dx + (pt[1] - y1) * dy) / len2));
       const px = x1 + t * dx;
       const py = y1 + t * dy;
       best = Math.min(best, Math.hypot(pt[0] - px, pt[1] - py));
@@ -193,7 +194,10 @@ function samplePointInRing(ring: Ring): Pt | null {
   }
   // Guaranteed interior point: midpoint of the widest interior interval at
   // the median vertex height (nudged off exact vertex heights).
-  const ys = ring.slice(0, n).map((p) => p[1]).sort((a, b) => a - b);
+  const ys = ring
+    .slice(0, n)
+    .map((p) => p[1])
+    .sort((a, b) => a - b);
   const yMid = ys[Math.floor(n / 2)]!;
   for (const v of [yMid + 1e-9, yMid - 1e-9, (ys[0]! + ys[n - 1]!) / 2]) {
     const intervals = ringIntervalsAt(ring, v);
@@ -273,7 +277,7 @@ function unkinkRing(ring: Ring): Ring[] {
   } catch (e) {
     // never let a still-kinked ring flow into the scanline silently
     throw new GeometryError(
-      `unkink failed on an offset ring (${ring.length - 1} vertices): ${String(e)}`,
+      `unkink failed on an offset ring (${ring.length - 1} vertices): ${String(e)}`
     );
   }
   const out: Ring[] = [];
@@ -383,7 +387,7 @@ function dilateField(field: FieldFrame, dist: number): RingRegion {
 // !===========================================================
 
 function collectPolygonFeatures(
-  input: Feature<Polygon | MultiPolygon> | FeatureCollection,
+  input: Feature<Polygon | MultiPolygon> | FeatureCollection
 ): Array<Position[][]> {
   const features = input.type === "FeatureCollection" ? input.features : [input];
   const polys: Array<Position[][]> = [];
@@ -411,7 +415,10 @@ function ringIsSimple(ring: Ring): boolean {
       const d2 = (bx - ax) * (dy - ay) - (by - ay) * (dx - ax);
       const d3 = (dx - cx) * (ay - cy) - (dy - cy) * (ax - cx);
       const d4 = (dx - cx) * (by - cy) - (dy - cy) * (bx - cx);
-      if (((d1 > 0 && d2 < 0) || (d1 < 0 && d2 > 0)) && ((d3 > 0 && d4 < 0) || (d3 < 0 && d4 > 0))) {
+      if (
+        ((d1 > 0 && d2 < 0) || (d1 < 0 && d2 > 0)) &&
+        ((d3 > 0 && d4 < 0) || (d3 < 0 && d4 > 0))
+      ) {
         return false;
       }
     }
@@ -426,7 +433,7 @@ function unkinkSingleRing(ring: Ring): Ring[] {
     features = unkinkPolygon(ringToPolygonFeature(ring)).features;
   } catch {
     throw new GeometryError(
-      "The field boundary is invalid and could not be repaired (self-intersections persist after unkinking).",
+      "The field boundary is invalid and could not be repaired (self-intersections persist after unkinking)."
     );
   }
   const out: Ring[] = [];
@@ -482,7 +489,7 @@ function repairBoundary(polys: Array<Position[][]>): Array<Position[][]> {
   }
   if (repaired.length === 0) {
     throw new GeometryError(
-      "The field boundary is empty or degenerate after repair; cannot lay out experiment plots.",
+      "The field boundary is empty or degenerate after repair; cannot lay out experiment plots."
     );
   }
   return repaired;
@@ -490,13 +497,13 @@ function repairBoundary(polys: Array<Position[][]>): Array<Position[][]> {
 
 function extractAbLine(
   input: Feature<LineString> | FeatureCollection | undefined,
-  ablineType: string,
+  ablineType: string
 ): [Position, Position] {
   const missing = (): never => {
     throw new ValidationError(
       ablineType === "lock"
         ? 'ablineType "lock" requires an ab-line, but none was provided.'
-        : "An ab-line (GeoJSON LineString) is required by makeExpPlots.",
+        : "An ab-line (GeoJSON LineString) is required by makeExpPlots."
     );
   };
   if (!input) missing();
@@ -602,7 +609,11 @@ function makeTrialPlotsByInput(params: MakeTrialPlotsParams): StripPlots[] {
       // R extend_or_shorten_line: trim (or extend, when dAdj < 0) both ends
       if (s1 - s0 <= 2 * dAdj) continue;
       const u0 = s0 + dAdj;
-      const lengths = trialPlotLengths(s1 - s0 - 2 * dAdj, plotInfo.min_plot_length, plotInfo.max_plot_length);
+      const lengths = trialPlotLengths(
+        s1 - s0 - 2 * dAdj,
+        plotInfo.min_plot_length,
+        plotInfo.max_plot_length
+      );
       if (lengths.length === 0) continue;
       segIdx++;
       let start = u0;
@@ -617,7 +628,7 @@ function makeTrialPlotsByInput(params: MakeTrialPlotsParams): StripPlots[] {
   }
   if (strips.length === 0) {
     throw new GeometryError(
-      "No experiment plots fit inside the field boundary with the given plot dimensions.",
+      "No experiment plots fit inside the field boundary with the given plot dimensions."
     );
   }
   return strips;
@@ -644,7 +655,8 @@ interface AblineRow {
  * (ab1, -1), (ab1, +1), (ab2, -1), (ab2, +1).
  */
 function makeAblinesData(strips: StripPlots[], plotWidth: number): AblineRow[] {
-  const firstOf = (strip: StripPlots): FramePlot => strip.plots.find((p) => p.plotId === 1) ?? strip.plots[0]!;
+  const firstOf = (strip: StripPlots): FramePlot =>
+    strip.plots.find((p) => p.plotId === 1) ?? strip.plots[0]!;
   const first = strips[0]!;
   const last = strips[strips.length - 1]!;
   const candidates: Array<{ abId: 1 | 2; v: number; u: number }> = [
@@ -676,7 +688,7 @@ interface AblineGeometry {
 function chooseFreeAbline(
   rows: AblineRow[],
   machineWidth: number,
-  plotWidth: number,
+  plotWidth: number
 ): AblineGeometry {
   if (machineWidth === plotWidth) {
     const row = rows.find((r) => r.abId === 1)!;
@@ -686,7 +698,7 @@ function chooseFreeAbline(
   const row = rows.find((r) => r.intCheck === wanted);
   if (!row) {
     throw new GeometryError(
-      "Could not orient the ab-line: too few strips to run the direction check.",
+      "Could not orient the ab-line: too few strips to run the direction check."
     );
   }
   return { v: row.v + (row.dirP * Math.abs(machineWidth - plotWidth)) / 2, u: row.u };
@@ -714,7 +726,7 @@ function prepareAblineV(
   field: FieldFrame,
   vLine: number,
   uRange: Interval,
-  plotWidth: number,
+  plotWidth: number
 ): number {
   const intervals = regionIntervalsAt(field.region, vLine);
   const intersects = intervals.some(([a, b]) => a <= uRange[1] && b >= uRange[0]);
@@ -749,11 +761,15 @@ export interface MakeExpPlotsOptions {
 export function makeExpPlots(options: MakeExpPlotsOptions): ExpData {
   const ablineType = options.ablineType ?? "free";
   if (ablineType !== "free" && ablineType !== "lock" && ablineType !== "non") {
-    throw new ValidationError(`ablineType must be "free", "lock", or "non", got ${JSON.stringify(ablineType)}.`);
+    throw new ValidationError(
+      `ablineType must be "free", "lock", or "non", got ${JSON.stringify(ablineType)}.`
+    );
   }
 
   // ! Check and modify input_plot_info if necessary (R lines 45-61)
-  const infosIn = Array.isArray(options.inputPlotInfo) ? options.inputPlotInfo : [options.inputPlotInfo];
+  const infosIn = Array.isArray(options.inputPlotInfo)
+    ? options.inputPlotInfo
+    : [options.inputPlotInfo];
   if (infosIn.length === 0 || infosIn.length > 2) {
     throw new ValidationError(`makeExpPlots supports one or two inputs, got ${infosIn.length}.`);
   }
@@ -761,7 +777,7 @@ export function makeExpPlots(options: MakeExpPlotsOptions): ExpData {
     for (const key of ["harvester_width", "min_plot_length", "max_plot_length"] as const) {
       if (infosIn[0]![key] !== infosIn[1]![key]) {
         throw new ValidationError(
-          `You specified inconsistent ${key} across inputs. Please make sure they are the same when preparing plot information individually, or use prepPlot to avoid these inconsistencies.`,
+          `You specified inconsistent ${key} across inputs. Please make sure they are the same when preparing plot information individually, or use prepPlot to avoid these inconsistencies.`
         );
       }
     }
@@ -848,7 +864,7 @@ export function makeExpPlots(options: MakeExpPlotsOptions): ExpData {
   }
   if (!(areaSum > 0) || !Number.isFinite(cvSum / areaSum)) {
     throw new GeometryError(
-      "field boundary collapsed to zero area after projection/repair — cannot place strips",
+      "field boundary collapsed to zero area after projection/repair — cannot place strips"
     );
   }
   const field: FieldFrame = {
@@ -936,7 +952,7 @@ export function makeExpPlots(options: MakeExpPlotsOptions): ExpData {
             field,
             edge.v,
             [edge.u - throughHalfLen, edge.u + throughHalfLen],
-            pi2.plot_width,
+            pi2.plot_width
           )
         : prepareAblineV(field, vAb, abURange, pi2.plot_width);
       const strips2 = makeTrialPlotsByInput({
@@ -964,7 +980,7 @@ export function makeExpPlots(options: MakeExpPlotsOptions): ExpData {
   });
 
   const fieldFeature = framePolyFeature(
-    field.polys.map((poly) => [poly.shell, ...poly.holes] as Position[][]),
+    field.polys.map((poly) => [poly.shell, ...poly.holes] as Position[][])
   );
 
   const headlandCache = new Map<StripPlots[], FeatureCollection>();
@@ -983,7 +999,7 @@ export function makeExpPlots(options: MakeExpPlotsOptions): ExpData {
             [plot.u1 + 0.01, strip.vc - halfW - 0.01],
             [plot.u0 - 0.01, strip.vc - halfW - 0.01],
             [plot.u0 - 0.01, strip.vc + halfW + 0.01],
-          ]),
+          ])
         );
       }
     }
@@ -996,9 +1012,13 @@ export function makeExpPlots(options: MakeExpPlotsOptions): ExpData {
       const geom = head.geometry;
       const coordinates =
         geom.type === "Polygon"
-          ? [geom.coordinates.map((ring) => ring.map((p) => toWgs(fromFrame([p[0]!, p[1]!]), epsg)))]
+          ? [
+              geom.coordinates.map((ring) =>
+                ring.map((p) => toWgs(fromFrame([p[0]!, p[1]!]), epsg))
+              ),
+            ]
           : geom.coordinates.map((poly) =>
-              poly.map((ring) => ring.map((p) => toWgs(fromFrame([p[0]!, p[1]!]), epsg))),
+              poly.map((ring) => ring.map((p) => toWgs(fromFrame([p[0]!, p[1]!]), epsg)))
             );
       features.push({
         type: "Feature",

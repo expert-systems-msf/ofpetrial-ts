@@ -118,7 +118,7 @@ export function convertRates(
   inputName: string,
   unit: string,
   rate: number,
-  conversionType: "to_n_equiv" | "from_n_equiv" = "to_n_equiv",
+  conversionType: "to_n_equiv" | "from_n_equiv" = "to_n_equiv"
 ): number {
   if (!INPUT_UNIT_CONVERSION_TABLE.some((r) => r.type === inputName)) {
     return rate;
@@ -142,7 +142,7 @@ export function convertRates(
     convFactorN = 1;
   } else {
     const row = INPUT_UNIT_CONVERSION_TABLE.find(
-      (r) => `${r.type}_${r.unit}` === `${inputName}_${newUnit}`,
+      (r) => `${r.type}_${r.unit}` === `${inputName}_${newUnit}`
     );
     // R: "no combination ... we will assume the conversion is 1"
     convFactorN = row ? row.convFactor : 1;
@@ -152,5 +152,7 @@ export function convertRates(
     convFactorN = convFactorN * convUnit(1, "pounds", "kg") * convUnit(1, "hectares", "acres");
   }
 
-  return conversionType === "to_n_equiv" ? convFactorN * workingRate : (1 / convFactorN) * workingRate;
+  return conversionType === "to_n_equiv"
+    ? convFactorN * workingRate
+    : (1 / convFactorN) * workingRate;
 }

@@ -1,0 +1,225 @@
+name: Security Audit
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 7 * * 1" # Chaque lundi 7h UTC
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  # ══════════════════════════════════════════════════════════
+  # JOB 1: Diagnostic
+  # ══════════════════════════════════════════════════════════
+  audit:
+    name: npm audit
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      has_vulnerabilities: ${{ steps.check.outputs.has_vulnerabilities }}
+      summary: ${{ steps.check.outputs.summary }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 22
+
+      - name: Generate package-lock.json
+        run: npm install --package-lock-only --ignore-scripts
+
+      - name: Run npm audit (full report)
+        run: |
+          echo "## npm audit — Full Details" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          npm audit --omit=dev 2>&1 | tee audit-output.txt || true
+          cat audit-output.txt >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+
+      - name: Run npm audit (JSON summary)
+        run: |
+          npm audit --omit=dev --json > audit.json 2>/dev/null || true
+          echo ""
+          echo "=== Vulnerability Summary ==="
+          node -e "
+            const r = require('./audit.json');
+            const m = r.metadata?.vulnerabilities || {};
+            console.log('Critical:', m.critical || 0);
+            console.log('High:', m.high || 0);
+            console.log('Moderate:', m.moderate || 0);
+            console.log('Low:', m.low || 0);
+            console.log('Info:', m.info || 0);
+            console.log('Total:', m.total || 0);
+          "
+
+      - name: Check vulnerability counts
+        id: check
+        run: |
+          TOTAL=$(node -e "const r=require('./audit.json'); console.log(r.metadata?.vulnerabilities?.total || 0)" 2>/dev/null || echo 0)
+          HIGH=$(node -e "const r=require('./audit.json'); console.log((r.metadata?.vulnerabilities?.high || 0) + (r.metadata?.vulnerabilities?.critical || 0))" 2>/dev/null || echo 0)
+          TOTAL=${TOTAL:-0}
+          HIGH=${HIGH:-0}
+          echo "has_vulnerabilities=$([ \"$TOTAL\" -gt 0 ] && echo true || echo false)" >> $GITHUB_OUTPUT
+          echo "summary=Total: $TOTAL | High+Critical: $HIGH" >> $GITHUB_OUTPUT
+
+      - name: Upload audit report
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: npm-audit-report
+          path: |
+            audit.json
+            audit-output.txt
+          retention-days: 30
+
+      - name: Fail on high/critical
+        run: npm audit --omit=dev --audit-level=high
+
+  # ══════════════════════════════════════════════════════════
+  # JOB 2: Auto-fix + PR (conditionnel)
+  # ══════════════════════════════════════════════════════════
+  auto-fix:
+    name: Auto-fix vulnerabilities
+    needs: audit
+    if: |
+      always() &&
+      needs.audit.outputs.has_vulnerabilities == 'true' &&
+      (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch')
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@v6
+        with:
+          ref: main
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 22
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Generate lockfile & capture before state
+        run: |
+          npm install --package-lock-only --ignore-scripts
+          npm audit --omit=dev --json > audit-before.json 2>&1 || true
+
+      - name: Run npm audit fix
+        run: npm audit fix --omit=dev || true
+
+      - name: Capture after state & generate audit-after.json
+        run: npm audit --omit=dev --json > audit-after.json 2>&1 || true
+
+      - name: Check if audit fix changed anything
+        id: changes
+        run: |
+          BEFORE=$(node -e "const r=require('./audit-before.json'); console.log(r.metadata?.vulnerabilities?.total || 0)")
+          AFTER=$(node -e "const r=require('./audit-after.json'); console.log(r.metadata?.vulnerabilities?.total || 0)")
+
+          echo "before=$BEFORE" >> $GITHUB_OUTPUT
+          echo "after=$AFTER" >> $GITHUB_OUTPUT
+
+          if [ "$BEFORE" -eq "$AFTER" ]; then
+            echo "has_fix=false" >> $GITHUB_OUTPUT
+            echo "npm audit fix did not resolve any vulnerability — nothing to commit"
+          else
+            echo "has_fix=true" >> $GITHUB_OUTPUT
+            echo "Fixed: $BEFORE → $AFTER vulnerabilities"
+          fi
+
+          if git diff --quiet package.json; then
+            echo "pkg_changed=false" >> $GITHUB_OUTPUT
+          else
+            echo "pkg_changed=true" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Sync bun.lock
+        if: steps.changes.outputs.has_fix == 'true'
+        run: bun install --no-save
+
+      - name: Regenerate package-lock.json
+        if: steps.changes.outputs.has_fix == 'true'
+        run: npm install --package-lock-only --ignore-scripts
+
+      - name: Check for real file changes
+        id: diff
+        if: steps.changes.outputs.has_fix == 'true'
+        run: |
+          if git diff --quiet package.json package-lock.json bun.lock; then
+            echo "has_changes=false" >> $GITHUB_OUTPUT
+            echo "No file changes to commit"
+          else
+            echo "has_changes=true" >> $GITHUB_OUTPUT
+            echo "Changes detected:"
+            git diff --stat package.json package-lock.json bun.lock
+          fi
+
+      - name: Create fix branch and PR
+        if: steps.diff.outputs.has_changes == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          BEFORE: ${{ steps.changes.outputs.before }}
+          AFTER: ${{ steps.changes.outputs.after }}
+        run: |
+          BRANCH="chore/npm-audit-fix-$(date +%Y%m%d)"
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          # Supprimer branche stale si elle existe
+          git push origin --delete "$BRANCH" 2>/dev/null || true
+
+          git checkout -b "$BRANCH"
+          git add package.json package-lock.json bun.lock
+          git commit -m "fix(deps): resolve npm audit vulnerabilities
+
+          Automated fix via npm audit fix (no --force).
+          Before: $BEFORE vulnerabilities | After: $AFTER vulnerabilities"
+
+          git push origin "$BRANCH"
+
+          # Creer ou mettre a jour la PR
+          BODY=$(cat <<'EOF'
+          ## 🔒 Automated Security Fix
+
+          | Metric | Before | After |
+          |--------|--------|-------|
+          | Total vulnerabilities | PLACEHOLDER_BEFORE | PLACEHOLDER_AFTER |
+
+          ### Generated by
+          - `npm audit fix --omit=dev` (no `--force`, semver-safe only)
+          - `bun.lock` and `package-lock.json` regenerated
+
+          ### Checklist
+          - [ ] CI passes
+          - [ ] No breaking changes in dependency updates
+          - [ ] Application builds correctly
+          - [ ] Quick smoke test passed
+          EOF
+          )
+
+          BODY="${BODY//PLACEHOLDER_BEFORE/$BEFORE}"
+          BODY="${BODY//PLACEHOLDER_AFTER/$AFTER}"
+
+          EXISTING_PR=$(gh pr list --head "$BRANCH" --state open --json number -q '.[0].number')
+          if [ -n "$EXISTING_PR" ]; then
+            gh pr edit "$EXISTING_PR" --body "$BODY"
+            echo "Updated existing PR #$EXISTING_PR"
+          else
+            gh pr create \
+              --title "fix(deps): resolve npm audit vulnerabilities ($(date +%Y-%m-%d))" \
+              --body "$BODY" \
+              --base main \
+              --head "$BRANCH" \
+              --label "dependencies,security"
+          fi

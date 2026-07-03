@@ -63,10 +63,7 @@ const fromDir = fetchSource(fromVersion);
 const toDir = fetchSource(toVersion);
 
 // Diff every R/ source file; keep files whose diff touches a scope function.
-const rFiles = new Set([
-  ...readdirSync(join(fromDir, "R")),
-  ...readdirSync(join(toDir, "R")),
-]);
+const rFiles = new Set([...readdirSync(join(fromDir, "R")), ...readdirSync(join(toDir, "R"))]);
 
 const touched = new Map<string, string[]>(); // file -> scope functions mentioned in its diff
 for (const file of [...rFiles].sort()) {
@@ -87,7 +84,7 @@ for (const file of [...rFiles].sort()) {
 
 if (touched.size === 0) {
   console.log(
-    `No ported-scope R source changes between ofpetrial ${fromVersion} and ${toVersion}.`,
+    `No ported-scope R source changes between ofpetrial ${fromVersion} and ${toVersion}.`
   );
   console.log("Still required for a version bump: regenerate fixtures and re-run both suites");
   console.log("(see tools/UPSTREAM-SYNC.md).");

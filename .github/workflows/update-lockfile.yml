@@ -1,0 +1,47 @@
+name: Update Lockfile
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "package.json"
+
+jobs:
+  update-lockfile:
+    name: Update bun.lock
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        run: bun install
+
+      - name: Check for lockfile changes
+        id: check
+        run: |
+          if git diff --quiet bun.lock; then
+            echo "changed=false" >> $GITHUB_OUTPUT
+          else
+            echo "changed=true" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Commit and push lockfile
+        if: steps.check.outputs.changed == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add bun.lock
+          git commit -m "chore: update bun.lock"
+          git push

@@ -16,7 +16,14 @@ import { toUtm } from "./projection.js";
 import type { Rng } from "./rng.js";
 import { createRng } from "./rng.js";
 import { ValidationError } from "./types.js";
-import type { ExpData, InputDesign, InputLayout, RateData, RateInfo, TrialDesign } from "./types.js";
+import type {
+  ExpData,
+  InputDesign,
+  InputLayout,
+  RateData,
+  RateInfo,
+  TrialDesign,
+} from "./types.js";
 
 // !===========================================================
 // ! Small generic utilities
@@ -148,7 +155,11 @@ export function getRankWsForStrip(startingRank: number, basicSeq: number[]): num
 }
 
 /** R `get_rank_ws_for_strip_sparse`. */
-export function getRankWsForStripSparse(startingRank: number, basicSeq: number[], stripId: number): number[] {
+export function getRankWsForStripSparse(
+  startingRank: number,
+  basicSeq: number[],
+  stripId: number
+): number[] {
   const rotated = getRankWsForStrip(startingRank, basicSeq);
   return stripId % 2 === 0 ? [1, ...rotated.slice(0, -1)] : rotated;
 }
@@ -203,7 +214,7 @@ export function genBasicRankWs(numRates: number, rateJumpThresholdIn: number | n
   }
   if (bestId === -1) {
     throw new ValidationError(
-      `No rank sequence for ${numRates} rates satisfies rate_jump_threshold=${rateJumpThreshold}.`,
+      `No rank sequence for ${numRates} rates satisfies rate_jump_threshold=${rateJumpThreshold}.`
     );
   }
   return perms[bestId]!;
@@ -241,10 +252,10 @@ function circShift(mat: number[][], rowDelta: number, colDelta: number): number[
   const m = mat[0]!.length;
   const out: number[][] = [];
   for (let i = 0; i < n; i++) {
-    const si = ((i + rowDelta) % n + n) % n;
+    const si = (((i + rowDelta) % n) + n) % n;
     const row: number[] = [];
     for (let j = 0; j < m; j++) {
-      const sj = ((j + colDelta) % m + m) % m;
+      const sj = (((j + colDelta) % m) + m) % m;
       row.push(mat[si]![sj]!);
     }
     out.push(row);
@@ -270,10 +281,11 @@ function maxOverColumns(mat: number[][], pred: (v: number) => number): number {
 function meanAbs(mat: number[][]): number {
   let sum = 0;
   let count = 0;
-  for (const row of mat) for (const v of row) {
-    sum += Math.abs(v);
-    count += 1;
-  }
+  for (const row of mat)
+    for (const v of row) {
+      sum += Math.abs(v);
+      count += 1;
+    }
   return count === 0 ? 0 : sum / count;
 }
 
@@ -334,7 +346,7 @@ export function getStartingRankAsLs(rankSeqWs: number[], rng: Rng): number[] {
     (s) =>
       s.check1Horizontal <= minCheck1 + 2 &&
       s.check0DiagUp < numRates &&
-      s.check0DiagDown < numRates,
+      s.check0DiagDown < numRates
   );
   if (filtered.length === 0) filtered = scored; // defensive: R's own filters would leave 0 rows too
 
@@ -363,7 +375,7 @@ function assignLs(
   rankSeqWsIn: number[] | null,
   rankSeqAsIn: number[] | null,
   rateJumpThreshold: number | null,
-  rng: Rng,
+  rng: Rng
 ): Map<Feature, RateData> {
   const numRates = ratesData.length;
   let rankSeqWs = rankSeqWsIn;
@@ -387,7 +399,10 @@ function assignLs(
   const epsg = firstEpsg(plots.features);
   const centroidsByStrip = new Map<number, Array<[number, number]>>();
   for (const [sid, feats] of stripGroups) {
-    centroidsByStrip.set(sid, feats.map((f) => utmCentroid(f, epsg)));
+    centroidsByStrip.set(
+      sid,
+      feats.map((f) => utmCentroid(f, epsg))
+    );
   }
 
   const result = new Map<Feature, RateData>();
@@ -400,7 +415,7 @@ function assignLs(
     let startRank = fullStartSeqLong[i - 1 + shiftCounter]!;
     let rateRanks = repeatArray(
       getRankWsForStrip(startRank, rankSeqWs!),
-      Math.ceil(numPlotsWs / rankSeqWs!.length),
+      Math.ceil(numPlotsWs / rankSeqWs!.length)
     ).slice(0, numPlotsWs);
 
     if (i > 1) {
@@ -425,7 +440,7 @@ function assignLs(
         startRank = fullStartSeqLong[i - 1 + shiftCounter]!;
         rateRanks = repeatArray(
           getRankWsForStrip(startRank, rankSeqWs!),
-          Math.ceil(numPlotsWs / rankSeqWs!.length),
+          Math.ceil(numPlotsWs / rankSeqWs!.length)
         ).slice(0, numPlotsWs);
       }
     }
@@ -437,7 +452,11 @@ function assignLs(
   return result;
 }
 
-function assignRb(plots: FeatureCollection, ratesData: RateData[], rng: Rng): Map<Feature, RateData> {
+function assignRb(
+  plots: FeatureCollection,
+  ratesData: RateData[],
+  rng: Rng
+): Map<Feature, RateData> {
   const numRates = ratesData.length;
   const features = plots.features;
   const blockKey = (f: Feature): string => {
@@ -467,7 +486,7 @@ function assignStr(
   plots: FeatureCollection,
   ratesData: RateData[],
   rankSeqAsIn: number[] | null,
-  rng: Rng,
+  rng: Rng
 ): Map<Feature, RateData> {
   const numRates = ratesData.length;
   const startRankAs = rankSeqAsIn ?? getStartingRankAs(numRates, rng);
@@ -480,7 +499,11 @@ function assignStr(
   return result;
 }
 
-function assignRstr(plots: FeatureCollection, ratesData: RateData[], rng: Rng): Map<Feature, RateData> {
+function assignRstr(
+  plots: FeatureCollection,
+  ratesData: RateData[],
+  rng: Rng
+): Map<Feature, RateData> {
   const numRates = ratesData.length;
   const stripGroups = groupByStrip(plots);
   const stripIds = [...stripGroups.keys()];
@@ -502,7 +525,7 @@ function assignSparse(
   ratesData: RateData[],
   rankSeqWsIn: number[] | null,
   rankSeqAsIn: number[] | null,
-  rng: Rng,
+  rng: Rng
 ): Map<Feature, RateData> {
   const numRates = ratesData.length;
   const basicSeq = rankSeqWsIn ?? genBasicRankWsSparse(numRates);
@@ -512,7 +535,10 @@ function assignSparse(
   for (const [sid, feats] of stripGroups) {
     const startRank = startRankAs[(sid - 1) % startRankAs.length]!;
     const rotated = getRankWsForStripSparse(startRank, basicSeq, sid);
-    const ranks = repeatArray(rotated, Math.ceil(feats.length / rotated.length)).slice(0, feats.length);
+    const ranks = repeatArray(rotated, Math.ceil(feats.length / rotated.length)).slice(
+      0,
+      feats.length
+    );
     feats.forEach((f, i) => result.set(f, ratesData[ranks[i]! - 1]!));
   }
   return result;
@@ -521,7 +547,7 @@ function assignSparse(
 function assignEjca(
   plots: FeatureCollection,
   ratesData: RateData[],
-  rateJumpThreshold: number | null,
+  rateJumpThreshold: number | null
 ): Map<Feature, RateData> {
   const sorted = [...ratesData].sort((a, b) => a.rate_rank - b.rate_rank);
   const medianRank = median(sorted.map((r) => r.rate_rank));
@@ -548,7 +574,10 @@ function assignEjca(
       rows.push(...((groupIdx + 1) % 2 === 0 ? [...feats].reverse() : feats));
     });
 
-    const rankInTierSeq = repeatArray(basicSeq, Math.ceil(rows.length / numLevels)).slice(0, rows.length);
+    const rankInTierSeq = repeatArray(basicSeq, Math.ceil(rows.length / numLevels)).slice(
+      0,
+      rows.length
+    );
     rows.forEach((f, i) => result.set(f, tier.rates[rankInTierSeq[i]! - 1]!));
   }
 
@@ -563,7 +592,7 @@ export function assignRatesByInput(
   rankSeqWs: number[] | null,
   rankSeqAs: number[] | null,
   rateJumpThreshold: number | null,
-  rng: Rng,
+  rng: Rng
 ): Map<Feature, RateData> {
   const designType = designTypeIn ?? "ls";
   switch (designType) {
@@ -580,7 +609,9 @@ export function assignRatesByInput(
     case "ejca":
       return assignEjca(plots, ratesData, rateJumpThreshold);
     default:
-      throw new ValidationError(`design_type "${designType}" does not match any of the design type options available.`);
+      throw new ValidationError(
+        `design_type "${designType}" does not match any of the design type options available.`
+      );
   }
 }
 
@@ -592,13 +623,16 @@ export function assignRatesByInput(
 export function assignRateRankByStrip(
   stripGroups: Map<number, Feature[]>,
   rankSeqWs: number[],
-  rankSeqAs: number[],
+  rankSeqAs: number[]
 ): Map<Feature, number> {
   const result = new Map<Feature, number>();
   for (const [sid, feats] of stripGroups) {
     const startRank = rankSeqAs[(sid - 1) % rankSeqAs.length]!;
     const rotated = getRankWsForStrip(startRank, rankSeqWs);
-    const ranks = repeatArray(rotated, Math.ceil(feats.length / rotated.length)).slice(0, feats.length);
+    const ranks = repeatArray(rotated, Math.ceil(feats.length / rotated.length)).slice(
+      0,
+      feats.length
+    );
     feats.forEach((f, i) => result.set(f, ranks[i]!));
   }
   return result;
@@ -608,7 +642,7 @@ export function assignRateRankByStrip(
 export function makeDesignFor2By2(
   sharedPlots: FeatureCollection,
   ratesDataA: RateData[],
-  ratesDataB: RateData[],
+  ratesDataB: RateData[]
 ): { a: Map<Feature, RateData>; b: Map<Feature, RateData> } {
   const stripGroups = groupByStrip(sharedPlots);
   const rankA = assignRateRankByStrip(stripGroups, [1, 2], [1, 2]);
@@ -635,7 +669,7 @@ function variabilityScore(
   plotId: number,
   candidateRank: number,
   rateTable: number[],
-  W: number[][],
+  W: number[][]
 ): number {
   let sum = 0;
   if (plotId === 1) {
@@ -666,17 +700,19 @@ function findRate(
   combEntries: CombEntry[],
   rateTable: number[],
   W: number[][],
-  rng: Rng,
+  rng: Rng
 ): number {
   const rateJumpThreshold = 3;
   const base =
     plotId === 1
-      ? combEntries.filter((c) => c.rateRank2 !== info.rateRank2ndNb && c.rateRank1 === info.rateRank1st)
+      ? combEntries.filter(
+          (c) => c.rateRank2 !== info.rateRank2ndNb && c.rateRank1 === info.rateRank1st
+        )
       : combEntries.filter(
           (c) =>
             c.rateRank2 !== info.rateRank2ndPrev &&
             c.rateRank2 !== info.rateRank2ndNb &&
-            c.rateRank1 === info.rateRank1st,
+            c.rateRank1 === info.rateRank1st
         );
   const options = base.map((c) => ({
     ...c,
@@ -689,7 +725,9 @@ function findRate(
 
   // Primary path (R assign_rates.R:1220-1222): min(cases) computed over ALL
   // options, then intersected with the jump constraint.
-  let finalOptions = options.filter((o) => (o.cases === minCases || o.cases === minCases + 1) && withinJump(o));
+  let finalOptions = options.filter(
+    (o) => (o.cases === minCases || o.cases === minCases + 1) && withinJump(o)
+  );
   if (finalOptions.length === 0) {
     // R's fallback (assign_rates.R:1228-1234): re-filter by the JUMP
     // constraint FIRST, then take min(cases) on that jump-filtered subset —
@@ -722,7 +760,7 @@ export function getDesignForSecond(
   secondFeatures: Feature[],
   ratesDataSecond: RateData[],
   rateJumpThresholdIn: number | null,
-  rng: Rng,
+  rng: Rng
 ): Map<Feature, RateData> {
   const numRates = ratesDataSecond.length;
   const numPlots = secondFeatures.length;
@@ -731,7 +769,8 @@ export function getDesignForSecond(
   const distinctFirstRanks = [...new Set(firstDesignRates)];
   const combEntries: CombEntry[] = [];
   for (const r1 of distinctFirstRanks) {
-    for (let r2 = 1; r2 <= numRates; r2++) combEntries.push({ rateRank1: r1, rateRank2: r2, cases: 0 });
+    for (let r2 = 1; r2 <= numRates; r2++)
+      combEntries.push({ rateRank1: r1, rateRank2: r2, cases: 0 });
   }
   const updateComb = (r1: number, r2: number): void => {
     for (const e of combEntries) if (e.rateRank1 === r1 && e.rateRank2 === r2) e.cases += 1;
@@ -748,7 +787,7 @@ export function getDesignForSecond(
   }
   const rowSums = invDist.map((row) => row.reduce((a, b) => a + b, 0));
   const W: number[][] = Array.from({ length: n }, (_, a) =>
-    Array.from({ length: n }, (_, b) => (rowSums[b] === 0 ? 0 : invDist[a]![b]! / rowSums[b]!)),
+    Array.from({ length: n }, (_, b) => (rowSums[b] === 0 ? 0 : invDist[a]![b]! / rowSums[b]!))
   );
 
   const stripIndex = new Map<number, number[]>();
@@ -772,7 +811,10 @@ export function getDesignForSecond(
       } else {
         const prev = rateTable[rowIndex - 1]!;
         const candidates = combEntries.filter(
-          (c) => c.rateRank2 !== prev && c.rateRank1 === rateRank1st && Math.abs(c.rateRank2 - prev) <= rateJumpThreshold,
+          (c) =>
+            c.rateRank2 !== prev &&
+            c.rateRank1 === rateRank1st &&
+            Math.abs(c.rateRank2 - prev) <= rateJumpThreshold
         );
         const minCases = Math.min(...candidates.map((c) => c.cases));
         const tied = candidates.filter((c) => c.cases === minCases);
@@ -800,7 +842,7 @@ export function getDesignForSecond(
         combEntries,
         rateTable,
         W,
-        rng,
+        rng
       );
       rateTable[rowIndex] = rateRank2nd;
       updateComb(rateRank1st, rateRank2nd);
@@ -823,13 +865,16 @@ function multipleOfTheOther(a: number, b: number): boolean {
 function geometryIdentical(a: FeatureCollection, b: FeatureCollection): boolean {
   if (a.features.length !== b.features.length) return false;
   for (let i = 0; i < a.features.length; i++) {
-    if (JSON.stringify(a.features[i]!.geometry) !== JSON.stringify(b.features[i]!.geometry)) return false;
+    if (JSON.stringify(a.features[i]!.geometry) !== JSON.stringify(b.features[i]!.geometry))
+      return false;
   }
   return true;
 }
 
 function noRankSeqSpecified(infos: RateInfo[]): boolean {
-  return infos.every((ri) => ri.rank_seq_ws === null) && infos.every((ri) => ri.rank_seq_as === null);
+  return (
+    infos.every((ri) => ri.rank_seq_ws === null) && infos.every((ri) => ri.rank_seq_as === null)
+  );
 }
 
 function bothLs(infos: RateInfo[]): boolean {
@@ -839,7 +884,7 @@ function bothLs(infos: RateInfo[]): boolean {
 function assignRatesTwoInput(
   layouts: [InputLayout, InputLayout],
   rateInfos: [RateInfo, RateInfo],
-  rng: Rng,
+  rng: Rng
 ): Map<string, Map<Feature, RateData>> {
   const [layoutA, layoutB] = layouts;
   const [riA, riB] = rateInfos;
@@ -866,7 +911,7 @@ function assignRatesTwoInput(
         riA.rank_seq_ws,
         riA.rank_seq_as,
         riA.rate_jump_threshold,
-        rng,
+        rng
       );
       result.set(layoutA.plotInfo.input_name, firstAssigned);
 
@@ -879,7 +924,7 @@ function assignRatesTwoInput(
         layoutB.plots.features,
         riB.rates_data,
         riB.rate_jump_threshold,
-        rng,
+        rng
       );
       result.set(layoutB.plotInfo.input_name, secondAssigned);
     }
@@ -895,7 +940,7 @@ function assignRatesTwoInput(
         ri.rank_seq_ws,
         ri.rank_seq_as,
         ri.rate_jump_threshold,
-        rng,
+        rng
       );
       result.set(layout.plotInfo.input_name, assigned);
     }
@@ -907,13 +952,16 @@ function assignRatesTwoInput(
 function buildInputDesign(
   layout: InputLayout,
   ri: RateInfo,
-  assigned: Map<Feature, RateData>,
+  assigned: Map<Feature, RateData>
 ): InputDesign {
   const plots: FeatureCollection = {
     ...layout.plots,
     features: layout.plots.features.map((f) => {
       const rd = assigned.get(f)!;
-      return { ...f, properties: { ...f.properties, rate: rd.rate, rate_rank: rd.rate_rank, type: "experiment" } };
+      return {
+        ...f,
+        properties: { ...f.properties, rate: rd.rate, rate_rank: rd.rate_rank, type: "experiment" },
+      };
     }),
   };
   const headlands: FeatureCollection = {
@@ -951,7 +999,7 @@ export interface AssignRatesOptions {
 export function assignRates(
   expData: ExpData,
   rateInfo: RateInfo | RateInfo[],
-  options?: AssignRatesOptions,
+  options?: AssignRatesOptions
 ): TrialDesign {
   const seed = options?.seed ?? 42;
   const rng = createRng(seed);
@@ -963,7 +1011,9 @@ export function assignRates(
   const inputNames = new Set(expData.inputs.map((l) => l.plotInfo.input_name));
   for (const ri of rateInfos) {
     if (!inputNames.has(ri.input_name)) {
-      throw new ValidationError(`RateInfo for input "${ri.input_name}" has no matching input in expData.`);
+      throw new ValidationError(
+        `RateInfo for input "${ri.input_name}" has no matching input in expData.`
+      );
     }
   }
   const rateInfoByName = new Map(rateInfos.map((ri) => [ri.input_name, ri]));
@@ -972,7 +1022,10 @@ export function assignRates(
   let designByName: Map<string, Map<Feature, RateData>>;
   if (dosedInputs.length === 2) {
     const layouts = dosedInputs as [InputLayout, InputLayout];
-    const infos = layouts.map((l) => rateInfoByName.get(l.plotInfo.input_name)!) as [RateInfo, RateInfo];
+    const infos = layouts.map((l) => rateInfoByName.get(l.plotInfo.input_name)!) as [
+      RateInfo,
+      RateInfo,
+    ];
     designByName = assignRatesTwoInput(layouts, infos, rng);
   } else {
     designByName = new Map();
@@ -980,7 +1033,15 @@ export function assignRates(
       const ri = rateInfoByName.get(layout.plotInfo.input_name)!;
       designByName.set(
         layout.plotInfo.input_name,
-        assignRatesByInput(layout.plots, ri.rates_data, ri.design_type, ri.rank_seq_ws, ri.rank_seq_as, ri.rate_jump_threshold, rng),
+        assignRatesByInput(
+          layout.plots,
+          ri.rates_data,
+          ri.design_type,
+          ri.rank_seq_ws,
+          ri.rank_seq_as,
+          ri.rate_jump_threshold,
+          rng
+        )
       );
     }
   }
@@ -1017,23 +1078,23 @@ export function assignRatesConditional(
   expData: ExpData,
   rateInfo: RateInfo | RateInfo[],
   existingDesign: TrialDesign,
-  options?: AssignRatesOptions,
+  options?: AssignRatesOptions
 ): TrialDesign {
   if (Array.isArray(rateInfo)) {
     throw new ValidationError(
-      "assignRatesConditional accepts a single RateInfo — you cannot assign rates for two inputs using this function.",
+      "assignRatesConditional accepts a single RateInfo — you cannot assign rates for two inputs using this function."
     );
   }
   if (!existingDesign || existingDesign.inputs.length !== 2) {
     throw new ValidationError(
-      "existingDesign must be a two-input TrialDesign with exactly one dosed input and one geometry-only input.",
+      "existingDesign must be a two-input TrialDesign with exactly one dosed input and one geometry-only input."
     );
   }
   const dosedIdx = existingDesign.inputs.findIndex((i) => i.rateInfo !== null);
   const undosedIdx = existingDesign.inputs.findIndex((i) => i.rateInfo === null);
   if (dosedIdx === -1 || undosedIdx === -1) {
     throw new ValidationError(
-      "existingDesign must be a two-input TrialDesign with exactly one dosed input and one geometry-only input.",
+      "existingDesign must be a two-input TrialDesign with exactly one dosed input and one geometry-only input."
     );
   }
   const dosedInput = existingDesign.inputs[dosedIdx]!;
@@ -1041,17 +1102,19 @@ export function assignRatesConditional(
 
   if (rateInfo.input_name !== undosedInput.plotInfo.input_name) {
     throw new ValidationError(
-      `RateInfo is for input "${rateInfo.input_name}", but the undosed input in existingDesign is "${undosedInput.plotInfo.input_name}".`,
+      `RateInfo is for input "${rateInfo.input_name}", but the undosed input in existingDesign is "${undosedInput.plotInfo.input_name}".`
     );
   }
 
   const matchingLayout = expData.inputs.find((l) => l.plotInfo.input_name === rateInfo.input_name);
   if (!matchingLayout) {
-    throw new ValidationError(`RateInfo for input "${rateInfo.input_name}" has no matching input in expData.`);
+    throw new ValidationError(
+      `RateInfo for input "${rateInfo.input_name}" has no matching input in expData.`
+    );
   }
   if (!geometryIdentical(matchingLayout.plots, undosedInput.plots)) {
     throw new ValidationError(
-      "It seems you are trying to add a third input. This package does not accommodate a three-input experiment.",
+      "It seems you are trying to add a third input. This package does not accommodate a three-input experiment."
     );
   }
 
@@ -1079,7 +1142,13 @@ export function assignRatesConditional(
     rateInfo.rank_seq_as === null;
 
   const assigned = requireJoint
-    ? getDesignForSecond(firstDesignRates, matchingLayout.plots.features, rateInfo.rates_data, rateInfo.rate_jump_threshold, rng)
+    ? getDesignForSecond(
+        firstDesignRates,
+        matchingLayout.plots.features,
+        rateInfo.rates_data,
+        rateInfo.rate_jump_threshold,
+        rng
+      )
     : assignRatesByInput(
         matchingLayout.plots,
         rateInfo.rates_data,
@@ -1087,7 +1156,7 @@ export function assignRatesConditional(
         rateInfo.rank_seq_ws,
         rateInfo.rank_seq_as,
         rateInfo.rate_jump_threshold,
-        rng,
+        rng
       );
 
   const newInputDesign = buildInputDesign(matchingLayout, rateInfo, assigned);
@@ -1127,7 +1196,10 @@ function addBlocksForInput(input: InputDesign): InputDesign {
     const blockId = blockIds[i]!;
     const count = (withinBlockCounters.get(blockId) ?? 0) + 1;
     withinBlockCounters.set(blockId, count);
-    return { ...f, properties: { ...f.properties, block_id: blockId, plot_id_within_block: count } };
+    return {
+      ...f,
+      properties: { ...f.properties, block_id: blockId, plot_id_within_block: count },
+    };
   });
   const newHeadlands = input.headlands.features.map((f) => ({
     ...f,
@@ -1167,7 +1239,7 @@ export function changeRates(td: TrialDesign, opts: ChangeRatesOptions): TrialDes
   } else {
     if (!opts.inputName) {
       throw new ValidationError(
-        'Please specify which input you want to change rates for using the "inputName" option.',
+        'Please specify which input you want to change rates for using the "inputName" option.'
       );
     }
     targetIndex = td.inputs.findIndex((inp) => inp.plotInfo.input_name === opts.inputName);
@@ -1180,14 +1252,18 @@ export function changeRates(td: TrialDesign, opts: ChangeRatesOptions): TrialDes
   const existingStripIds = new Set(target.plots.features.map((f) => plotProps(f).stripId));
   const missingStrips = opts.stripIds.filter((s) => !existingStripIds.has(s));
   if (missingStrips.length > 0) {
-    throw new ValidationError(`Strip id(s) not found in this input's design: ${missingStrips.join(", ")}.`);
+    throw new ValidationError(
+      `Strip id(s) not found in this input's design: ${missingStrips.join(", ")}.`
+    );
   }
 
   if (opts.plotIds) {
     const missingPairs: string[] = [];
     for (const s of opts.stripIds) {
       const plotIdsInStrip = new Set(
-        target.plots.features.filter((f) => plotProps(f).stripId === s).map((f) => plotProps(f).plotId),
+        target.plots.features
+          .filter((f) => plotProps(f).stripId === s)
+          .map((f) => plotProps(f).plotId)
       );
       for (const p of opts.plotIds) {
         if (!plotIdsInStrip.has(p)) missingPairs.push(`(${s}, ${p})`);
@@ -1212,7 +1288,7 @@ export function changeRates(td: TrialDesign, opts: ChangeRatesOptions): TrialDes
     if (!Array.isArray(opts.newRates) || opts.newRates.length !== opts.stripIds.length) {
       const got = Array.isArray(opts.newRates) ? opts.newRates.length : 1;
       throw new ValidationError(
-        `For rateBy "strip", newRates must have the same length as stripIds (${opts.stripIds.length}), got ${got}.`,
+        `For rateBy "strip", newRates must have the same length as stripIds (${opts.stripIds.length}), got ${got}.`
       );
     }
     stripRates = opts.newRates as number[];
@@ -1227,10 +1303,11 @@ export function changeRates(td: TrialDesign, opts: ChangeRatesOptions): TrialDes
     }
     const mat = opts.newRates as number[][];
     const rowsOk = Array.isArray(mat) && mat.length === opts.plotIds.length;
-    const colsOk = rowsOk && mat.every((row) => Array.isArray(row) && row.length === opts.stripIds.length);
+    const colsOk =
+      rowsOk && mat.every((row) => Array.isArray(row) && row.length === opts.stripIds.length);
     if (!rowsOk || !colsOk) {
       throw new ValidationError(
-        `For rateBy "plot", newRates must be a ${opts.plotIds.length} x ${opts.stripIds.length} matrix (plotIds x stripIds).`,
+        `For rateBy "plot", newRates must be a ${opts.plotIds.length} x ${opts.stripIds.length} matrix (plotIds x stripIds).`
       );
     }
     plotMatrix = mat;

@@ -45,7 +45,7 @@ describe("writeShapefile — trial-design layer (simple1, imperial)", () => {
   it("writes a .prj declaring WGS84, matching R's sf::st_write output byte-for-byte", () => {
     const rPrj = readFileSync(
       join(ROOT, "fixtures/simple1/imperial/r-exports/trial-design-seed.prj"),
-      "utf8",
+      "utf8"
     );
     expect(new TextDecoder().decode(prj)).toBe(rPrj);
   });
@@ -90,7 +90,9 @@ describe("writeShapefile — trial-design layer (simple1, imperial)", () => {
     expect(shpResult.bbox.yMax).toBeCloseTo(yMax, 12);
     // And match R's own header bbox for the same features (1e-7 deg).
     const rShp = readShp(
-      new Uint8Array(readFileSync(join(ROOT, "fixtures/simple1/imperial/r-exports/trial-design-seed.shp"))),
+      new Uint8Array(
+        readFileSync(join(ROOT, "fixtures/simple1/imperial/r-exports/trial-design-seed.shp"))
+      )
     );
     expect(Math.abs(shpResult.bbox.xMin - rShp.bbox.xMin)).toBeLessThan(1e-7);
     expect(Math.abs(shpResult.bbox.yMin - rShp.bbox.yMin)).toBeLessThan(1e-7);
@@ -157,11 +159,18 @@ describe("writeShapefile — trial-design layer (simple1, imperial)", () => {
 describe("writeShapefile — R fixture parity (simple1, imperial)", () => {
   const td = loadTrialDesign("simple1", "imperial", ["seed"]);
   const features = trialDesignFeatures(td);
-  const { shp, dbf } = writeShapefile(features, { geometryType: "polygon", fields: TRIAL_DESIGN_FIELDS });
+  const { shp, dbf } = writeShapefile(features, {
+    geometryType: "polygon",
+    fields: TRIAL_DESIGN_FIELDS,
+  });
   const ours = { shp: readShp(shp), dbf: readDbf(dbf) };
 
-  const rShpBytes = readFileSync(join(ROOT, "fixtures/simple1/imperial/r-exports/trial-design-seed.shp"));
-  const rDbfBytes = readFileSync(join(ROOT, "fixtures/simple1/imperial/r-exports/trial-design-seed.dbf"));
+  const rShpBytes = readFileSync(
+    join(ROOT, "fixtures/simple1/imperial/r-exports/trial-design-seed.shp")
+  );
+  const rDbfBytes = readFileSync(
+    join(ROOT, "fixtures/simple1/imperial/r-exports/trial-design-seed.dbf")
+  );
   const r = { shp: readShp(new Uint8Array(rShpBytes)), dbf: readDbf(new Uint8Array(rDbfBytes)) };
 
   it("same feature count as R", () => {
@@ -209,8 +218,12 @@ describe("writeShapefile — ab-line layer (polyline)", () => {
     });
     const ours = { shp: readShp(shp), dbf: readDbf(dbf) };
 
-    const rShpBytes = readFileSync(join(ROOT, "fixtures/simple1/imperial/r-exports/ab-line-seed.shp"));
-    const rDbfBytes = readFileSync(join(ROOT, "fixtures/simple1/imperial/r-exports/ab-line-seed.dbf"));
+    const rShpBytes = readFileSync(
+      join(ROOT, "fixtures/simple1/imperial/r-exports/ab-line-seed.shp")
+    );
+    const rDbfBytes = readFileSync(
+      join(ROOT, "fixtures/simple1/imperial/r-exports/ab-line-seed.dbf")
+    );
     const r = { shp: readShp(new Uint8Array(rShpBytes)), dbf: readDbf(new Uint8Array(rDbfBytes)) };
 
     expect(ours.shp.shapeType).toBe(3); // PolyLine
@@ -261,18 +274,21 @@ describe("writeShapefile — MultiPolygon support", () => {
 
 describe("writeShapefile — error cases", () => {
   it("throws ExportError on an empty feature list", () => {
-    expect(() => writeShapefile([], { geometryType: "polygon", fields: TRIAL_DESIGN_FIELDS })).toThrow(
-      ExportError,
-    );
+    expect(() =>
+      writeShapefile([], { geometryType: "polygon", fields: TRIAL_DESIGN_FIELDS })
+    ).toThrow(ExportError);
   });
 
   it("throws ExportError on a geometry/geometryType mismatch", () => {
-    const lineGeom = { type: "LineString" as const, coordinates: [[0, 0] as [number, number], [1, 1] as [number, number]] };
+    const lineGeom = {
+      type: "LineString" as const,
+      coordinates: [[0, 0] as [number, number], [1, 1] as [number, number]],
+    };
     expect(() =>
       writeShapefile([{ geometry: lineGeom, properties: { ab_id: 1 } }], {
         geometryType: "polygon",
         fields: AB_LINE_FIELDS,
-      }),
+      })
     ).toThrow(ExportError);
   });
 
@@ -294,7 +310,7 @@ describe("writeShapefile — error cases", () => {
       writeShapefile([{ geometry: squareGeom, properties: { verylongfieldname: 1 } }], {
         geometryType: "polygon",
         fields: [{ name: "verylongfieldname", type: "N", length: 9 }],
-      }),
+      })
     ).toThrow(ExportError);
   });
 
@@ -303,7 +319,7 @@ describe("writeShapefile — error cases", () => {
       writeShapefile([{ geometry: squareGeom, properties: { big: "x" } }], {
         geometryType: "polygon",
         fields: [{ name: "big", type: "C", length: 256 }],
-      }),
+      })
     ).toThrow(ExportError);
   });
 
@@ -313,7 +329,7 @@ describe("writeShapefile — error cases", () => {
       writeShapefile([{ geometry: emptyGeom, properties: { ab_id: 1 } }], {
         geometryType: "polygon",
         fields: AB_LINE_FIELDS,
-      }),
+      })
     ).toThrow(ExportError);
   });
 
@@ -322,7 +338,7 @@ describe("writeShapefile — error cases", () => {
       writeShapefile([{ geometry: squareGeom, properties: { label: null } }], {
         geometryType: "polygon",
         fields: [{ name: "label", type: "C", length: 20 }],
-      }),
+      })
     ).toThrow(ExportError);
   });
 });

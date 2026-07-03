@@ -21,7 +21,7 @@ export function relClose(actual: number, expected: number, tol: number): boolean
  */
 export function overlapRatio(
   ts: Feature<Polygon | MultiPolygon>,
-  r: Feature<Polygon | MultiPolygon>,
+  r: Feature<Polygon | MultiPolygon>
 ): number {
   const overlap = intersect(featureCollection([ts, r]));
   if (!overlap) return 0;
@@ -34,7 +34,7 @@ export function overlapRatio(
  */
 export function centroidDistanceMeters(
   ts: Feature<Polygon | MultiPolygon>,
-  r: Feature<Polygon | MultiPolygon>,
+  r: Feature<Polygon | MultiPolygon>
 ): number {
   const cTs = centroid(ts).geometry.coordinates as [number, number];
   const cR = centroid(r).geometry.coordinates as [number, number];

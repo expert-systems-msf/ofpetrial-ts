@@ -52,7 +52,7 @@ function assertSafeInputName(inputName: string): void {
     hasControlChars
   ) {
     throw new ExportError(
-      `writeTrialFiles: unsafe input_name ${JSON.stringify(inputName)} — must not be empty, contain "/", "\\", "..", control characters, or start with "."`,
+      `writeTrialFiles: unsafe input_name ${JSON.stringify(inputName)} — must not be empty, contain "/", "\\", "..", control characters, or start with "."`
     );
   }
 }
@@ -96,7 +96,7 @@ function shapefileZipEntries(
   name: string,
   features: ShapefileFeatureInput[],
   geometryType: "polygon" | "polyline",
-  fields: typeof TRIAL_DESIGN_FIELDS | typeof AB_LINE_FIELDS,
+  fields: typeof TRIAL_DESIGN_FIELDS | typeof AB_LINE_FIELDS
 ): Record<string, Uint8Array> {
   const { shp, shx, dbf, prj } = writeShapefile(features, { geometryType, fields });
   return {
@@ -128,7 +128,13 @@ export function writeTrialFiles(td: TrialDesign, opts: WriteTrialFilesOptions): 
       Object.assign(
         entries,
         shapefileZipEntries(inputName, inputName, trialFeatures, "polygon", TRIAL_DESIGN_FIELDS),
-        shapefileZipEntries(inputName, "ab-line", abLineFeatures(input.abLine), "polyline", AB_LINE_FIELDS),
+        shapefileZipEntries(
+          inputName,
+          "ab-line",
+          abLineFeatures(input.abLine),
+          "polyline",
+          AB_LINE_FIELDS
+        )
       );
     } else if (opts.ext === "geojson") {
       entries[`${inputName}/${inputName}.geojson`] = writeGeoJson(trialFeatures);
@@ -136,7 +142,9 @@ export function writeTrialFiles(td: TrialDesign, opts: WriteTrialFilesOptions): 
     } else if (opts.ext === "isoxml") {
       const rateUnit = input.rateInfo?.unit;
       if (!rateUnit) {
-        throw new ExportError(`writeTrialFiles: input "${inputName}" has no rateInfo (required for ISOXML)`);
+        throw new ExportError(
+          `writeTrialFiles: input "${inputName}" has no rateInfo (required for ISOXML)`
+        );
       }
       const plots = trialFeatures.map((f) => ({
         geometry: f.geometry as Polygon | MultiPolygon,
@@ -166,8 +174,8 @@ export function writeTrialFiles(td: TrialDesign, opts: WriteTrialFilesOptions): 
           "harvester-ab-line",
           harvesterFeatures,
           "polyline",
-          AB_LINE_FIELDS,
-        ),
+          AB_LINE_FIELDS
+        )
       );
     } else {
       entries["harvester-ab-line/harvester-ab-line.geojson"] = writeGeoJson(harvesterFeatures);
@@ -181,7 +189,7 @@ export function writeTrialFiles(td: TrialDesign, opts: WriteTrialFilesOptions): 
 export async function writeTrialFilesToDisk(
   td: TrialDesign,
   folderPath: string,
-  opts: WriteTrialFilesOptions,
+  opts: WriteTrialFilesOptions
 ): Promise<void> {
   const { unzipSync } = await import("fflate");
   const { mkdir, writeFile } = await import("node:fs/promises");
@@ -198,7 +206,7 @@ export async function writeTrialFilesToDisk(
     // that every resolved path stays under folderPath before touching disk.
     if (!fullPath.startsWith(root + sep)) {
       throw new ExportError(
-        `writeTrialFilesToDisk: zip entry ${JSON.stringify(relPath)} escapes the output folder`,
+        `writeTrialFilesToDisk: zip entry ${JSON.stringify(relPath)} escapes the output folder`
       );
     }
     await mkdir(dirname(fullPath), { recursive: true });

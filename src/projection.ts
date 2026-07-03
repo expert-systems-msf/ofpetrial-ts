@@ -31,7 +31,7 @@ export function utmProjString(epsg: number): string {
  */
 export function toUtm(
   coord: [number, number],
-  epsg?: number,
+  epsg?: number
 ): { point: [number, number]; epsg: number } {
   const [lon, lat] = coord;
   const zoneEpsg = epsg ?? utmEpsg(lon, lat);

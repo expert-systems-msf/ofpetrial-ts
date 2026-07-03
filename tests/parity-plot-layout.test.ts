@@ -59,7 +59,9 @@ function plotKeyOf(f: PolyFeature): string {
 /** Groups plot features by (strip_id, plot_id), duplicates in coordinate order. */
 function groupByKey(features: PolyFeature[]): Map<string, PolyFeature[]> {
   const firstCoord = (f: PolyFeature): number[] =>
-    (f.geometry.type === "Polygon" ? f.geometry.coordinates[0]![0] : f.geometry.coordinates[0]![0]![0]) as number[];
+    (f.geometry.type === "Polygon"
+      ? f.geometry.coordinates[0]![0]
+      : f.geometry.coordinates[0]![0]![0]) as number[];
   const map = new Map<string, PolyFeature[]>();
   for (const f of features) {
     const key = plotKeyOf(f);
@@ -68,7 +70,9 @@ function groupByKey(features: PolyFeature[]): Map<string, PolyFeature[]> {
     map.set(key, list);
   }
   for (const list of map.values()) {
-    list.sort((a, b) => firstCoord(a)[0]! - firstCoord(b)[0]! || firstCoord(a)[1]! - firstCoord(b)[1]!);
+    list.sort(
+      (a, b) => firstCoord(a)[0]! - firstCoord(b)[0]! || firstCoord(a)[1]! - firstCoord(b)[1]!
+    );
   }
   return map;
 }
@@ -77,7 +81,7 @@ function groupByKey(features: PolyFeature[]): Map<string, PolyFeature[]> {
 function lineEndpointsClose(
   ts: Feature<LineString>,
   r: Feature<LineString>,
-  tolMeters: number,
+  tolMeters: number
 ): boolean {
   const rc = r.geometry.coordinates;
   const tc = ts.geometry.coordinates;
@@ -87,7 +91,8 @@ function lineEndpointsClose(
     coords.map((c) => toUtm([c[0]!, c[1]!], epsg).point);
   const [r0, r1] = pts(rc);
   const [t0, t1] = pts(tc);
-  const dist = (a: [number, number], b: [number, number]): number => Math.hypot(a[0] - b[0], a[1] - b[1]);
+  const dist = (a: [number, number], b: [number, number]): number =>
+    Math.hypot(a[0] - b[0], a[1] - b[1]);
   const same = Math.max(dist(t0!, r0!), dist(t1!, r1!));
   const flipped = Math.max(dist(t0!, r1!), dist(t1!, r0!));
   return Math.min(same, flipped) <= tolMeters;
@@ -106,7 +111,7 @@ describe("makeExpPlots parity with R fixtures", () => {
             machineWidth: p.machine_width,
             sectionNum: p.section_num,
             harvesterWidth: p.harvester_width,
-          }),
+          })
         );
         const expData = makeExpPlots({
           inputPlotInfo: plotInfos.length === 1 ? plotInfos[0]! : plotInfos,
@@ -131,10 +136,12 @@ describe("makeExpPlots parity with R fixtures", () => {
               expect(tsFeatures, `duplicate count for ${key}`).toHaveLength(rFeatures.length);
               rFeatures.forEach((rf, j) => {
                 const tf = tsFeatures[j]!;
-                expect(overlapRatio(tf, rf), `overlap for plot ${key}`).toBeGreaterThanOrEqual(0.99);
+                expect(overlapRatio(tf, rf), `overlap for plot ${key}`).toBeGreaterThanOrEqual(
+                  0.99
+                );
                 expect(
                   centroidDistanceMeters(tf, rf),
-                  `centroid distance for plot ${key}`,
+                  `centroid distance for plot ${key}`
                 ).toBeLessThanOrEqual(0.1);
               });
             }
@@ -161,16 +168,16 @@ describe("makeExpPlots parity with R fixtures", () => {
               .features[0]!;
             expect(
               lineEndpointsClose(layout.abLine, rAb as Feature<LineString>, 0.1),
-              "ab-line endpoints within 10 cm",
+              "ab-line endpoints within 10 cm"
             ).toBe(true);
             expect(layout.guidanceLines.features).toHaveLength(1);
             expect(
               lineEndpointsClose(
                 layout.guidanceLines.features[0] as Feature<LineString>,
                 rHarvest as Feature<LineString>,
-                0.1,
+                0.1
               ),
-              "guidance line endpoints within 10 cm",
+              "guidance line endpoints within 10 cm"
             ).toBe(true);
           });
         });
@@ -193,7 +200,7 @@ describe("makeExpPlots error cases (task 4.5)", () => {
 
   it("throws ValidationError when the ab-line is missing with ablineType lock", () => {
     expect(() =>
-      makeExpPlots({ inputPlotInfo: plotInfo, boundary, abLine: emptyFc, ablineType: "lock" }),
+      makeExpPlots({ inputPlotInfo: plotInfo, boundary, abLine: emptyFc, ablineType: "lock" })
     ).toThrow(ValidationError);
   });
 
@@ -202,7 +209,7 @@ describe("makeExpPlots error cases (task 4.5)", () => {
     // fails obscurely on NA input; the port validates upfront (spec: ab-line
     // required).
     expect(() => makeExpPlots({ inputPlotInfo: plotInfo, boundary, abLine: emptyFc })).toThrow(
-      ValidationError,
+      ValidationError
     );
   });
 
@@ -223,7 +230,7 @@ describe("makeExpPlots error cases (task 4.5)", () => {
       },
     };
     expect(() => makeExpPlots({ inputPlotInfo: plotInfo, boundary: degenerate, abLine })).toThrow(
-      GeometryError,
+      GeometryError
     );
   });
 
@@ -284,7 +291,7 @@ describe("makeExpPlots error cases (task 4.5)", () => {
       harvesterWidth: 60, // differs from the first input's 30
     });
     expect(() => makeExpPlots({ inputPlotInfo: [plotInfo, other], boundary, abLine })).toThrow(
-      ValidationError,
+      ValidationError
     );
   });
 
@@ -305,7 +312,7 @@ describe("makeExpPlots error cases (task 4.5)", () => {
         boundary,
         abLine,
         ablineType: "bogus" as unknown as "free",
-      }),
+      })
     ).toThrow(ValidationError);
   });
 

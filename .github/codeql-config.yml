@@ -1,0 +1,9 @@
+name: "CodeQL Configuration"
+
+# Exclude test files from analysis (reduces false positives)
+paths-ignore:
+  - "**/*.test.ts"
+  - "**/*.spec.ts"
+  - "tests/**"
+  - "test-cases/**"
+  - "test-cases-runner/**"

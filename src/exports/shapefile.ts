@@ -98,7 +98,10 @@ function lineParts(geometry: LineString | MultiLineString): Ring[] {
     : (geometry.coordinates as Ring[]);
 }
 
-function partsOf(geometryType: "polygon" | "polyline", geometry: ShapefileFeatureInput["geometry"]): Ring[] {
+function partsOf(
+  geometryType: "polygon" | "polyline",
+  geometry: ShapefileFeatureInput["geometry"]
+): Ring[] {
   if (geometryType === "polygon") {
     if (geometry.type !== "Polygon" && geometry.type !== "MultiPolygon") {
       throw new ExportError(`Expected Polygon/MultiPolygon geometry, got "${geometry.type}"`);
@@ -155,7 +158,12 @@ function recordContentLengthBytes(parts: Ring[]): number {
   return 4 + 32 + 4 + 4 + 4 * parts.length + 16 * numPoints;
 }
 
-function writeShpRecordContent(view: DataView, offset: number, shapeType: number, parts: Ring[]): number {
+function writeShpRecordContent(
+  view: DataView,
+  offset: number,
+  shapeType: number,
+  parts: Ring[]
+): number {
   let o = offset;
   const bbox = partsBbox(parts);
   view.setInt32(o, shapeType, true);
@@ -188,7 +196,7 @@ function writeShpRecordContent(view: DataView, offset: number, shapeType: number
 
 function writeShpAndShx(
   shapeType: number,
-  featureParts: Ring[][],
+  featureParts: Ring[][]
 ): { shp: Uint8Array; shx: Uint8Array } {
   const contentLengths = featureParts.map(recordContentLengthBytes);
   const shpBodyBytes = contentLengths.reduce((n, c) => n + 8 + c, 0);
@@ -246,7 +254,7 @@ function writeShpAndShx(
 function padName(name: string): Uint8Array {
   if (name.length > 10) {
     throw new ExportError(
-      `DBF field name "${name}" exceeds 10 characters (dBase III name cell is 11 bytes incl. NUL)`,
+      `DBF field name "${name}" exceeds 10 characters (dBase III name cell is 11 bytes incl. NUL)`
     );
   }
   const bytes = new Uint8Array(11);
@@ -269,7 +277,7 @@ function formatField(value: number | string | null, field: ShapefileFieldSpec): 
   if (value === null) {
     if (type !== "N") {
       throw new ExportError(
-        `DBF field "${field.name}": null is only supported on numeric ("N") fields`,
+        `DBF field "${field.name}": null is only supported on numeric ("N") fields`
       );
     }
     return "*".repeat(length);
@@ -277,10 +285,11 @@ function formatField(value: number | string | null, field: ShapefileFieldSpec): 
   if (type === "C") {
     return String(value).slice(0, length).padEnd(length, " ");
   }
-  const text = decimals > 0 ? (value as number).toFixed(decimals) : String(Math.trunc(value as number));
+  const text =
+    decimals > 0 ? (value as number).toFixed(decimals) : String(Math.trunc(value as number));
   if (text.length > length) {
     throw new ExportError(
-      `DBF field "${field.name}" value "${text}" (${text.length} chars) exceeds width ${length}`,
+      `DBF field "${field.name}" value "${text}" (${text.length} chars) exceeds width ${length}`
     );
   }
   return text.padStart(length, " ");
@@ -292,7 +301,7 @@ function writeDbf(features: ShapefileFeatureInput[], fields: ShapefileFieldSpec[
     // silently wrap. (padName rejects names > 10 chars for the same reason.)
     if (field.length > 255) {
       throw new ExportError(
-        `DBF field "${field.name}" length ${field.length} exceeds the single-byte maximum (255)`,
+        `DBF field "${field.name}" length ${field.length} exceeds the single-byte maximum (255)`
       );
     }
   }
@@ -349,7 +358,7 @@ function writeDbf(features: ShapefileFeatureInput[], fields: ShapefileFieldSpec[
  */
 export function writeShapefile(
   features: ShapefileFeatureInput[],
-  opts: WriteShapefileOptions,
+  opts: WriteShapefileOptions
 ): ShapefileBytes {
   if (features.length === 0) {
     throw new ExportError("writeShapefile: cannot write a layer with zero features");

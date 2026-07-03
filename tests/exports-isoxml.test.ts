@@ -48,7 +48,7 @@ describe("writeIsoxml — round-trip structure (simple1, imperial, seed)", () =>
   const td = loadTrialDesign("simple1", "imperial", ["seed"]);
   const plots = plotsOf("seed", td);
   const xml = new TextDecoder().decode(
-    writeIsoxml(plots, { inputName: "seed", unitSystem: "imperial", rateUnit: "seeds" }),
+    writeIsoxml(plots, { inputName: "seed", unitSystem: "imperial", rateUnit: "seeds" })
   );
   const tags = parseTags(xml);
 
@@ -84,9 +84,9 @@ describe("writeIsoxml — round-trip structure (simple1, imperial, seed)", () =>
   });
 
   it("throws ExportError on an empty plot list", () => {
-    expect(() => writeIsoxml([], { inputName: "seed", unitSystem: "imperial", rateUnit: "seeds" })).toThrow(
-      ExportError,
-    );
+    expect(() =>
+      writeIsoxml([], { inputName: "seed", unitSystem: "imperial", rateUnit: "seeds" })
+    ).toThrow(ExportError);
   });
 });
 
@@ -106,7 +106,7 @@ describe("writeIsoxml — 254-zone ceiling", () => {
     };
     const plots: IsoxmlPlotInput[] = Array.from({ length: 255 }, (_, i) => ({ geometry, rate: i }));
     expect(() =>
-      writeIsoxml(plots, { inputName: "seed", unitSystem: "imperial", rateUnit: "seeds" }),
+      writeIsoxml(plots, { inputName: "seed", unitSystem: "imperial", rateUnit: "seeds" })
     ).toThrow(ExportError);
   });
 });
@@ -182,7 +182,7 @@ describe("writeIsoxml — metric units (hectare basis, kg and liters DDI mapping
     const td = loadTrialDesign("two-input", "metric", ["seed", "NH3"]);
     const files = unzipSync(writeTrialFiles(td, { ext: "isoxml" }));
     const nh3Pdvs = parseTags(new TextDecoder().decode(files["NH3/TASKDATA.XML"]!)).filter(
-      (t) => t.name === "PDV",
+      (t) => t.name === "PDV"
     );
     expect(nh3Pdvs.length).toBeGreaterThan(0);
     expect(nh3Pdvs.every((p) => p.attrs.A === "0006")).toBe(true);

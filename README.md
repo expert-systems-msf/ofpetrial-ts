@@ -31,6 +31,7 @@ import { assignRates, makeExpPlots, prepPlot, prepRate } from "npm:ofpetrial-ts"
 The full pipeline is: `prepPlot` → `prepRate` → `makeExpPlots` → `assignRates` → checks → `writeTrialFiles`. Every function takes/returns plain, JSON-serializable objects (no classes) — `PlotInfo`/`RateInfo` in, `ExpData`/`TrialDesign` out, GeoJSON everywhere geometry is involved.
 
 Inputs to `makeExpPlots`:
+
 - `boundary` — a `Feature<Polygon | MultiPolygon>` (or a `FeatureCollection` of one), the field boundary in WGS84 lon/lat. Holes are supported.
 - `abLine` — a `Feature<LineString>` (or a `FeatureCollection`, first line used), the guidance line the applicator drives along. Only its direction and one point matter; it is stretched across the field internally.
 
@@ -54,31 +55,39 @@ const boundary: GeoJSON.Feature<GeoJSON.Polygon> = {
   properties: {},
   geometry: {
     type: "Polygon",
-    coordinates: [[
-      [-96.9010, 41.0300],
-      [-96.8930, 41.0300],
-      [-96.8930, 41.0340],
-      [-96.9010, 41.0340],
-      [-96.9010, 41.0300],
-    ]],
+    coordinates: [
+      [
+        [-96.901, 41.03],
+        [-96.893, 41.03],
+        [-96.893, 41.034],
+        [-96.901, 41.034],
+        [-96.901, 41.03],
+      ],
+    ],
   },
 };
 const abLine: GeoJSON.Feature<GeoJSON.LineString> = {
   type: "Feature",
   properties: {},
-  geometry: { type: "LineString", coordinates: [[-96.9010, 41.0310], [-96.8930, 41.0310]] },
+  geometry: {
+    type: "LineString",
+    coordinates: [
+      [-96.901, 41.031],
+      [-96.893, 41.031],
+    ],
+  },
 };
 
 const plotInfo = prepPlot({
   inputName: "seed",
   unitSystem: "imperial",
-  machineWidth: 60,     // feet
+  machineWidth: 60, // feet
   sectionNum: 24,
-  harvesterWidth: 30,   // feet
+  harvesterWidth: 30, // feet
 });
 
 const rateInfo = prepRate(plotInfo, {
-  gcRate: 34000,        // grower-chosen rate, seeds/acre
+  gcRate: 34000, // grower-chosen rate, seeds/acre
   unit: "seeds",
   rates: [20000, 26000, 32000, 38000, 44000],
 });
@@ -100,9 +109,9 @@ Every option that takes a physical quantity is in the unit system's own units �
 const plotInfoMetric = prepPlot({
   inputName: "NH3",
   unitSystem: "metric",
-  machineWidth: 18.3,   // meters
+  machineWidth: 18.3, // meters
   sectionNum: 24,
-  harvesterWidth: 9.1,  // meters
+  harvesterWidth: 9.1, // meters
 });
 
 const rateInfoMetric = prepRate(plotInfoMetric, {
@@ -120,82 +129,82 @@ All options objects use camelCase (idiomatic TS). Returned data structures use s
 
 ### Trial setup (`prepPlot`, `prepRate`)
 
-| Export | Signature | Description |
-| --- | --- | --- |
-| `prepPlot` | `(options: PrepPlotOptions) => PlotInfo` | Derives plot/strip geometry (plot width, headland/side length, min/max plot length) from machine dimensions. Returns everything in meters regardless of `unitSystem`. |
-| `prepRate` | `(plotInfo: PlotInfo, options: PrepRateOptions) => RateInfo` | Builds the trial-rate ladder (explicit `rates` or `minRate`/`maxRate`/`numRates`) and per-design-type rate ranks. |
-| `getRates` | `(minRate, maxRate, gcRate, numLevels) => number[]` | Rate ladder anchored asymmetrically on `gcRate`; the returned length can differ from `numLevels` (R quirk, size off `.length`). |
-| `findPlotWidth` | `(sectionWidth, harvesterWidth, maxPlotWidth) => number` | Plot width: LCM of the two machine widths when one fits under `maxPlotWidth`, else a width-ratio fallback. |
-| `getLcm` | `(sectionWidth, harvesterWidth, maxPlotWidth) => number \| null` | Smallest common multiple of the two widths within `maxPlotWidth` (±0.05 m tolerance), or `null`. |
+| Export          | Signature                                                        | Description                                                                                                                                                           |
+| --------------- | ---------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `prepPlot`      | `(options: PrepPlotOptions) => PlotInfo`                         | Derives plot/strip geometry (plot width, headland/side length, min/max plot length) from machine dimensions. Returns everything in meters regardless of `unitSystem`. |
+| `prepRate`      | `(plotInfo: PlotInfo, options: PrepRateOptions) => RateInfo`     | Builds the trial-rate ladder (explicit `rates` or `minRate`/`maxRate`/`numRates`) and per-design-type rate ranks.                                                     |
+| `getRates`      | `(minRate, maxRate, gcRate, numLevels) => number[]`              | Rate ladder anchored asymmetrically on `gcRate`; the returned length can differ from `numLevels` (R quirk, size off `.length`).                                       |
+| `findPlotWidth` | `(sectionWidth, harvesterWidth, maxPlotWidth) => number`         | Plot width: LCM of the two machine widths when one fits under `maxPlotWidth`, else a width-ratio fallback.                                                            |
+| `getLcm`        | `(sectionWidth, harvesterWidth, maxPlotWidth) => number \| null` | Smallest common multiple of the two widths within `maxPlotWidth` (±0.05 m tolerance), or `null`.                                                                      |
 
 `PrepPlotOptions`: `{ inputName, unitSystem: "imperial" | "metric", machineWidth, sectionNum, harvesterWidth, plotWidth?, headlandLength?, sideLength?, maxPlotWidth?, minPlotLength?, maxPlotLength? }`.
 `PrepRateOptions`: `{ gcRate, unit, rates?, minRate?, maxRate?, numRates? (default 5), designType?, rankSeqWs?, rankSeqAs?, rateJumpThreshold? }`.
 
 ### Plot layout (`makeExpPlots`)
 
-| Export | Signature | Description |
-| --- | --- | --- |
+| Export         | Signature                                   | Description                                                                                                                                                                                                                            |
+| -------------- | ------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `makeExpPlots` | `(options: MakeExpPlotsOptions) => ExpData` | Subdivides the field boundary into experiment strips/plots aligned on the ab-line, and derives the per-input applicator ab-line, harvester guidance line, and headlands. All geometry math runs in UTM; input/output is WGS84 GeoJSON. |
 
 `MakeExpPlotsOptions`: `{ inputPlotInfo: PlotInfo | PlotInfo[], boundary, abLine, ablineType?: "free" | "lock" | "non" (default "free") }`.
 
 ### Rate assignment (`assignRates`, `assignRatesConditional`, `addBlocks`, `changeRates`)
 
-| Export | Signature | Description |
-| --- | --- | --- |
-| `assignRates` | `(expData, rateInfo: RateInfo \| RateInfo[], options?: AssignRatesOptions) => TrialDesign` | Randomly assigns trial rates to plots per input's `design_type`. Matches `RateInfo` to `ExpData` inputs **by `input_name`**, never by position. Inputs without a matching `RateInfo` come back with `rateInfo: null` (geometry only), consumable by `assignRatesConditional`. Two same-geometry `"ls"`-type inputs with compatible rate counts are jointly balanced. |
-| `assignRatesConditional` | `(expData, rateInfo: RateInfo, existingDesign: TrialDesign, options?) => TrialDesign` | Doses the remaining geometry-only input of a partially-dosed two-input `TrialDesign`, keeping the joint (rate¹, rate²) combinations balanced. Reduced scope vs R — see Deviations. |
-| `addBlocks` | `(td: TrialDesign) => TrialDesign` | Adds a 2D block grid (`block_id`, `plot_id_within_block`) to every dosed input, sized on its own rate count. |
-| `changeRates` | `(td: TrialDesign, opts: ChangeRatesOptions) => TrialDesign` | Overwrites rates on selected strips/plots of one named input, either uniformly (`"all"`), per strip (`"strip"`), or per (plot, strip) cell (`"plot"`). |
+| Export                   | Signature                                                                                  | Description                                                                                                                                                                                                                                                                                                                                                          |
+| ------------------------ | ------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `assignRates`            | `(expData, rateInfo: RateInfo \| RateInfo[], options?: AssignRatesOptions) => TrialDesign` | Randomly assigns trial rates to plots per input's `design_type`. Matches `RateInfo` to `ExpData` inputs **by `input_name`**, never by position. Inputs without a matching `RateInfo` come back with `rateInfo: null` (geometry only), consumable by `assignRatesConditional`. Two same-geometry `"ls"`-type inputs with compatible rate counts are jointly balanced. |
+| `assignRatesConditional` | `(expData, rateInfo: RateInfo, existingDesign: TrialDesign, options?) => TrialDesign`      | Doses the remaining geometry-only input of a partially-dosed two-input `TrialDesign`, keeping the joint (rate¹, rate²) combinations balanced. Reduced scope vs R — see Deviations.                                                                                                                                                                                   |
+| `addBlocks`              | `(td: TrialDesign) => TrialDesign`                                                         | Adds a 2D block grid (`block_id`, `plot_id_within_block`) to every dosed input, sized on its own rate count.                                                                                                                                                                                                                                                         |
+| `changeRates`            | `(td: TrialDesign, opts: ChangeRatesOptions) => TrialDesign`                               | Overwrites rates on selected strips/plots of one named input, either uniformly (`"all"`), per strip (`"strip"`), or per (plot, strip) cell (`"plot"`).                                                                                                                                                                                                               |
 
 `AssignRatesOptions`: `{ seed?: number }` (default `42`).
 `ChangeRatesOptions`: `{ inputName?, stripIds: number[], plotIds?: number[], newRates: number | number[] | number[][], rateBy?: "all" | "strip" | "plot" (default "all") }`.
 
 Design types (`RateInfo.design_type`, defaults to `"ls"` when `null`):
 
-| Type | Behavior |
-| --- | --- |
-| `ls` | Default. Sequential rank sequence within each strip that respects a max rate-jump threshold, with a strip-starting rank chosen to avoid gradual drift across neighboring strips. |
-| `str` | One rate per whole strip; the rate rotates across strips following a randomized starting sequence. |
-| `rstr` | Like `str`, but the strip-rotation sequence is reshuffled independently every `numRates` strips. |
-| `rb` | Randomized (complete) block: every `numRates`-sized block of plots gets its own random permutation of rates. |
-| `ejca` | Splits strips into two rank tiers (below/above the median rank); each tier gets a deterministic zigzag rank sequence, direction alternating by strip. Requires an even number of rates. |
-| `sparse` | The grower-chosen rate (`gcRate`, rank 1) alternates with the test rates every other plot within a strip. Requires `gcRate` to be included in `rates`. |
+| Type     | Behavior                                                                                                                                                                                |
+| -------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `ls`     | Default. Sequential rank sequence within each strip that respects a max rate-jump threshold, with a strip-starting rank chosen to avoid gradual drift across neighboring strips.        |
+| `str`    | One rate per whole strip; the rate rotates across strips following a randomized starting sequence.                                                                                      |
+| `rstr`   | Like `str`, but the strip-rotation sequence is reshuffled independently every `numRates` strips.                                                                                        |
+| `rb`     | Randomized (complete) block: every `numRates`-sized block of plots gets its own random permutation of rates.                                                                            |
+| `ejca`   | Splits strips into two rank tiers (below/above the median rank); each tier gets a deterministic zigzag rank sequence, direction alternating by strip. Requires an even number of rates. |
+| `sparse` | The grower-chosen rate (`gcRate`, rank 1) alternates with the test rates every other plot within a strip. Requires `gcRate` to be included in `rates`.                                  |
 
 ### Diagnostics (`checkAlignment`, `checkOrthoInputs`, `checkOrthoWithChars`, `spatialJoin`)
 
-| Export | Signature | Description |
-| --- | --- | --- |
-| `checkAlignment` | `(td: TrialDesign, fragments?: AlignmentFragment[][]) => AlignmentResult[]` | Per-input table of harvester-strip × experiment-plot overlap (tabular only — no plot). Pass precomputed `fragments` (one array per input) to skip the live geometry pass. |
-| `checkOrthoInputs` | `(td: TrialDesign, fragments?: OrthoInputsFragment[]) => number` | Area-weighted correlation between the two inputs' rates over their plot intersection (experiment plots only). Requires a two-input `td`; throws `ValidationError` on a single-input design. |
+| Export                | Signature                                                                                                    | Description                                                                                                                                                                                                                                                          |
+| --------------------- | ------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `checkAlignment`      | `(td: TrialDesign, fragments?: AlignmentFragment[][]) => AlignmentResult[]`                                  | Per-input table of harvester-strip × experiment-plot overlap (tabular only — no plot). Pass precomputed `fragments` (one array per input) to skip the live geometry pass.                                                                                            |
+| `checkOrthoInputs`    | `(td: TrialDesign, fragments?: OrthoInputsFragment[]) => number`                                             | Area-weighted correlation between the two inputs' rates over their plot intersection (experiment plots only). Requires a two-input `td`; throws `ValidationError` on a single-input design.                                                                          |
 | `checkOrthoWithChars` | `(td: TrialDesign, soilData: FeatureCollection \| SoilFragment[], vars: string[]) => OrthoWithCharsResult[]` | Per-input, per-variable correlation between rate and a numeric soil/field characteristic, over the full design (experiment plots + headlands). `soilData` is either a soil-layer `FeatureCollection` (join runs internally) or a precomputed `SoilFragment[]` table. |
-| `spatialJoin` | `(design: FeatureCollection, soilLayer: FeatureCollection) => SoilFragment[]` | Low-level polygon⋂polygon (or point-in-polygon) join underlying `checkOrthoWithChars`, exposed for direct use/testing. |
+| `spatialJoin`         | `(design: FeatureCollection, soilLayer: FeatureCollection) => SoilFragment[]`                                | Low-level polygon⋂polygon (or point-in-polygon) join underlying `checkOrthoWithChars`, exposed for direct use/testing.                                                                                                                                               |
 
 Types: `AlignmentFragment`, `AlignmentOverlapRow`, `AlignmentResult`, `CharCorrelation`, `OrthoInputsFragment`, `OrthoWithCharsResult`.
 
 ### Machine file export (`writeTrialFiles`, `writeTrialFilesToDisk`)
 
-| Export | Signature | Description |
-| --- | --- | --- |
-| `writeTrialFiles` | `(td: TrialDesign, opts: WriteTrialFilesOptions) => Uint8Array` | Writes every input's trial-design layer (plots + headlands) plus ab-lines into a single zip archive. `ext` is `"shp"` (Shapefile), `"geojson"`, or `"isoxml"` (`TASKDATA.XML`, beta). Browser-safe. |
-| `writeTrialFilesToDisk` | `(td: TrialDesign, folderPath: string, opts: WriteTrialFilesOptions) => Promise<void>` | Node/Deno-only helper: unzips `writeTrialFiles`'s output to `folderPath` via dynamic `node:fs`/`node:path` imports. |
+| Export                  | Signature                                                                              | Description                                                                                                                                                                                         |
+| ----------------------- | -------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `writeTrialFiles`       | `(td: TrialDesign, opts: WriteTrialFilesOptions) => Uint8Array`                        | Writes every input's trial-design layer (plots + headlands) plus ab-lines into a single zip archive. `ext` is `"shp"` (Shapefile), `"geojson"`, or `"isoxml"` (`TASKDATA.XML`, beta). Browser-safe. |
+| `writeTrialFilesToDisk` | `(td: TrialDesign, folderPath: string, opts: WriteTrialFilesOptions) => Promise<void>` | Node/Deno-only helper: unzips `writeTrialFiles`'s output to `folderPath` via dynamic `node:fs`/`node:path` imports.                                                                                 |
 
 `WriteTrialFilesOptions`: `{ ext: "shp" | "geojson" | "isoxml", zipName? }`.
 
 ### Units, projection, and RNG utilities
 
-| Export | Signature | Description |
-| --- | --- | --- |
-| `convUnit` | `(value, from, to) => number` | Table lookup among `hectares`/`acres`, `meters`/`feet`, `kg`/`pounds`, `acres`/`m2` pairs; throws `ValidationError` on an unknown pair. |
-| `convertRates` | `(inputName, unit, rate, conversionType?: "to_n_equiv" \| "from_n_equiv") => number` | Converts an input dose to (or from) its nitrogen-equivalent rate, per `INPUT_UNIT_CONVERSION_TABLE`. |
-| `feetToMeters`, `metersToFeet`, `acresToHectares`, `hectaresToAcres` | `(value) => number` | Direct unit converters. |
-| `ACRES_TO_HECTARES`, `FEET_TO_METERS`, `POUNDS_TO_KG`, `LITERS_TO_GALLONS` | `number` | Exact conversion constants. |
-| `GENERIC_UNIT_CONVERSION_TABLE`, `INPUT_UNIT_CONVERSION_TABLE` | tables | The raw conversion tables `convUnit`/`convertRates` look up. |
-| `toUtm` | `(coord: [number, number], epsg?: number) => { point: [number, number]; epsg: number }` | Projects a WGS84 `[lon, lat]` to UTM; zone from the point itself, or a supplied `epsg` to share one plane across a geometry. |
-| `toWgs` | `(point: [number, number], epsg: number) => [number, number]` | Projects a UTM point back to WGS84. |
-| `utmZone`, `utmEpsg`, `utmProjString` | — | UTM zone/EPSG/proj4-string helpers. |
-| `createRng` | `(seed: number) => Rng` | Seedable RNG (splitmix32) with `next()`, `nextInt(maxExclusive)`, `shuffle(arr)`, `sample(arr, n)`. Not a reproduction of R's RNG — see Deviations. |
-| `plotKey` | `(stripId: number, plotId: number) => string` | Canonical `"${stripId}:${plotId}"` plot key (matches `SoilFragment.plotKey`); not guaranteed unique on boundaries with holes. |
+| Export                                                                     | Signature                                                                               | Description                                                                                                                                         |
+| -------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `convUnit`                                                                 | `(value, from, to) => number`                                                           | Table lookup among `hectares`/`acres`, `meters`/`feet`, `kg`/`pounds`, `acres`/`m2` pairs; throws `ValidationError` on an unknown pair.             |
+| `convertRates`                                                             | `(inputName, unit, rate, conversionType?: "to_n_equiv" \| "from_n_equiv") => number`    | Converts an input dose to (or from) its nitrogen-equivalent rate, per `INPUT_UNIT_CONVERSION_TABLE`.                                                |
+| `feetToMeters`, `metersToFeet`, `acresToHectares`, `hectaresToAcres`       | `(value) => number`                                                                     | Direct unit converters.                                                                                                                             |
+| `ACRES_TO_HECTARES`, `FEET_TO_METERS`, `POUNDS_TO_KG`, `LITERS_TO_GALLONS` | `number`                                                                                | Exact conversion constants.                                                                                                                         |
+| `GENERIC_UNIT_CONVERSION_TABLE`, `INPUT_UNIT_CONVERSION_TABLE`             | tables                                                                                  | The raw conversion tables `convUnit`/`convertRates` look up.                                                                                        |
+| `toUtm`                                                                    | `(coord: [number, number], epsg?: number) => { point: [number, number]; epsg: number }` | Projects a WGS84 `[lon, lat]` to UTM; zone from the point itself, or a supplied `epsg` to share one plane across a geometry.                        |
+| `toWgs`                                                                    | `(point: [number, number], epsg: number) => [number, number]`                           | Projects a UTM point back to WGS84.                                                                                                                 |
+| `utmZone`, `utmEpsg`, `utmProjString`                                      | —                                                                                       | UTM zone/EPSG/proj4-string helpers.                                                                                                                 |
+| `createRng`                                                                | `(seed: number) => Rng`                                                                 | Seedable RNG (splitmix32) with `next()`, `nextInt(maxExclusive)`, `shuffle(arr)`, `sample(arr, n)`. Not a reproduction of R's RNG — see Deviations. |
+| `plotKey`                                                                  | `(stripId: number, plotId: number) => string`                                           | Canonical `"${stripId}:${plotId}"` plot key (matches `SoilFragment.plotKey`); not guaranteed unique on boundaries with holes.                       |
 
 ### Error classes
 
@@ -209,19 +218,19 @@ Types: `AlignmentFragment`, `AlignmentOverlapRow`, `AlignmentResult`, `CharCorre
 
 See [`parity-map.json`](parity-map.json) for the authoritative, machine-checked map (R function → TS file/symbol → shared test cases → deviations). Summary:
 
-| R | TS |
-| --- | --- |
-| `prep_plot` | `prepPlot` |
-| `prep_rate` | `prepRate` |
-| `make_exp_plots` | `makeExpPlots` |
-| `assign_rates` | `assignRates` |
+| R                          | TS                       |
+| -------------------------- | ------------------------ |
+| `prep_plot`                | `prepPlot`               |
+| `prep_rate`                | `prepRate`               |
+| `make_exp_plots`           | `makeExpPlots`           |
+| `assign_rates`             | `assignRates`            |
 | `assign_rates_conditional` | `assignRatesConditional` |
-| `add_blocks` | `addBlocks` |
-| `change_rates` | `changeRates` |
-| `check_alignment` | `checkAlignment` |
-| `check_ortho_inputs` | `checkOrthoInputs` |
-| `check_ortho_with_chars` | `checkOrthoWithChars` |
-| `write_trial_files` | `writeTrialFiles` |
+| `add_blocks`               | `addBlocks`              |
+| `change_rates`             | `changeRates`            |
+| `check_alignment`          | `checkAlignment`         |
+| `check_ortho_inputs`       | `checkOrthoInputs`       |
+| `check_ortho_with_chars`   | `checkOrthoWithChars`    |
+| `write_trial_files`        | `writeTrialFiles`        |
 
 ### Deviations from R
 
@@ -240,6 +249,7 @@ Full list with code references in `parity-map.json`; the notable ones:
 Every ported function is checked against **golden-master fixtures** generated by running ofpetrial 0.1.3 itself (`tools/gen-fixtures.R`), plus a bi-runtime shared test suite: JSON test cases under `test-cases/` are run by both an R `testthat` executor (`tools/run-test-cases.R`) and the TypeScript `vitest` suite, so the same expectations exercise both languages.
 
 Tolerances:
+
 - **1e-6** on R-precomputed data at machine precision (e.g. `checkAlignment`/`checkOrthoInputs` fragment tables shipped as fixtures).
 - **1e-3** on live-geometry integration tests (full turf.js polygon joins vs GEOS in R — reprojection/clipping noise).
 - **≥ 99 % area overlap / ≤ 10 cm centroid distance** for plot-layout geometry parity.

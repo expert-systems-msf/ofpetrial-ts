@@ -8,7 +8,10 @@ import type { GeoJsonFeatureInput } from "../src/exports/geojson.js";
 import { writeGeoJson } from "../src/exports/geojson.js";
 import { loadTrialDesign } from "./exports-fixtures.js";
 
-function trialDesignFeatures(inputName: string, td: ReturnType<typeof loadTrialDesign>): GeoJsonFeatureInput[] {
+function trialDesignFeatures(
+  inputName: string,
+  td: ReturnType<typeof loadTrialDesign>
+): GeoJsonFeatureInput[] {
   const input = td.inputs.find((i) => i.plotInfo.input_name === inputName)!;
   const features: GeoJsonFeatureInput[] = [];
   for (const f of input.plots.features) {
@@ -45,7 +48,11 @@ describe("writeGeoJson — RFC 7946 shape", () => {
   const fc = JSON.parse(new TextDecoder().decode(bytes)) as {
     type: string;
     crs?: unknown;
-    features: Array<{ type: string; properties: Record<string, unknown>; geometry: { type: string; coordinates: unknown } }>;
+    features: Array<{
+      type: string;
+      properties: Record<string, unknown>;
+      geometry: { type: string; coordinates: unknown };
+    }>;
   };
 
   it("is a FeatureCollection with no top-level crs member", () => {
@@ -83,12 +90,16 @@ describe("writeGeoJson — fixture parity (simple1, imperial)", () => {
     const features = trialDesignFeatures("seed", td);
     const bytes = writeGeoJson(features);
     const fc = JSON.parse(new TextDecoder().decode(bytes)) as {
-      features: Array<{ properties: { rate: number; strip_id: number | null; plot_id: number | null; type: string } }>;
+      features: Array<{
+        properties: { rate: number; strip_id: number | null; plot_id: number | null; type: string };
+      }>;
     };
 
     // The fixture IS the merged trial-design (task's own construction source),
     // so this is a direct structural check, not a coincidence.
-    expect(fc.features.length).toBe(td.inputs[0]!.plots.features.length + td.inputs[0]!.headlands.features.length);
+    expect(fc.features.length).toBe(
+      td.inputs[0]!.plots.features.length + td.inputs[0]!.headlands.features.length
+    );
     const headland = fc.features.find((f) => f.properties.type === "headland")!;
     expect(headland.properties.rate).toBeCloseTo(34000, 6);
     expect(headland.properties.strip_id).toBeNull();

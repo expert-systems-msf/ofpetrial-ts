@@ -32,27 +32,30 @@ const registry: Record<string, CaseRunner> = {
       input.inputName as string,
       input.unit as string,
       input.rate as number,
-      (input.conversionType as "to_n_equiv" | "from_n_equiv" | undefined) ?? "to_n_equiv",
+      (input.conversionType as "to_n_equiv" | "from_n_equiv" | undefined) ?? "to_n_equiv"
     ),
   getRates: (input) =>
     getRates(
       input.minRate as number,
       input.maxRate as number,
       input.gcRate as number,
-      input.numLevels as number,
+      input.numLevels as number
     ),
   findPlotWidth: (input) =>
     findPlotWidth(
       input.sectionWidth as number,
       input.harvesterWidth as number,
-      input.maxPlotWidth as number,
+      input.maxPlotWidth as number
     ),
 };
 
 function assertClose(actual: unknown, expected: unknown, tol: number, path: string): void {
   if (typeof expected === "number") {
     expect(typeof actual, path).toBe("number");
-    expect(relClose(actual as number, expected, tol), `${path}: ${String(actual)} !~ ${expected}`).toBe(true);
+    expect(
+      relClose(actual as number, expected, tol),
+      `${path}: ${String(actual)} !~ ${expected}`
+    ).toBe(true);
   } else if (Array.isArray(expected)) {
     expect(Array.isArray(actual), path).toBe(true);
     expect((actual as unknown[]).length, path).toBe(expected.length);

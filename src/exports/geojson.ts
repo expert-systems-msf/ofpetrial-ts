@@ -40,7 +40,7 @@ function fixPolygonWinding(geometry: Polygon | MultiPolygon): Polygon | MultiPol
   return {
     type: "MultiPolygon",
     coordinates: geometry.coordinates.map((poly) =>
-      poly.map((ring, i) => rightHandRing(ring as Ring, i === 0)),
+      poly.map((ring, i) => rightHandRing(ring as Ring, i === 0))
     ),
   };
 }

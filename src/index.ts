@@ -52,7 +52,12 @@ export type {
   OrthoInputsFragment,
   OrthoWithCharsResult,
 } from "./diagnostics.js";
-export { checkAlignment, checkOrthoInputs, checkOrthoWithChars, spatialJoin } from "./diagnostics.js";
+export {
+  checkAlignment,
+  checkOrthoInputs,
+  checkOrthoWithChars,
+  spatialJoin,
+} from "./diagnostics.js";
 
 export type { WriteTrialFilesExt, WriteTrialFilesOptions } from "./exports/write-trial-files.js";
 export { writeTrialFiles, writeTrialFilesToDisk } from "./exports/write-trial-files.js";

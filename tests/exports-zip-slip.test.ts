@@ -36,16 +36,7 @@ function maliciousTd(inputName: string) {
 }
 
 describe("writeTrialFiles — input_name validation (Zip-Slip source guard)", () => {
-  const badNames = [
-    "../evil",
-    "..",
-    "a/b",
-    "a\\b",
-    ".hidden",
-    "",
-    "nul\u0000name",
-    "line\nbreak",
-  ];
+  const badNames = ["../evil", "..", "a/b", "a\\b", ".hidden", "", "nul\u0000name", "line\nbreak"];
 
   for (const name of badNames) {
     it(`rejects input_name ${JSON.stringify(name)}`, () => {
@@ -65,7 +56,9 @@ describe("writeTrialFilesToDisk — crafted zip entry blocked (defense in depth)
     const outDir = join(parent, "out");
     try {
       // The mocked unzipSync injects "../evil.txt" ahead of the real entries.
-      await expect(writeTrialFilesToDisk(td, outDir, { ext: "geojson" })).rejects.toThrow(ExportError);
+      await expect(writeTrialFilesToDisk(td, outDir, { ext: "geojson" })).rejects.toThrow(
+        ExportError
+      );
       await expect(access(join(parent, "evil.txt"))).rejects.toThrow();
     } finally {
       await rm(parent, { recursive: true, force: true });

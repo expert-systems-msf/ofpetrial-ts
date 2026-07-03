@@ -64,8 +64,16 @@ describe("addBlocks parity with R (task 5.4)", () => {
 
     const actualByKey = new Map<string, { blockId: number; plotIdWithinBlock: number }>();
     for (const f of input.plots.features) {
-      const p = f.properties as { strip_id: number; plot_id: number; block_id: number; plot_id_within_block: number };
-      actualByKey.set(`${p.strip_id}:${p.plot_id}`, { blockId: p.block_id, plotIdWithinBlock: p.plot_id_within_block });
+      const p = f.properties as {
+        strip_id: number;
+        plot_id: number;
+        block_id: number;
+        plot_id_within_block: number;
+      };
+      actualByKey.set(`${p.strip_id}:${p.plot_id}`, {
+        blockId: p.block_id,
+        plotIdWithinBlock: p.plot_id_within_block,
+      });
     }
 
     let matched = 0;
@@ -86,7 +94,7 @@ describe("addBlocks parity with R (task 5.4)", () => {
     const td = trialDesignFromFixture();
     const result = addBlocks(td);
     const headlandProps = result.inputs[0]!.headlands.features.map(
-      (f) => f.properties as { block_id: number | null; plot_id_within_block: number | null },
+      (f) => f.properties as { block_id: number | null; plot_id_within_block: number | null }
     );
     expect(headlandProps.length).toBeGreaterThan(0);
     for (const p of headlandProps) {
@@ -125,7 +133,12 @@ describe("changeRates (task 5.5)", () => {
     const td = trialDesignFromFixture();
     const before = rateByKey(td);
 
-    const result = changeRates(td, { stripIds: [2, 4], plotIds: [1, 2, 3], newRates: [0], rateBy: "all" });
+    const result = changeRates(td, {
+      stripIds: [2, 4],
+      plotIds: [1, 2, 3],
+      newRates: [0],
+      rateBy: "all",
+    });
     const after = rateByKey(result);
 
     for (const [key, rate] of after) {
@@ -168,7 +181,7 @@ describe("changeRates (task 5.5)", () => {
     const td = trialDesignFromFixture();
     const twoInput: TrialDesign = { inputs: [td.inputs[0]!, td.inputs[0]!], seed: td.seed };
     expect(() => changeRates(twoInput, { stripIds: [1], newRates: 100 })).toThrow(
-      /specify which input/,
+      /specify which input/
     );
   });
 
@@ -180,7 +193,7 @@ describe("changeRates (task 5.5)", () => {
   it("throws on newRates/stripIds length mismatch for rateBy strip", () => {
     const td = trialDesignFromFixture();
     expect(() => changeRates(td, { stripIds: [1, 2], newRates: [100], rateBy: "strip" })).toThrow(
-      /same length as stripIds/,
+      /same length as stripIds/
     );
   });
 });

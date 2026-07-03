@@ -75,7 +75,10 @@ function asFeature(geom: Polygon | MultiPolygon): Feature<Polygon | MultiPolygon
 }
 
 /** @turf/intersect wrapper: null when the two polygons don't overlap. */
-function intersectPolygons(a: Polygon | MultiPolygon, b: Polygon | MultiPolygon): (Polygon | MultiPolygon) | null {
+function intersectPolygons(
+  a: Polygon | MultiPolygon,
+  b: Polygon | MultiPolygon
+): (Polygon | MultiPolygon) | null {
   const result = intersect({ type: "FeatureCollection", features: [asFeature(a), asFeature(b)] });
   return result ? (result.geometry as Polygon | MultiPolygon) : null;
 }
@@ -321,7 +324,10 @@ function alignmentForInput(input: InputDesign): AlignmentResult {
   const halfW = pw / 2;
   const uPad = 50;
   const stripU: [number, number] = [uMin - uPad, uMax + uPad];
-  const fromFrame = (u: number, v: number): Pt => [u * nml[0] + v * p90[0], u * nml[1] + v * p90[1]];
+  const fromFrame = (u: number, v: number): Pt => [
+    u * nml[0] + v * p90[0],
+    u * nml[1] + v * p90[1],
+  ];
   const rectGeom = (vc: number): Polygon => {
     const c1 = fromFrame(stripU[0], vc - halfW);
     const c2 = fromFrame(stripU[1], vc - halfW);
@@ -386,11 +392,14 @@ function alignmentForInput(input: InputDesign): AlignmentResult {
  *   fragment table for `td.inputs[i]` (e.g. R's alignment-fragments.json);
  *   only the aggregation runs, no geometry. This is the 1e-6 parity path.
  */
-export function checkAlignment(td: TrialDesign, fragments?: AlignmentFragment[][]): AlignmentResult[] {
+export function checkAlignment(
+  td: TrialDesign,
+  fragments?: AlignmentFragment[][]
+): AlignmentResult[] {
   if (fragments) {
     if (fragments.length !== td.inputs.length) {
       throw new ValidationError(
-        `checkAlignment received ${fragments.length} fragment table(s) for ${td.inputs.length} input(s).`,
+        `checkAlignment received ${fragments.length} fragment table(s) for ${td.inputs.length} input(s).`
       );
     }
     return td.inputs.map((input, i) => ({
@@ -437,7 +446,7 @@ export function checkOrthoInputs(td: TrialDesign, fragments?: OrthoInputsFragmen
   if (td.inputs.length < 2) {
     throw new ValidationError(
       "checkOrthoInputs requires a two-input trial design; this design has only one input " +
-        "(R's own check_ortho_inputs errors the same way here: cor_input is never assigned).",
+        "(R's own check_ortho_inputs errors the same way here: cor_input is never assigned)."
     );
   }
   if (fragments) {
@@ -501,7 +510,10 @@ function designPlotKey(props: DesignProps): string {
  * reduction to numeric/vector layers — factor/raster inputs are not ported,
  * see design-diagnostics/spec.md).
  */
-export function spatialJoin(design: FeatureCollection, soilLayer: FeatureCollection): SoilFragment[] {
+export function spatialJoin(
+  design: FeatureCollection,
+  soilLayer: FeatureCollection
+): SoilFragment[] {
   const soilFeatures = soilLayer.features;
   if (soilFeatures.length === 0) return [];
   const isPointLayer = soilFeatures.every((f) => f.geometry?.type === "Point");
@@ -593,7 +605,7 @@ function availableNumericKeys(props: Record<string, unknown>): string[] {
 export function checkOrthoWithChars(
   td: TrialDesign,
   soilData: FeatureCollection | SoilFragment[],
-  vars: string[],
+  vars: string[]
 ): OrthoWithCharsResult[] {
   if (vars.length === 0) {
     throw new ValidationError("checkOrthoWithChars requires a non-empty vars list.");
@@ -607,7 +619,7 @@ export function checkOrthoWithChars(
     for (const v of vars) {
       if (!(v in sample)) {
         throw new ValidationError(
-          `Variable "${v}" not found in the soil fragment table. Available columns: ${Object.keys(sample).join(", ")}.`,
+          `Variable "${v}" not found in the soil fragment table. Available columns: ${Object.keys(sample).join(", ")}.`
         );
       }
     }
@@ -619,7 +631,7 @@ export function checkOrthoWithChars(
     for (const v of vars) {
       if (typeof sampleProps[v] !== "number") {
         throw new ValidationError(
-          `Variable "${v}" not found (or not numeric) in the soil layer. Available numeric columns: ${availableNumericKeys(sampleProps).join(", ")}.`,
+          `Variable "${v}" not found (or not numeric) in the soil layer. Available numeric columns: ${availableNumericKeys(sampleProps).join(", ")}.`
         );
       }
     }
@@ -637,8 +649,8 @@ export function checkOrthoWithChars(
           .map((f) => ({ x: f.rate, y: f.values[v] }))
           .filter(
             (p): p is { x: number; y: number } =>
-              p.y !== undefined && Number.isFinite(p.y) && Number.isFinite(p.x),
-          ),
+              p.y !== undefined && Number.isFinite(p.y) && Number.isFinite(p.x)
+          )
       ),
     }));
 

@@ -54,5 +54,5 @@ if (problems.length > 0) {
   process.exit(1);
 }
 console.log(
-  `parity-map check OK: ${map.publicFunctions.length} public functions ported against ofpetrial ${map.ofpetrialVersion}.`,
+  `parity-map check OK: ${map.publicFunctions.length} public functions ported against ofpetrial ${map.ofpetrialVersion}.`
 );

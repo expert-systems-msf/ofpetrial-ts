@@ -34,7 +34,7 @@ function loadRDbf(relPath: string) {
  */
 function assertLayerParity(
   ours: { shp: ReturnType<typeof readShp>; dbf: ReturnType<typeof readDbf> },
-  r: { shp: ReturnType<typeof readShp>; dbf: ReturnType<typeof readDbf> },
+  r: { shp: ReturnType<typeof readShp>; dbf: ReturnType<typeof readDbf> }
 ): void {
   expect(ours.dbf.records.length).toBe(r.dbf.records.length);
   ours.dbf.records.forEach((rec, i) => {
@@ -107,7 +107,7 @@ for (const { caseDir, inputs } of CASES) {
       it("every .prj is R's exact WGS84 WKT", () => {
         const rPrj = readFileSync(
           join(ROOT, `fixtures/${caseDir}/${unit}/r-exports/trial-design-seed.prj`),
-          "utf8",
+          "utf8"
         );
         for (const path of Object.keys(files)) {
           if (path.endsWith(".prj")) {
@@ -148,9 +148,9 @@ for (const { caseDir, inputs } of CASES) {
           const fixture = JSON.parse(
             readFileSync(
               join(ROOT, `fixtures/${caseDir}/${unit}/${inputName}/trial-design.geojson`),
-              "utf8",
-            ),
-          ) as { features: Array<{ properties: { type: string; rate: number } } >};
+              "utf8"
+            )
+          ) as { features: Array<{ properties: { type: string; rate: number } }> };
           expect(fc.features.length).toBe(fixture.features.length);
           const ourHeadland = fc.features.find((f) => f.properties.type === "headland")!;
           const fixtureHeadland = fixture.features.find((f) => f.properties.type === "headland")!;
@@ -187,7 +187,10 @@ describe("writeShapefile via writeTrialFiles — metric case sanity (with-holes)
     const td = loadTrialDesign("with-holes", "metric", ["seed"]);
     const zip = writeTrialFiles(td, { ext: "shp" });
     const files = unzipSync(zip);
-    const rPrj = readFileSync(join(ROOT, "fixtures/with-holes/metric/r-exports/trial-design-seed.prj"), "utf8");
+    const rPrj = readFileSync(
+      join(ROOT, "fixtures/with-holes/metric/r-exports/trial-design-seed.prj"),
+      "utf8"
+    );
     expect(new TextDecoder().decode(files["seed/seed.prj"]!)).toBe(rPrj);
 
     const ours = { shp: readShp(files["seed/seed.shp"]!), dbf: readDbf(files["seed/seed.dbf"]!) };

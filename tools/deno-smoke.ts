@@ -2,13 +2,7 @@
 // built bundle (dist/index.js) under Deno, mirroring what the example
 // Supabase Edge Function does per request.
 // Run from the repo root:  bun run build && deno run --allow-read tools/deno-smoke.ts
-import {
-  assignRates,
-  makeExpPlots,
-  prepPlot,
-  prepRate,
-  writeTrialFiles,
-} from "../dist/index.js";
+import { assignRates, makeExpPlots, prepPlot, prepRate, writeTrialFiles } from "../dist/index.js";
 
 const boundary = JSON.parse(await Deno.readTextFile("fixtures/boundary-simple1.geojson"));
 const abLine = JSON.parse(await Deno.readTextFile("fixtures/ab-line-simple1.geojson"));
@@ -31,7 +25,9 @@ const design = assignRates(layout, rateInfo, { seed: 20260702 });
 
 const input = design.inputs[0];
 const plotCount = input.plots.features.length;
-const rates = new Set(input.plots.features.map((f: { properties: { rate: number } }) => f.properties.rate));
+const rates = new Set(
+  input.plots.features.map((f: { properties: { rate: number } }) => f.properties.rate)
+);
 
 const zip = writeTrialFiles(design, { ext: "shp" });
 

@@ -1,0 +1,21 @@
+dist
+node_modules
+coverage
+bun.lock
+*.min.js
+CHANGELOG.md
+package-lock.json
+*.sarif
+
+# data / golden fixtures — formatting these is noise and risks exact-match tests
+fixtures
+test-cases
+examples
+parity-map.json
+
+# specs & docs, not code
+openspec
+docs
+
+# hand-authored, keep as written
+.github/workflows

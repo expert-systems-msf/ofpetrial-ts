@@ -1,11 +1,5 @@
 import { describe, expect, it } from "vitest";
-import {
-  ExportError,
-  GeometryError,
-  OfpetrialError,
-  ValidationError,
-  plotKey,
-} from "./types.js";
+import { ExportError, GeometryError, OfpetrialError, ValidationError, plotKey } from "./types.js";
 
 describe("plotKey", () => {
   it("joins stripId and plotId with a colon", () => {

@@ -33,12 +33,12 @@ function seqLength(from: number, to: number, n: number): number[] {
 export function getLcm(
   sectionWidth: number,
   harvesterWidth: number,
-  maxPlotWidth: number,
+  maxPlotWidth: number
 ): number | null {
   const greater = Math.max(sectionWidth, harvesterWidth);
   if (maxPlotWidth < greater) {
     throw new ValidationError(
-      `max_plot_width (${maxPlotWidth}) is below the larger machine width (${greater})`,
+      `max_plot_width (${maxPlotWidth}) is below the larger machine width (${greater})`
     );
   }
   const absDif = (a: number, b: number): number => {
@@ -62,7 +62,7 @@ export function getLcm(
 export function findPlotWidth(
   sectionWidth: number,
   harvesterWidth: number,
-  maxPlotWidth: number,
+  maxPlotWidth: number
 ): number {
   const lcm = getLcm(sectionWidth, harvesterWidth, maxPlotWidth);
   if (lcm !== null) return lcm;
@@ -84,7 +84,7 @@ export function getRates(
   minRate: number,
   maxRate: number,
   gcRate: number,
-  numLevels: number,
+  numLevels: number
 ): number[] {
   // Inherited R quirk (utility.R get_rates): with an interior gcRate the
   // returned ladder can differ in length from numLevels (e.g. numLevels = 1
@@ -214,7 +214,7 @@ function findRatesData(
   minRate: number | undefined,
   maxRate: number | undefined,
   numRates: number,
-  designType: string | null,
+  designType: string | null
 ): RateData[] {
   // design_type NA always defaults to ls here (rank ordering only)
   const design = designType ?? "ls";
@@ -226,7 +226,7 @@ function findRatesData(
     ratesLs = getRates(minRate, maxRate, gcRate, numRates);
   } else {
     throw new ValidationError(
-      "Please provide either rates as a vector or all of minRate, maxRate, and numRates.",
+      "Please provide either rates as a vector or all of minRate, maxRate, and numRates."
     );
   }
 
@@ -238,7 +238,7 @@ function findRatesData(
       // R only messages and returns NULL, producing a corrupt rate info;
       // the TS port fails fast instead (documented deviation)
       throw new ValidationError(
-        "The rates do not include gcRate. For the sparse design, please include gcRate in the rates.",
+        "The rates do not include gcRate. For the sparse design, please include gcRate in the rates."
       );
     }
     const others = ratesLs.filter((r) => r !== gcRate);
@@ -247,13 +247,13 @@ function findRatesData(
   if (design === "ejca") {
     if (ratesLs.length % 2 === 1) {
       throw new ValidationError(
-        "You cannot have an odd number of rates for the ejca design. Please either specify rates directly with an even number of rates or specify an even numRates along with minRate and maxRate.",
+        "You cannot have an odd number of rates for the ejca design. Please either specify rates directly with an even number of rates or specify an even numRates along with minRate and maxRate."
       );
     }
     return ratesLs.map((rate, i) => ({ rate, rate_rank: i + 1 }));
   }
   throw new ValidationError(
-    `design_type "${design}" does not match any of the design type options available.`,
+    `design_type "${design}" does not match any of the design type options available.`
   );
 }
 
@@ -267,13 +267,11 @@ export function prepRate(plotInfo: PlotInfo, options: PrepRateOptions): RateInfo
     options.minRate,
     options.maxRate,
     options.numRates ?? 5,
-    designType,
+    designType
   );
 
   const tgtRateOriginal = ratesData.map((r) => r.rate);
-  const tgtRateEquiv = tgtRateOriginal.map((r) =>
-    convertRates(plotInfo.input_name, unit, r),
-  );
+  const tgtRateEquiv = tgtRateOriginal.map((r) => convertRates(plotInfo.input_name, unit, r));
 
   return {
     input_name: plotInfo.input_name,

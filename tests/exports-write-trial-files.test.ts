@@ -57,7 +57,7 @@ describe("writeTrialFiles — ext=geojson", () => {
         "harvester-ab-line/harvester-ab-line.geojson",
         "seed/ab-line.geojson",
         "seed/seed.geojson",
-      ].sort(),
+      ].sort()
     );
   });
 });
