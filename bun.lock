@@ -15,7 +15,6 @@
         "@turf/unkink-polygon": "^7.2.0",
         "fflate": "^0.8.2",
         "proj4": "^2.15.0",
-        "simple-statistics": "^7.8.7",
       },
       "devDependencies": {
         "@types/geojson": "^7946.0.16",
@@ -23,6 +22,7 @@
         "@types/proj4": "^2.5.6",
         "eslint": "^9.30.0",
         "jsdom": "^29.1.1",
+        "simple-statistics": "^7.8.7",
         "tsup": "^8.5.0",
         "typescript": "^5.8.3",
         "typescript-eslint": "^8.35.0",

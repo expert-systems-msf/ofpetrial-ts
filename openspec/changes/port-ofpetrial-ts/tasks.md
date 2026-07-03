@@ -59,7 +59,7 @@
 
 ## 8. Livraison
 
-- [ ] 8.1 Vérifier l'exécution Deno (Supabase Edge Function d'exemple qui génère un design) et navigateur (démo minimale ou test vitest en environnement jsdom + smoke test bundle)
-- [ ] 8.2 Documentation README : API complète, exemple bout-en-bout (champ → parcelles → doses → checks → exports), procédure de régénération des fixtures, correspondance des noms R ↔ TS
+- [x] 8.1 Vérifier l'exécution Deno (Supabase Edge Function d'exemple qui génère un design) et navigateur (démo minimale ou test vitest en environnement jsdom + smoke test bundle)
+- [x] 8.2 Documentation README : API complète, exemple bout-en-bout (champ → parcelles → doses → checks → exports), procédure de régénération des fixtures, correspondance des noms R ↔ TS
 - [ ] 8.3 Publier `0.1.0` sur npm (compte npm de l'utilisateur — jeton à fournir) ; tag GitHub ; vérifier l'installation depuis un projet vierge
 - [ ] 8.4 Proposer la suite testthat à l'upstream : adapter au format du dépôt DIFM-Brain/ofpetrial et ouvrir la pull request
