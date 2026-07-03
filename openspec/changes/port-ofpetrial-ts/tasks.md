@@ -44,10 +44,10 @@
 
 ## 6. Diagnostics (design-diagnostics) — jalon : parité numérique 1e-6 sur designs figés
 
-- [ ] 6.1 Porter `checkAlignment` (données tabulaires, pas de ggplot) — parité 1e-6 sur fixtures
-- [ ] 6.2 Porter `checkOrthoInputs` (+ erreur explicite mono-intrant) — parité 1e-6
-- [ ] 6.3 Porter `checkOrthoWithChars` (sémantique fragments de R : corrélation non pondérée sur la table `st_intersection` du design **complet, tournières incluses** (`rate = gcRate`), pas de moyennes par parcelle ; `vars` requis ; variables numériques/couches vectorielles seulement ; erreur si variable absente ; sorties tabulaires sans ggplot) + utilitaire public `spatialJoin` retournant `SoilFragment[]` (avec `rate` porté par fragment) — deux assertions : (a) corrélations à 1e-6 sur la table de fragments pré-calculée par R (parité pure) ; (b) corrélations à 1e-3 en jointure TS complète depuis `ssurgo-simple1.geojson` (intégration Turf.js)
-- [ ] 6.4 Boucler la validation croisée : les checks portés jugent les designs de `assignRates` (5.x) — métriques dans la plage des N designs R de référence
+- [x] 6.1 Porter `checkAlignment` (données tabulaires, pas de ggplot) — parité 1e-6 sur fixtures
+- [x] 6.2 Porter `checkOrthoInputs` (+ erreur explicite mono-intrant) — parité 1e-6
+- [x] 6.3 Porter `checkOrthoWithChars` (sémantique fragments de R : corrélation non pondérée sur la table `st_intersection` du design **complet, tournières incluses** (`rate = gcRate`), pas de moyennes par parcelle ; `vars` requis ; variables numériques/couches vectorielles seulement ; erreur si variable absente ; sorties tabulaires sans ggplot) + utilitaire public `spatialJoin` retournant `SoilFragment[]` (avec `rate` porté par fragment) — deux assertions : (a) corrélations à 1e-6 sur la table de fragments pré-calculée par R (parité pure) ; (b) corrélations à 1e-3 en jointure TS complète depuis `ssurgo-simple1.geojson` (intégration Turf.js)
+- [x] 6.4 Boucler la validation croisée : les checks portés jugent les designs de `assignRates` (5.x) — métriques dans la plage des N designs R de référence
 
 ## 7. Exports machine (machine-file-export) — jalon : relecture indépendante verte
 

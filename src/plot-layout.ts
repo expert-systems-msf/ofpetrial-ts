@@ -28,7 +28,8 @@ import type {
   Polygon,
   Position,
 } from "geojson";
-import { toUtm, toWgs, utmEpsg } from "./projection.js";
+import { signedRingArea, utmEpsgFromVertexMean } from "./geometry-utils.js";
+import { toUtm, toWgs } from "./projection.js";
 import { roundHalfEven } from "./trial-setup.js";
 import { GeometryError, ValidationError } from "./types.js";
 import type { ExpData, InputLayout, PlotInfo } from "./types.js";
@@ -40,17 +41,6 @@ type Interval = [number, number];
 // !===========================================================
 // ! Planar ring / interval primitives
 // !===========================================================
-
-/** Shoelace signed area of a closed ring (positive = counter-clockwise). */
-function signedRingArea(ring: Ring): number {
-  let sum = 0;
-  for (let i = 0; i < ring.length - 1; i++) {
-    const [x1, y1] = ring[i]!;
-    const [x2, y2] = ring[i + 1]!;
-    sum += x1 * y2 - x2 * y1;
-  }
-  return sum / 2;
-}
 
 /** Area centroid of a closed ring (undefined for degenerate rings). */
 function ringCentroid(ring: Ring): { area: number; cx: number; cy: number } {
@@ -786,17 +776,7 @@ export function makeExpPlots(options: MakeExpPlotsOptions): ExpData {
 
   // ! Field boundary: repair, project to one shared UTM zone (R make_sf_utm)
   const boundaryPolys = repairBoundary(collectPolygonFeatures(options.boundary));
-  let lonSum = 0;
-  let latSum = 0;
-  let nPts = 0;
-  for (const rings of boundaryPolys) {
-    for (const p of rings[0]!) {
-      lonSum += p[0]!;
-      latSum += p[1]!;
-      nPts++;
-    }
-  }
-  const epsg = utmEpsg(lonSum / nPts, latSum / nPts);
+  const epsg = utmEpsgFromVertexMean(boundaryPolys.flatMap((rings) => rings[0]!));
   const project = (p: Position): Pt => toUtm([p[0]!, p[1]!], epsg).point;
 
   const xyPolys = boundaryPolys.map((rings) => rings.map((ring) => ring.map(project)));

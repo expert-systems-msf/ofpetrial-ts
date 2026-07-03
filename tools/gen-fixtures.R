@@ -89,6 +89,84 @@ compute_correlations <- function(fragments, vars) {
   cors
 }
 
+# Alignment fragments: check_alignment's interior up to (but excluding) its
+# data.table aggregation — one row per harvester-strip x experiment-plot
+# intersection fragment (ha_area = harvester strip area clipped to the field).
+# The TS precomputed mode replays only the aggregation, so checkAlignment can
+# be parity-tested at 1e-6, free of turf-vs-GEOS / proj4-vs-PROJ geometry noise.
+compute_alignment_fragments <- function(td) {
+  td %>%
+    dplyr::select(input_name, exp_plots, harvester_width, harvest_ab_lines, field_sf) %>%
+    dplyr::rowwise() %>%
+    dplyr::mutate(exp_plots = list(ofpetrial:::make_sf_utm(exp_plots))) %>%
+    dplyr::mutate(harvest_ab_lines = list(ofpetrial:::make_sf_utm(harvest_ab_lines))) %>%
+    dplyr::mutate(field_sf = list(ofpetrial:::make_sf_utm(field_sf))) %>%
+    tidyr::unnest(harvest_ab_lines) %>%
+    dplyr::rename(harvest_ab_line = x) %>%
+    dplyr::rowwise() %>%
+    dplyr::mutate(fragments = list(
+      ofpetrial:::make_harvest_path(harvester_width, harvest_ab_line, field_sf) %>%
+        dplyr::mutate(ha_area = as.numeric(sf::st_area(geometry))) %>%
+        ofpetrial:::st_intersection_quietly(ofpetrial:::st_transform_utm(exp_plots)) %>%
+        .$result %>%
+        dplyr::mutate(area = as.numeric(sf::st_area(geometry))) %>%
+        sf::st_drop_geometry() %>%
+        dplyr::select(ha_strip_id, strip_id, area, ha_area) %>%
+        # st_intersection leaves non-default row names ("3", "3.1", ...) that
+        # jsonlite would serialize as a spurious _row column
+        tibble::remove_rownames()
+    )) %>%
+    dplyr::ungroup()
+}
+
+# Sanity gate: replaying check_alignment's aggregation on the exported
+# fragments must reproduce its overlap_data exactly (they are the same rows).
+verify_alignment_fragments <- function(frags, expected_overlap) {
+  agg <- data.table::as.data.table(frags)
+  agg <- agg[, .(area = sum(area), ha_area = mean(ha_area)), by = .(ha_strip_id, strip_id)]
+  agg <- agg[!is.na(strip_id), ]
+  agg[, total_intersecting_ha_area := sum(area), by = ha_strip_id]
+  agg[, intersecting_pct := total_intersecting_ha_area / ha_area]
+  agg <- agg[intersecting_pct > 0.1, ]
+  agg <- agg[, .SD[which.max(area), ], by = ha_strip_id]
+  agg[, dominant_pct := area / total_intersecting_ha_area]
+  agg <- agg[order(ha_strip_id), ]
+  exp_df <- as.data.frame(expected_overlap)
+  agg_df <- as.data.frame(agg)
+  stopifnot(nrow(agg_df) == nrow(exp_df))
+  for (col in names(exp_df)) {
+    scale <- max(1, max(abs(exp_df[[col]])))
+    stopifnot(max(abs(agg_df[[col]] - exp_df[[col]])) <= 1e-9 * scale)
+  }
+}
+
+# Ortho-inputs fragments: check_ortho_inputs' interior up to (but excluding)
+# cov.wt — one row per experiment-plot x experiment-plot intersection fragment
+# of the two inputs' trial designs, with the pair of rates and the fragment
+# area (the cov.wt weight). Two-input cases only.
+compute_ortho_fragments <- function(td) {
+  td_1 <- dplyr::filter(td$trial_design[[1]], type == "experiment")
+  td_2 <- dplyr::filter(td$trial_design[[2]], type == "experiment")
+  suppressWarnings(
+    inter <- sf::st_intersection(td_1, td_2) %>%
+      sf::st_make_valid() %>%
+      dplyr::mutate(area = as.numeric(sf::st_area(geometry))) %>%
+      dplyr::select(rate, rate.1, area) %>%
+      sf::st_drop_geometry()
+  )
+  data.frame(rate_1 = inter$rate, rate_2 = inter$rate.1, area = inter$area)
+}
+
+# Sanity gate: cov.wt over the exported fragments must reproduce the
+# check_ortho_inputs correlation exactly.
+verify_ortho_fragments <- function(frags, expected_cor) {
+  cor_check <- stats::cov.wt(
+    data.frame(rate = frags$rate_1, rate.1 = frags$rate_2),
+    wt = frags$area, cor = TRUE
+  )$cor[1, 2]
+  stopifnot(abs(cor_check - expected_cor) <= 1e-9 * max(1, abs(expected_cor)))
+}
+
 run_case <- function(case_name, unit_system, inputs, boundary, abline, soil_sf, soil_vars) {
   case_dir <- file.path(OUT, case_name, unit_system)
   dir.create(case_dir, recursive = TRUE, showWarnings = FALSE)
@@ -154,6 +232,20 @@ run_case <- function(case_name, unit_system, inputs, boundary, abline, soil_sf, 
     orthoInputs = ortho_inputs
   )
   write_json_file(checks, file.path(case_dir, "checks.json"))
+
+  # -- precomputed fragment tables for the TS 1e-6 diagnostics parity mode --
+  align_frag_rows <- compute_alignment_fragments(td)
+  for (i in seq_len(nrow(align_frag_rows))) {
+    in_dir <- file.path(case_dir, align_frag_rows$input_name[[i]])
+    frags <- align_frag_rows$fragments[[i]]
+    verify_alignment_fragments(frags, alignment$overlap_data[[i]])
+    write_json_file(frags, file.path(in_dir, "alignment-fragments.json"))
+  }
+  if (nrow(td) > 1) {
+    ortho_frags <- compute_ortho_fragments(td)
+    verify_ortho_fragments(ortho_frags, ortho_inputs)
+    write_json_file(ortho_frags, file.path(case_dir, "ortho-fragments.json"))
+  }
 
   # -- R machine exports (unzipped: zip archives embed timestamps) --
   export_dir <- file.path(case_dir, "r-exports")

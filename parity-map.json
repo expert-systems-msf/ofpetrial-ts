@@ -94,32 +94,45 @@
       "rFunction": "check_alignment",
       "tsFile": "src/diagnostics.ts",
       "tsSymbol": "checkAlignment",
-      "testCases": [],
-      "status": "pending"
+      "testCases": [
+        "tests/parity-diagnostics.test.ts"
+      ],
+      "status": "ported",
+      "deviations": [
+        "ha_strip_id numbered sequentially from the guidance line (provable same ordering; R anchors on a float-sensitive field centroid) — parity asserted on row content",
+        "no ggplot output: tabular overlap data only",
+        "spec-level 1e-6 parity via R-precomputed alignment-fragments.json; live turf join asserted at 1e-3 (turf vs GEOS area noise)"
+      ]
     },
     {
       "rFunction": "check_ortho_inputs",
       "tsFile": "src/diagnostics.ts",
       "tsSymbol": "checkOrthoInputs",
-      "testCases": [],
-      "status": "pending",
+      "testCases": [
+        "tests/parity-diagnostics.test.ts"
+      ],
+      "status": "ported",
       "deviations": [
-        "explicit error on single-input designs; R errors accidentally (cor_input never assigned)"
+        "single-input design throws an explicit ValidationError; R crashes accidentally (cor_input never assigned)",
+        "spec-level 1e-6 parity via R-precomputed ortho-fragments.json; live turf join asserted at 1e-3"
       ]
     },
     {
       "rFunction": "check_ortho_with_chars",
       "tsFile": "src/diagnostics.ts",
       "tsSymbol": "checkOrthoWithChars",
-      "testCases": [],
-      "status": "pending",
+      "testCases": [
+        "tests/parity-diagnostics.test.ts"
+      ],
+      "status": "ported",
       "deviations": [
-        "vector layers with numeric variables only; factor summaries and rasters are out of scope"
+        "vector polygon/point layers with numeric variables only (factor summaries and raster layers out of ported scope; character vars throw ValidationError)",
+        "no ggplot output: correlations table only; public spatialJoin utility exposes the fragments"
       ]
     },
     {
       "rFunction": "write_trial_files",
-      "tsFile": "src/exports.ts",
+      "tsFile": "src/exports/write-trial-files.ts",
       "tsSymbol": "writeTrialFiles",
       "testCases": [
         "tests/exports-write-trial-files.test.ts",

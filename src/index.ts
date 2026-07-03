@@ -43,3 +43,16 @@ export { makeExpPlots } from "./plot-layout.js";
 
 export type { AssignRatesOptions, ChangeRatesOptions } from "./rate-assignment.js";
 export { addBlocks, assignRates, assignRatesConditional, changeRates } from "./rate-assignment.js";
+
+export type {
+  AlignmentFragment,
+  AlignmentOverlapRow,
+  AlignmentResult,
+  CharCorrelation,
+  OrthoInputsFragment,
+  OrthoWithCharsResult,
+} from "./diagnostics.js";
+export { checkAlignment, checkOrthoInputs, checkOrthoWithChars, spatialJoin } from "./diagnostics.js";
+
+export type { WriteTrialFilesExt, WriteTrialFilesOptions } from "./exports/write-trial-files.js";
+export { writeTrialFiles, writeTrialFilesToDisk } from "./exports/write-trial-files.js";
