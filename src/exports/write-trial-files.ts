@@ -8,7 +8,9 @@
 //   harvester-ab-line/harvester-ab-line.<ext>
 // ISOXML exception (ISO 11783-10 terminals look for this exact name):
 //   TASKDATA/TASKDATA.XML (single input) or <inputName>/TASKDATA/TASKDATA.XML
-//   (multi-input) — no ab-lines, no harvester-ab-line dir.
+//   (multi-input) — ab-lines/guidance lines are embedded as PFD > GGP > GPN
+//   guidance patterns inside that XML instead of a separate shapefile/geojson
+//   dir (see src/exports/isoxml.ts).
 import { zipSync } from "fflate";
 import type { Feature, FeatureCollection, LineString, MultiPolygon, Polygon } from "geojson";
 import type { InputDesign, TrialDesign } from "../types.js";
@@ -23,6 +25,12 @@ export type WriteTrialFilesExt = "shp" | "geojson" | "isoxml";
 export interface WriteTrialFilesOptions {
   ext: WriteTrialFilesExt;
   zipName?: string;
+  /**
+   * ISOXML only: exact field boundary, passed through to writeIsoxml for
+   * every input. When omitted, each input's PFD boundary is derived as the
+   * union of its own plots + headlands (see src/exports/isoxml.ts).
+   */
+  boundary?: Feature<Polygon | MultiPolygon>;
 }
 
 /** DBF schema for the trial-design layer, matching R's write_trial_files() output field-for-field. */
@@ -169,6 +177,9 @@ export function writeTrialFiles(td: TrialDesign, opts: WriteTrialFilesOptions): 
           inputName,
           unitSystem: input.plotInfo.unit_system,
           rateUnit,
+          ...(opts.boundary && { boundary: opts.boundary }),
+          abLine: input.abLine,
+          guidanceLines: input.guidanceLines,
         });
 
         break;
@@ -181,7 +192,9 @@ export function writeTrialFiles(td: TrialDesign, opts: WriteTrialFilesOptions): 
 
   // Harvester ab-line: written once, from the first input only (R:
   // `td$harvest_ab_lines[[1]]` — identical across inputs in the two-input
-  // case). Not exported to ISOXML (guidance lines are out of the beta scope).
+  // case). Not written as a separate shapefile/geojson dir for ISOXML — each
+  // input's own guidanceLines are embedded as GPN guidance patterns in its
+  // TASKDATA.XML instead (see the "isoxml" case above).
   if (opts.ext !== "isoxml") {
     const harvester = td.inputs[0]!.guidanceLines;
     const harvesterFeatures = guidanceLineFeatures(harvester);

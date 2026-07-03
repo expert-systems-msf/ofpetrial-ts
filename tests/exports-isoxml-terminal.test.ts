@@ -104,3 +104,117 @@ describe("ISOXML parsed by the reference implementation (task 7.5)", () => {
     }
   });
 });
+
+describe("ISOXML field boundary and guidance lines (task 7.3 extension)", () => {
+  // Partfield's own child-tag naming (isoxml-js baseEntities/Partfield.ts
+  // CHILD_TAGS): PLN -> "PolygonnonTreatmentZoneonly" (the boundary PLN,
+  // distinct from a TZN's own PLN children), GGP -> "GuidanceGroup".
+  interface PartfieldAttrs {
+    PolygonnonTreatmentZoneonly?: { attributes: { PolygonType: string } }[];
+    GuidanceGroup?: {
+      attributes: {
+        GuidancePattern?: {
+          attributes: {
+            GuidancePatternDesignator: string;
+            GuidancePatternType: string;
+            LineString?: {
+              attributes: {
+                LineStringType: string;
+                Point?: { attributes: { PointEast: number; PointNorth: number } }[];
+              };
+            }[];
+          };
+        }[];
+      };
+    }[];
+  }
+
+  async function parseWithReference(zipBytes: Uint8Array): Promise<ISOXMLManager> {
+    const manager = new ISOXMLManager();
+    await manager.parseISOXMLFile(zipBytes, "application/zip");
+    return manager;
+  }
+
+  it("PFD carries a Partfield Boundary PLN (PolygonType 1), separate from TZN polygons", async () => {
+    const td = loadTrialDesign("simple1", "imperial", ["seed"]);
+    const manager = await parseWithReference(writeTrialFiles(td, { ext: "isoxml" }));
+    const partfield = manager.getEntitiesOfTag(TAGS.Partfield)[0] as unknown as {
+      attributes: PartfieldAttrs;
+    };
+    const boundaryPlns = partfield.attributes.PolygonnonTreatmentZoneonly ?? [];
+    expect(boundaryPlns.length).toBeGreaterThanOrEqual(1);
+    for (const pln of boundaryPlns) {
+      expect(pln.attributes.PolygonType).toBe("1");
+    }
+    expect(manager.getWarnings()).toEqual([]);
+  });
+
+  it("PFD carries a GuidanceGroup with one GPN for the ab-line and one per harvester guidance line", async () => {
+    const td = loadTrialDesign("simple1", "imperial", ["seed"]);
+    const manager = await parseWithReference(writeTrialFiles(td, { ext: "isoxml" }));
+    const partfield = manager.getEntitiesOfTag(TAGS.Partfield)[0] as unknown as {
+      attributes: PartfieldAttrs;
+    };
+    const abLineFixture: { features: { geometry: { coordinates: [number, number][] } }[] } =
+      JSON.parse(readFileSync(join(root, "fixtures/simple1/imperial/seed/ab-line.geojson"), "utf8"));
+    const harvesterFixture: { features: { geometry: { coordinates: [number, number][] } }[] } =
+      JSON.parse(
+        readFileSync(join(root, "fixtures/simple1/imperial/seed/harvester-ab-line.geojson"), "utf8")
+      );
+
+    const guidanceGroups = partfield.attributes.GuidanceGroup ?? [];
+    expect(guidanceGroups).toHaveLength(1);
+    const patterns = guidanceGroups[0]!.attributes.GuidancePattern ?? [];
+    // ab-line + 1 harvester guidance line in the simple1 fixture.
+    expect(patterns).toHaveLength(1 + harvesterFixture.features.length);
+
+    const abPattern = patterns.find((p) => p.attributes.GuidancePatternDesignator === "ab-line")!;
+    expect(abPattern).toBeDefined();
+    expect(abPattern.attributes.GuidancePatternType).toBe("1"); // AB line
+    const abLsg = abPattern.attributes.LineString![0]!;
+    expect(abLsg.attributes.LineStringType).toBe("5"); // Guidance Pattern
+    const abPoints = abLsg.attributes.Point!.map((p) => [p.attributes.PointEast, p.attributes.PointNorth]);
+    const expectedAbPoints = abLineFixture.features[0]!.geometry.coordinates;
+    expect(abPoints).toHaveLength(expectedAbPoints.length);
+    for (const [i, [east, north]] of abPoints.entries()) {
+      expect(east).toBeCloseTo(expectedAbPoints[i]![0]!, 7);
+      expect(north).toBeCloseTo(expectedAbPoints[i]![1]!, 7);
+    }
+
+    const harvesterPattern = patterns.find(
+      (p) => p.attributes.GuidancePatternDesignator === "harvester-1"
+    )!;
+    expect(harvesterPattern).toBeDefined();
+    const harvesterPoints = harvesterPattern.attributes.LineString![0]!.attributes.Point!.map((p) => [
+      p.attributes.PointEast,
+      p.attributes.PointNorth,
+    ]);
+    const expectedHarvesterPoints = harvesterFixture.features[0]!.geometry.coordinates;
+    expect(harvesterPoints).toHaveLength(expectedHarvesterPoints.length);
+    for (const [i, [east, north]] of harvesterPoints.entries()) {
+      expect(east).toBeCloseTo(expectedHarvesterPoints[i]![0]!, 7);
+      expect(north).toBeCloseTo(expectedHarvesterPoints[i]![1]!, 7);
+    }
+
+    expect(manager.getWarnings()).toEqual([]);
+  });
+
+  it("boundary and guidance lines survive the multi-input terminal-transfer layout too", async () => {
+    const td = loadTrialDesign("two-input", "imperial", ["seed", "NH3"]);
+    const files = unzipSync(writeTrialFiles(td, { ext: "isoxml" }));
+    for (const inputName of ["seed", "NH3"]) {
+      const medium = zipSync({
+        "TASKDATA/TASKDATA.XML": files[`${inputName}/TASKDATA/TASKDATA.XML`]!,
+      });
+      const manager = await parseWithReference(medium);
+      const partfield = manager.getEntitiesOfTag(TAGS.Partfield)[0] as unknown as {
+        attributes: PartfieldAttrs;
+      };
+      expect((partfield.attributes.PolygonnonTreatmentZoneonly ?? []).length).toBeGreaterThanOrEqual(1);
+      const guidanceGroups = partfield.attributes.GuidanceGroup ?? [];
+      expect(guidanceGroups).toHaveLength(1);
+      expect((guidanceGroups[0]!.attributes.GuidancePattern ?? []).length).toBeGreaterThanOrEqual(2);
+      expect(manager.getWarnings()).toEqual([]);
+    }
+  });
+});

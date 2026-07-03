@@ -1,23 +1,25 @@
 // ISOXML (ISO 11783-10) TASKDATA.XML generator — task 7.3. BETA: see
 // docs/isoxml-units.md for the DDI/unit mapping, sourcing, and known
-// simplifications (no PFD boundary geometry, no guidance lines). Not
-// validated against the official XSD (auth-gated on the AEF portal); the
-// element/attribute shapes below are cross-checked against two independent
-// public sources instead: the fetchable `ISO11783_TaskFile_V3-3.xsd`
-// (isobus.net) and the actively-maintained `dev4Agriculture/isoxml-js`
-// TypeScript implementation (its per-entity `ATTRIBUTES` tables for
-// Partfield/Task/TreatmentZone/ProcessDataVariable/Polygon/LineString/Point
-// agree letter-for-letter with the XSD fetch). `Open-Agriculture/
-// AgIsoStack-plus-plus` was also checked (per a reviewer suggestion) but
-// turned out to implement ISO 11783-13 (the live TC-BUS device descriptor
-// protocol: DVC/DET/DPD/DPT elements) rather than the ISOXML TASKDATA
-// field/task/geometry side (PFD/TSK/TZN/PLN/LSG/PNT) needed here — its one
-// embedded ISOXML sample (test/ddop_tests.cpp) confirms the shared
+// simplifications. Not validated against the official XSD (auth-gated on the
+// AEF portal); the element/attribute shapes below are cross-checked against
+// two independent public sources instead: the fetchable
+// `ISO11783_TaskFile_V3-3.xsd` (isobus.net) and the actively-maintained
+// `dev4Agriculture/isoxml-js` TypeScript implementation (its per-entity
+// `ATTRIBUTES` tables for Partfield/Task/TreatmentZone/ProcessDataVariable/
+// Polygon/LineString/Point/GuidanceGroup/GuidancePattern agree letter-for-
+// letter with the XSD fetch). `Open-Agriculture/AgIsoStack-plus-plus` was
+// also checked (per a reviewer suggestion) but turned out to implement ISO
+// 11783-13 (the live TC-BUS device descriptor protocol: DVC/DET/DPD/DPT
+// elements) rather than the ISOXML TASKDATA field/task/geometry side
+// (PFD/TSK/TZN/PLN/LSG/PNT) needed here — its one embedded ISOXML sample
+// (test/ddop_tests.cpp) confirms the shared
 // `<ISO11783_TaskData VersionMajor=.. DataTransferOrigin=..>` root
 // convention but has no PFD/TZN content to cross-check against. Actual
 // conformance gate is task 7.5 (manual import on a real terminal/simulator);
 // until then this format stays "beta" in the docs.
-import type { MultiPolygon, Polygon } from "geojson";
+import type { Feature, FeatureCollection, LineString, MultiPolygon, Polygon } from "geojson";
+import { featureCollection } from "@turf/helpers";
+import union from "@turf/union";
 import { ExportError } from "../types.js";
 
 export interface IsoxmlPlotInput {
@@ -30,6 +32,19 @@ export interface IsoxmlOptions {
   unitSystem: "imperial" | "metric";
   /** RateInfo.unit, e.g. "seeds", "lb", "kg", "gallons", "liters". */
   rateUnit: string;
+  /**
+   * Exact field boundary. When omitted, derived as the @turf/union of every
+   * geometry in the `plots` array passed to writeIsoxml (which already
+   * merges plots + headlands — see trialDesignFeatures in
+   * write-trial-files.ts). Emitted as a PLN (PolygonType 1, "Partfield
+   * Boundary") directly under PFD, separate from the per-plot treatment-zone
+   * PLNs nested under each TZN.
+   */
+  boundary?: Feature<Polygon | MultiPolygon>;
+  /** Applicator AB line. When provided, emitted as a GPN (AB-line guidance pattern) under PFD's GGP. */
+  abLine?: Feature<LineString>;
+  /** Harvester guidance lines. Each feature becomes its own GPN under the same GGP. */
+  guidanceLines?: FeatureCollection;
 }
 
 const ACRE_M2 = 4046.8564224;
@@ -98,8 +113,12 @@ function ringToPnt(ring: ReadonlyArray<readonly [number, number]>): string {
     .join("");
 }
 
-/** PLN (Polygon) element: type 2 = TreatmentZone, per PolygonType enumeration. */
-function plotToPln(geometry: Polygon | MultiPolygon): string {
+/**
+ * PLN (Polygon) element. `polygonType` per the PolygonType enumeration:
+ * 1 = Partfield Boundary (direct PFD child), 2 = TreatmentZone (TZN child).
+ * A MultiPolygon emits one PLN per component polygon, all sharing the type.
+ */
+function polygonToPln(geometry: Polygon | MultiPolygon, polygonType: 1 | 2): string {
   const polygons = geometry.type === "Polygon" ? [geometry.coordinates] : geometry.coordinates;
   return polygons
     .map((rings) => {
@@ -109,16 +128,76 @@ function plotToPln(geometry: Polygon | MultiPolygon): string {
           return `<LSG A="${type}">${ringToPnt(ring as Array<[number, number]>)}</LSG>`;
         })
         .join("");
-      return `<PLN A="2">${lsgs}</PLN>`;
+      return `<PLN A="${polygonType}">${lsgs}</PLN>`;
     })
     .join("");
+}
+
+/**
+ * Field boundary, used when IsoxmlOptions.boundary isn't supplied: the
+ * @turf/union of every geometry in `plots` (already merges plots + headlands
+ * — see trialDesignFeatures in write-trial-files.ts), dissolved to one
+ * Polygon/MultiPolygon. @turf/union throws below 2 input geometries, so a
+ * single plot's own geometry is the boundary as-is.
+ */
+function deriveBoundary(plots: IsoxmlPlotInput[]): Polygon | MultiPolygon {
+  if (plots.length === 1) {
+    return plots[0]!.geometry;
+  }
+  const fc = featureCollection<Polygon | MultiPolygon>(
+    plots.map((p) => ({ type: "Feature" as const, properties: {}, geometry: p.geometry }))
+  );
+  const dissolved = union(fc);
+  if (!dissolved) {
+    throw new ExportError(
+      "writeIsoxml: could not derive a field boundary from the plot geometries (union returned null)"
+    );
+  }
+  return dissolved.geometry;
+}
+
+/** LSG (LineString) element: type 5 = Guidance Pattern, per LineStringType enumeration. */
+function lineToLsg(coordinates: ReadonlyArray<readonly [number, number]>): string {
+  return `<LSG A="5">${ringToPnt(coordinates)}</LSG>`;
+}
+
+/** GPN (GuidancePattern) element: type 1 = AB Line, per GuidancePatternType enumeration. */
+function guidanceLineToGpn(id: string, designator: string, line: LineString): string {
+  return (
+    `<GPN A="${id}" B="${escapeXml(designator)}" C="1">` +
+    `${lineToLsg(line.coordinates as Array<[number, number]>)}</GPN>`
+  );
+}
+
+/**
+ * Guidance section: PFD > GGP (one group) > GPN (one for the applicator
+ * ab-line, designated "ab-line", plus one per harvester guidanceLines
+ * feature, designated "harvester-1", "harvester-2", ...). Omitted entirely
+ * when neither abLine nor guidanceLines is supplied.
+ */
+function guidanceSectionXml(
+  abLine: Feature<LineString> | undefined,
+  guidanceLines: FeatureCollection | undefined
+): string {
+  const gpns: string[] = [];
+  if (abLine) {
+    gpns.push(guidanceLineToGpn(`GPN${gpns.length + 1}`, "ab-line", abLine.geometry));
+  }
+  const harvesterFeatures = guidanceLines?.features ?? [];
+  for (const [index, f] of harvesterFeatures.entries()) {
+    gpns.push(
+      guidanceLineToGpn(`GPN${gpns.length + 1}`, `harvester-${index + 1}`, f.geometry as LineString)
+    );
+  }
+  if (gpns.length === 0) return "";
+  return `<GGP A="GGP1">${gpns.join("")}</GGP>`;
 }
 
 function polygonAreaM2(geometry: Polygon | MultiPolygon): number {
   // Shoelace on each ring, holes subtract, in degrees^2 scaled by a rough
   // meters-per-degree factor at the ring's own latitude — good enough for
-  // the required-but-informational PartfieldArea attribute (see
-  // docs/isoxml-units.md: no field-boundary geometry is emitted in beta).
+  // the required-but-informational PartfieldArea attribute (sum of plot +
+  // headland polygon areas, independent of the PFD boundary PLN geometry).
   const polygons = geometry.type === "Polygon" ? [geometry.coordinates] : geometry.coordinates;
   let total = 0;
   for (const rings of polygons) {
@@ -173,7 +252,7 @@ export function writeIsoxml(plots: IsoxmlPlotInput[], options: IsoxmlOptions): U
     .map(([rate, group], index) => {
       const { ddiHex, raw } = rateToDdiValue(rate, options.unitSystem, options.rateUnit);
       const code = index + 1; // 0 reserved for "undefined zone"
-      const plns = group.map((p) => plotToPln(p.geometry)).join("");
+      const plns = group.map((p) => polygonToPln(p.geometry, 2)).join("");
       return (
         `<TZN A="${code}" B="${escapeXml(`rate ${rate} ${options.rateUnit}`)}">` +
         `<PDV A="${ddiHex}" B="${raw}"/>${plns}</TZN>`
@@ -181,13 +260,18 @@ export function writeIsoxml(plots: IsoxmlPlotInput[], options: IsoxmlOptions): U
     })
     .join("");
 
+  const boundaryGeometry = options.boundary?.geometry ?? deriveBoundary(plots);
+  const boundaryPln = polygonToPln(boundaryGeometry, 1);
+  const guidanceXml = guidanceSectionXml(options.abLine, options.guidanceLines);
+
   const pfdId = "PFD1";
   const taskId = "TSK1";
   const xml =
     `<?xml version="1.0" encoding="UTF-8"?>` +
     `<ISO11783_TaskData VersionMajor="4" VersionMinor="3" ` +
     `ManagementSoftwareManufacturer="ofpetrial-ts" ManagementSoftwareVersion="0.0.0" DataTransferOrigin="1">` +
-    `<PFD A="${pfdId}" C="${escapeXml(options.inputName)}" D="${Math.round(totalArea)}"/>` +
+    `<PFD A="${pfdId}" C="${escapeXml(options.inputName)}" D="${Math.round(totalArea)}">` +
+    `${boundaryPln}${guidanceXml}</PFD>` +
     `<TSK A="${taskId}" B="${escapeXml(`${options.inputName} trial design`)}" E="${pfdId}" G="1">${tznXml}</TSK>` +
     `</ISO11783_TaskData>`;
 
