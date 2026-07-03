@@ -14,7 +14,9 @@
     "skipLibCheck": true,
     "declaration": true,
     "noEmit": true,
-    "types": []
+    "types": ["node"]
   },
-  "include": ["src", "test-cases-runner", "tests", "tools"]
+  "include": ["src", "test-cases-runner", "tests", "tools"],
+  // Deno-runtime files (Deno globals, npm: specifiers) are type-checked by Deno, not tsc.
+  "exclude": ["tools/deno-smoke.ts", "examples"]
 }
