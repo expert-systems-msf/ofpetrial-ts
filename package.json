@@ -62,5 +62,8 @@
   },
   "engines": {
     "node": ">=20"
-  }
+  },
+  "author": "expert-systems-msf",
+  "bugs": "https://github.com/expert-systems-msf/ofpetrial-ts/issues",
+  "homepage": "https://github.com/expert-systems-msf/ofpetrial-ts#readme"
 }
