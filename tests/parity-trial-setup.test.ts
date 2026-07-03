@@ -10,7 +10,7 @@ import { relClose } from "../test-cases-runner/compare.js";
 
 const FIXTURES = join(import.meta.dirname, "..", "fixtures");
 
-interface FixtureParams {
+interface FixtureParameters {
   input_name: string;
   machine_width: number;
   section_num: number;
@@ -23,7 +23,7 @@ interface FixtureParams {
   num_rates?: number;
 }
 
-function fixtureDirs(): Array<{
+function fixtureDirectories(): Array<{
   caseName: string;
   unitSystem: "imperial" | "metric";
   dir: string;
@@ -40,8 +40,10 @@ function fixtureDirs(): Array<{
 }
 
 describe("prepPlot / prepRate parity with R fixtures", () => {
-  for (const { caseName, unitSystem, dir } of fixtureDirs()) {
-    const params = JSON.parse(readFileSync(join(dir, "params.json"), "utf8")) as FixtureParams[];
+  for (const { caseName, unitSystem, dir } of fixtureDirectories()) {
+    const parameters = JSON.parse(
+      readFileSync(join(dir, "params.json"), "utf8")
+    ) as FixtureParameters[];
     const rPlotInfos = JSON.parse(readFileSync(join(dir, "plot-info.json"), "utf8")) as Array<
       Array<Record<string, number | string>>
     >;
@@ -50,9 +52,9 @@ describe("prepPlot / prepRate parity with R fixtures", () => {
     >;
 
     describe(`${caseName}/${unitSystem}`, () => {
-      params.forEach((p, i) => {
+      for (const [index, p] of parameters.entries()) {
         it(`prepPlot matches R for input ${p.input_name}`, () => {
-          const r = rPlotInfos[i]![0]!;
+          const r = rPlotInfos[index]![0]!;
           const plotOptions: PrepPlotOptions = {
             inputName: p.input_name,
             unitSystem,
@@ -83,14 +85,14 @@ describe("prepPlot / prepRate parity with R fixtures", () => {
         });
 
         it(`prepRate matches R for input ${p.input_name}`, () => {
-          const r = rRateInfos[i]![0]!;
+          const r = rRateInfos[index]![0]!;
           const rateOptions: PrepRateOptions = {
             gcRate: p.gc_rate,
             unit: p.unit,
-            ...(p.rates ? { rates: p.rates } : {}),
-            ...(p.min_rate !== undefined ? { minRate: p.min_rate } : {}),
-            ...(p.max_rate !== undefined ? { maxRate: p.max_rate } : {}),
-            ...(p.num_rates !== undefined ? { numRates: p.num_rates } : {}),
+            ...(p.rates && { rates: p.rates }),
+            ...(p.min_rate !== undefined && { minRate: p.min_rate }),
+            ...(p.max_rate !== undefined && { maxRate: p.max_rate }),
+            ...(p.num_rates !== undefined && { numRates: p.num_rates }),
           };
           const plotOptions: PrepPlotOptions = {
             inputName: p.input_name,
@@ -112,9 +114,9 @@ describe("prepPlot / prepRate parity with R fixtures", () => {
 
           const rRatesData = r.rates_data as Array<{ rate: number; rate_rank: number }>;
           expect(ts.rates_data).toHaveLength(rRatesData.length);
-          ts.rates_data.forEach((rd, j) => {
-            expect(relClose(rd.rate, rRatesData[j]!.rate, 1e-6)).toBe(true);
-            expect(rd.rate_rank).toBe(rRatesData[j]!.rate_rank);
+          ts.rates_data.forEach((rd, index) => {
+            expect(relClose(rd.rate, rRatesData[index]!.rate, 1e-6)).toBe(true);
+            expect(rd.rate_rank).toBe(rRatesData[index]!.rate_rank);
           });
 
           const rEquiv = r.tgt_rate_equiv as number[];
@@ -123,12 +125,12 @@ describe("prepPlot / prepRate parity with R fixtures", () => {
           // when R produced values.
           if (rEquiv.length > 0) {
             expect(ts.tgt_rate_equiv).toHaveLength(rEquiv.length);
-            ts.tgt_rate_equiv.forEach((v, j) => {
-              expect(relClose(v, rEquiv[j]!, 1e-6), `tgt_rate_equiv[${j}]`).toBe(true);
+            ts.tgt_rate_equiv.forEach((v, index) => {
+              expect(relClose(v, rEquiv[index]!, 1e-6), `tgt_rate_equiv[${index}]`).toBe(true);
             });
           }
         });
-      });
+      }
     });
   }
 });

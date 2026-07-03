@@ -12,18 +12,18 @@ describe("utmZone", () => {
 
   it("wraps at the antimeridian like R's %% 60", () => {
     expect(utmZone(180)).toBe(1);
-    expect(utmEpsg(180, 10)).toBe(32601);
+    expect(utmEpsg(180, 10)).toBe(32_601);
   });
 });
 
 describe("utmEpsg", () => {
   it("returns a 326xx code in the northern hemisphere", () => {
-    expect(utmEpsg(-88.2, 40.1)).toBe(32616); // Illinois
-    expect(utmEpsg(-71.2, 46.8)).toBe(32619); // Quebec
+    expect(utmEpsg(-88.2, 40.1)).toBe(32_616); // Illinois
+    expect(utmEpsg(-71.2, 46.8)).toBe(32_619); // Quebec
   });
 
   it("returns a 327xx code in the southern hemisphere", () => {
-    expect(utmEpsg(-58.4, -34.6)).toBe(32721); // Buenos Aires
+    expect(utmEpsg(-58.4, -34.6)).toBe(32_721); // Buenos Aires
   });
 });
 
@@ -50,19 +50,19 @@ describe("toUtm / toWgs round-trip", () => {
   });
 
   it("uses the expected EPSG zone for each point", () => {
-    expect(toUtm([-88.2, 40.1]).epsg).toBe(32616);
-    expect(toUtm([-71.2, 46.8]).epsg).toBe(32619);
+    expect(toUtm([-88.2, 40.1]).epsg).toBe(32_616);
+    expect(toUtm([-71.2, 46.8]).epsg).toBe(32_619);
   });
 
   it("projects into a caller-supplied EPSG (shared frame from a centroid)", () => {
     // Point near the zone 16/17 boundary, forced into zone 16.
-    const forced = toUtm([-83.9, 40.1], 32616);
-    expect(forced.epsg).toBe(32616);
+    const forced = toUtm([-83.9, 40.1], 32_616);
+    expect(forced.epsg).toBe(32_616);
     const auto = toUtm([-83.9, 40.1]);
-    expect(auto.epsg).toBe(32617);
+    expect(auto.epsg).toBe(32_617);
     expect(forced.point[0]).not.toBeCloseTo(auto.point[0], 0);
     // Round-trip through the forced zone still lands on the same WGS84 point.
-    const [lon, lat] = toWgs(forced.point, 32616);
+    const [lon, lat] = toWgs(forced.point, 32_616);
     expect(lon).toBeCloseTo(-83.9, 8);
     expect(lat).toBeCloseTo(40.1, 8);
   });

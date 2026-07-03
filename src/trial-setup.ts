@@ -21,7 +21,7 @@ export function roundHalfEven(x: number): number {
 function seqLength(from: number, to: number, n: number): number[] {
   if (n === 1) return [from];
   const step = (to - from) / (n - 1);
-  return Array.from({ length: n }, (_, i) => from + i * step);
+  return Array.from({ length: n }, (_, index) => from + index * step);
 }
 
 /**
@@ -46,8 +46,8 @@ export function getLcm(
     return Math.min(Math.abs(a - quotient * b), Math.abs(a - (quotient + 1) * b));
   };
   // multiply per index like R's seq() — an accumulating += drifts in float
-  for (let i = 1; greater * i <= maxPlotWidth; i++) {
-    const candidate = greater * i;
+  for (let index = 1; greater * index <= maxPlotWidth; index++) {
+    const candidate = greater * index;
     if (absDif(candidate, sectionWidth) <= 0.05 && absDif(candidate, harvesterWidth) <= 0.05) {
       return candidate;
     }
@@ -84,48 +84,48 @@ export function getRates(
   minRate: number,
   maxRate: number,
   gcRate: number,
-  numLevels: number
+  numberLevels: number
 ): number[] {
   // Inherited R quirk (utility.R get_rates): with an interior gcRate the
   // returned ladder can differ in length from numLevels (e.g. numLevels = 1
   // yields 2 rates). Consumers must size off rates_data.length, never the
   // requested count.
   if (maxRate === gcRate || minRate === gcRate) {
-    return seqLength(minRate, maxRate, numLevels);
+    return seqLength(minRate, maxRate, numberLevels);
   }
 
   const difMin = gcRate - minRate;
   const difMax = maxRate - gcRate;
-  const numLevelsTemp = numLevels + 1;
-  let numHigh: number;
-  let numLow: number;
+  const numberLevelsTemporary = numberLevels + 1;
+  let numberHigh: number;
+  let numberLow: number;
 
   if (difMax > difMin) {
-    if (numLevelsTemp % 2 === 1) {
-      numHigh = Math.floor(numLevelsTemp / 2) + 1;
-      numLow = Math.floor(numLevelsTemp / 2);
+    if (numberLevelsTemporary % 2 === 1) {
+      numberHigh = Math.floor(numberLevelsTemporary / 2) + 1;
+      numberLow = Math.floor(numberLevelsTemporary / 2);
     } else if (difMax / difMin > 1.5) {
-      numHigh = Math.floor(numLevelsTemp / 2) + 1;
-      numLow = Math.floor(numLevelsTemp / 2) - 1;
+      numberHigh = Math.floor(numberLevelsTemporary / 2) + 1;
+      numberLow = Math.floor(numberLevelsTemporary / 2) - 1;
     } else {
-      numHigh = Math.floor(numLevelsTemp / 2);
-      numLow = Math.floor(numLevelsTemp / 2);
+      numberHigh = Math.floor(numberLevelsTemporary / 2);
+      numberLow = Math.floor(numberLevelsTemporary / 2);
     }
   } else {
-    if (numLevelsTemp % 2 === 1) {
-      numHigh = Math.floor(numLevelsTemp / 2);
-      numLow = Math.floor(numLevelsTemp / 2) + 1;
+    if (numberLevelsTemporary % 2 === 1) {
+      numberHigh = Math.floor(numberLevelsTemporary / 2);
+      numberLow = Math.floor(numberLevelsTemporary / 2) + 1;
     } else if (difMin / difMax > 1.5) {
-      numHigh = Math.floor(numLevelsTemp / 2) - 1;
-      numLow = Math.floor(numLevelsTemp / 2) + 1;
+      numberHigh = Math.floor(numberLevelsTemporary / 2) - 1;
+      numberLow = Math.floor(numberLevelsTemporary / 2) + 1;
     } else {
-      numHigh = Math.floor(numLevelsTemp / 2);
-      numLow = Math.floor(numLevelsTemp / 2);
+      numberHigh = Math.floor(numberLevelsTemporary / 2);
+      numberLow = Math.floor(numberLevelsTemporary / 2);
     }
   }
 
-  const ratesLow = seqLength(minRate, gcRate, numLow).map(roundHalfEven);
-  const ratesHigh = seqLength(gcRate, maxRate, numHigh).map(roundHalfEven);
+  const ratesLow = seqLength(minRate, gcRate, numberLow).map(roundHalfEven);
+  const ratesHigh = seqLength(gcRate, maxRate, numberHigh).map(roundHalfEven);
   return [...new Set([...ratesLow, ...ratesHigh])];
 }
 
@@ -213,7 +213,7 @@ function findRatesData(
   rates: number[] | undefined,
   minRate: number | undefined,
   maxRate: number | undefined,
-  numRates: number,
+  numberRates: number,
   designType: string | null
 ): RateData[] {
   // design_type NA always defaults to ls here (rank ordering only)
@@ -223,15 +223,15 @@ function findRatesData(
   if (rates !== undefined) {
     ratesLs = rates;
   } else if (minRate !== undefined && maxRate !== undefined) {
-    ratesLs = getRates(minRate, maxRate, gcRate, numRates);
+    ratesLs = getRates(minRate, maxRate, gcRate, numberRates);
   } else {
     throw new ValidationError(
       "Please provide either rates as a vector or all of minRate, maxRate, and numRates."
     );
   }
 
-  if (design === "ls" || design === "str" || design === "rstr" || design === "rb") {
-    return ratesLs.map((rate, i) => ({ rate, rate_rank: i + 1 }));
+  if ((["ls", "str", "rstr", "rb"] as readonly string[]).includes(design)) {
+    return ratesLs.map((rate, index) => ({ rate, rate_rank: index + 1 }));
   }
   if (design === "sparse") {
     if (!ratesLs.includes(gcRate)) {
@@ -242,7 +242,7 @@ function findRatesData(
       );
     }
     const others = ratesLs.filter((r) => r !== gcRate);
-    return [gcRate, ...others].map((rate, i) => ({ rate, rate_rank: i + 1 }));
+    return [gcRate, ...others].map((rate, index) => ({ rate, rate_rank: index + 1 }));
   }
   if (design === "ejca") {
     if (ratesLs.length % 2 === 1) {
@@ -250,7 +250,7 @@ function findRatesData(
         "You cannot have an odd number of rates for the ejca design. Please either specify rates directly with an even number of rates or specify an even numRates along with minRate and maxRate."
       );
     }
-    return ratesLs.map((rate, i) => ({ rate, rate_rank: i + 1 }));
+    return ratesLs.map((rate, index) => ({ rate, rate_rank: index + 1 }));
   }
   throw new ValidationError(
     `design_type "${design}" does not match any of the design type options available.`

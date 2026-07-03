@@ -20,7 +20,7 @@ import { toUtm } from "../src/projection.js";
 
 const ROOT = join(import.meta.dirname, "..");
 
-interface FixtureParams {
+interface FixtureParameters {
   input_name: string;
   machine_width: number;
   section_num: number;
@@ -52,8 +52,8 @@ function load<T>(relPath: string): T {
 type PolyFeature = Feature<Polygon | MultiPolygon>;
 
 function plotKeyOf(f: PolyFeature): string {
-  const props = f.properties as { strip_id: number; plot_id: number };
-  return `${props.strip_id}:${props.plot_id}`;
+  const properties = f.properties as { strip_id: number; plot_id: number };
+  return `${properties.strip_id}:${properties.plot_id}`;
 }
 
 /** Groups plot features by (strip_id, plot_id), duplicates in coordinate order. */
@@ -91,10 +91,10 @@ function lineEndpointsClose(
     coords.map((c) => toUtm([c[0]!, c[1]!], epsg).point);
   const [r0, r1] = pts(rc);
   const [t0, t1] = pts(tc);
-  const dist = (a: [number, number], b: [number, number]): number =>
+  const distribution = (a: [number, number], b: [number, number]): number =>
     Math.hypot(a[0] - b[0], a[1] - b[1]);
-  const same = Math.max(dist(t0!, r0!), dist(t1!, r1!));
-  const flipped = Math.max(dist(t0!, r1!), dist(t1!, r0!));
+  const same = Math.max(distribution(t0!, r0!), distribution(t1!, r1!));
+  const flipped = Math.max(distribution(t0!, r1!), distribution(t1!, r0!));
   return Math.min(same, flipped) <= tolMeters;
 }
 
@@ -103,8 +103,8 @@ describe("makeExpPlots parity with R fixtures", () => {
     for (const unitSystem of ["imperial", "metric"] as const) {
       describe(`${testCase.name}/${unitSystem}`, () => {
         const dir = `fixtures/${testCase.name}/${unitSystem}`;
-        const params = load<FixtureParams[]>(`${dir}/params.json`);
-        const plotInfos: PlotInfo[] = params.map((p) =>
+        const parameters = load<FixtureParameters[]>(`${dir}/params.json`);
+        const plotInfos: PlotInfo[] = parameters.map((p) =>
           prepPlot({
             inputName: p.input_name,
             unitSystem,
@@ -119,23 +119,25 @@ describe("makeExpPlots parity with R fixtures", () => {
           abLine: load<FeatureCollection>(testCase.abLine),
         });
 
-        params.forEach((p, i) => {
+        parameters.forEach((p, index) => {
           const inputDir = `${dir}/${p.input_name}`;
-          const layout = expData.inputs[i]!;
+          const layout = expData.inputs[index]!;
 
           it(`plots match R for input ${p.input_name}`, () => {
             const rPlots = load<FeatureCollection>(`${inputDir}/plots.geojson`);
             const rByKey = groupByKey(rPlots.features as PolyFeature[]);
             const tsByKey = groupByKey(layout.plots.features as PolyFeature[]);
 
-            expect([...tsByKey.keys()].sort()).toEqual([...rByKey.keys()].sort());
+            expect([...tsByKey.keys()].sort((a, b) => a.localeCompare(b))).toEqual(
+              [...rByKey.keys()].sort((a, b) => a.localeCompare(b))
+            );
             expect(layout.plots.features).toHaveLength(rPlots.features.length);
 
             for (const [key, rFeatures] of rByKey) {
               const tsFeatures = tsByKey.get(key)!;
               expect(tsFeatures, `duplicate count for ${key}`).toHaveLength(rFeatures.length);
-              rFeatures.forEach((rf, j) => {
-                const tf = tsFeatures[j]!;
+              rFeatures.forEach((rf, index) => {
+                const tf = tsFeatures[index]!;
                 expect(overlapRatio(tf, rf), `overlap for plot ${key}`).toBeGreaterThanOrEqual(
                   0.99
                 );

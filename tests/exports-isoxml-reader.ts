@@ -15,18 +15,18 @@ export function parseTags(xml: string): XmlTag[] {
   const tagRe = /<([A-Za-z0-9_]+)((?:\s+[A-Za-z0-9_]+="[^"]*")*)\s*(\/?)>/g;
   let match: RegExpExecArray | null;
   while ((match = tagRe.exec(xml)) !== null) {
-    const [, name, attrText, selfClose] = match;
-    const attrs: Record<string, string> = {};
-    const attrRe = /([A-Za-z0-9_]+)="([^"]*)"/g;
-    let attrMatch: RegExpExecArray | null;
-    while ((attrMatch = attrRe.exec(attrText!)) !== null) {
-      attrs[attrMatch[1]!] = attrMatch[2]!
-        .replace(/&quot;/g, '"')
-        .replace(/&lt;/g, "<")
-        .replace(/&gt;/g, ">")
-        .replace(/&amp;/g, "&");
+    const [, name, attributeText, selfClose] = match;
+    const attributes: Record<string, string> = {};
+    const attributeRe = /([A-Za-z0-9_]+)="([^"]*)"/g;
+    let attributeMatch: RegExpExecArray | null;
+    while ((attributeMatch = attributeRe.exec(attributeText!)) !== null) {
+      attributes[attributeMatch[1]!] = attributeMatch[2]!
+        .replaceAll("&quot;", '"')
+        .replaceAll("&lt;", "<")
+        .replaceAll("&gt;", ">")
+        .replaceAll("&amp;", "&");
     }
-    tags.push({ name: name!, attrs, selfClosing: selfClose === "/" });
+    tags.push({ name: name!, attrs: attributes, selfClosing: selfClose === "/" });
   }
   return tags;
 }

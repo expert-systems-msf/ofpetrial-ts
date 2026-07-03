@@ -57,24 +57,24 @@ export function readShp(bytes: Uint8Array): ReadShpResult {
       features.push({ parts: [] });
     } else {
       let o = contentStart + 4 + 32; // skip shapeType + bbox
-      const numParts = view.getInt32(o, true);
+      const numberParts = view.getInt32(o, true);
       o += 4;
-      const numPoints = view.getInt32(o, true);
+      const numberPoints = view.getInt32(o, true);
       o += 4;
       const partStarts: number[] = [];
-      for (let i = 0; i < numParts; i++) {
+      for (let index = 0; index < numberParts; index++) {
         partStarts.push(view.getInt32(o, true));
         o += 4;
       }
       const points: Array<[number, number]> = [];
-      for (let i = 0; i < numPoints; i++) {
+      for (let index = 0; index < numberPoints; index++) {
         const x = view.getFloat64(o, true);
         const y = view.getFloat64(o + 8, true);
         points.push([x, y]);
         o += 16;
       }
-      const parts: Array<Array<[number, number]>> = partStarts.map((start, i) => {
-        const end = i + 1 < partStarts.length ? partStarts[i + 1]! : numPoints;
+      const parts: Array<Array<[number, number]>> = partStarts.map((start, index) => {
+        const end = index + 1 < partStarts.length ? partStarts[index + 1]! : numberPoints;
         return points.slice(start, end);
       });
       features.push({ parts });
@@ -98,7 +98,7 @@ export interface ReadDbfResult {
 
 export function readDbf(bytes: Uint8Array): ReadDbfResult {
   const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
-  const numRecords = view.getUint32(4, true);
+  const numberRecords = view.getUint32(4, true);
   const headerSize = view.getUint16(8, true);
   const recordSize = view.getUint16(10, true);
 
@@ -117,7 +117,7 @@ export function readDbf(bytes: Uint8Array): ReadDbfResult {
 
   const records: Array<Record<string, number | string | null>> = [];
   let recOffset = headerSize;
-  for (let r = 0; r < numRecords; r++) {
+  for (let r = 0; r < numberRecords; r++) {
     let fieldOffset = recOffset + 1; // skip deletion flag
     const record: Record<string, number | string | null> = {};
     for (const field of fields) {

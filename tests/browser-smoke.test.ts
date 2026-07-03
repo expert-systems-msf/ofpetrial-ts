@@ -35,12 +35,12 @@ describe("browser bundle smoke", () => {
       harvesterWidth: 30,
     });
     const rateInfo = prepRate(plotInfo, {
-      gcRate: 34000,
+      gcRate: 34_000,
       unit: "seeds",
-      rates: [20000, 26000, 32000, 38000, 44000],
+      rates: [20_000, 26_000, 32_000, 38_000, 44_000],
     });
     const layout = makeExpPlots({ inputPlotInfo: plotInfo, boundary, abLine });
-    const design = assignRates(layout, rateInfo, { seed: 20260702 });
+    const design = assignRates(layout, rateInfo, { seed: 20_260_702 });
 
     const input = design.inputs[0]!;
     expect(input.plots.features.length).toBeGreaterThan(300);
@@ -51,6 +51,6 @@ describe("browser bundle smoke", () => {
     expect(Math.abs(ortho[0]!.correlations[0]!.corWithRate)).toBeLessThan(0.3);
 
     const zip = writeTrialFiles(design, { ext: "geojson" });
-    expect(zip.length).toBeGreaterThan(5_000);
+    expect(zip.length).toBeGreaterThan(5000);
   });
 });

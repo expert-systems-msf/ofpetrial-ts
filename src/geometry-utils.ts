@@ -5,9 +5,9 @@ import { utmEpsg } from "./projection.js";
 /** Shoelace signed area of a closed ring (positive = counter-clockwise). */
 export function signedRingArea(ring: readonly Position[]): number {
   let sum = 0;
-  for (let i = 0; i < ring.length - 1; i++) {
-    const p1 = ring[i]!;
-    const p2 = ring[i + 1]!;
+  for (let index = 0; index < ring.length - 1; index++) {
+    const p1 = ring[index]!;
+    const p2 = ring[index + 1]!;
     sum += p1[0]! * p2[1]! - p2[0]! * p1[1]!;
   }
   return sum / 2;

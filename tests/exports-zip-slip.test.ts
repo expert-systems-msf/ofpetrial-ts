@@ -36,7 +36,16 @@ function maliciousTd(inputName: string) {
 }
 
 describe("writeTrialFiles — input_name validation (Zip-Slip source guard)", () => {
-  const badNames = ["../evil", "..", "a/b", "a\\b", ".hidden", "", "nul\u0000name", "line\nbreak"];
+  const badNames = [
+    "../evil",
+    "..",
+    "a/b",
+    String.raw`a\b`,
+    ".hidden",
+    "",
+    "nul\u{0}name",
+    "line\nbreak",
+  ];
 
   for (const name of badNames) {
     it(`rejects input_name ${JSON.stringify(name)}`, () => {

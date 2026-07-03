@@ -77,15 +77,15 @@ function escapeXml(value: string): string {
     value
       // XML 1.0 forbids C0 control characters except tab/LF/CR — strip them
       // rather than emit an unparseable document.
-      .replace(CONTROL_CHARS_RE, "")
-      .replace(/&/g, "&amp;")
-      .replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;")
-      .replace(/"/g, "&quot;")
+      .replaceAll(CONTROL_CHARS_RE, "")
+      .replaceAll("&", "&amp;")
+      .replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;")
+      .replaceAll('"', "&quot;")
   );
 }
 
-const CONTROL_CHARS_RE = /[\u0000-\u0008\u000b\u000c\u000e-\u001f]/g;
+const CONTROL_CHARS_RE = /[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g;
 
 function ringToPnt(ring: ReadonlyArray<readonly [number, number]>): string {
   return ring
@@ -104,8 +104,8 @@ function plotToPln(geometry: Polygon | MultiPolygon): string {
   return polygons
     .map((rings) => {
       const lsgs = rings
-        .map((ring, i) => {
-          const type = i === 0 ? 1 : 2; // 1=PolygonExterior, 2=PolygonInterior
+        .map((ring, index) => {
+          const type = index === 0 ? 1 : 2; // 1=PolygonExterior, 2=PolygonInterior
           return `<LSG A="${type}">${ringToPnt(ring as Array<[number, number]>)}</LSG>`;
         })
         .join("");
@@ -122,7 +122,7 @@ function polygonAreaM2(geometry: Polygon | MultiPolygon): number {
   const polygons = geometry.type === "Polygon" ? [geometry.coordinates] : geometry.coordinates;
   let total = 0;
   for (const rings of polygons) {
-    rings.forEach((ring, i) => {
+    rings.forEach((ring, index) => {
       const r = ring as Array<[number, number]>;
       const lat0 = r[0]![1];
       const mPerDegLat = 111_320;
@@ -134,7 +134,7 @@ function polygonAreaM2(geometry: Polygon | MultiPolygon): number {
         area += x1 * mPerDegLon * (y2 * mPerDegLat) - x2 * mPerDegLon * (y1 * mPerDegLat);
       }
       area = Math.abs(area / 2);
-      total += i === 0 ? area : -area;
+      total += index === 0 ? area : -area;
     });
   }
   return Math.abs(total);
@@ -146,7 +146,7 @@ function polygonAreaM2(geometry: Polygon | MultiPolygon): number {
  * rate — see docs/isoxml-units.md on the 254-zone ceiling), each TZN holding
  * a PDV (the rate, as a DDI value) plus one PLN per plot sharing that rate.
  */
-export function writeIsoxml(plots: IsoxmlPlotInput[], opts: IsoxmlOptions): Uint8Array {
+export function writeIsoxml(plots: IsoxmlPlotInput[], options: IsoxmlOptions): Uint8Array {
   if (plots.length === 0) {
     throw new ExportError("writeIsoxml: cannot write a task with zero plots");
   }
@@ -169,13 +169,13 @@ export function writeIsoxml(plots: IsoxmlPlotInput[], opts: IsoxmlOptions): Uint
 
   const totalArea = plots.reduce((sum, p) => sum + polygonAreaM2(p.geometry), 0);
 
-  const tznXml = [...byRate.entries()]
-    .map(([rate, group], i) => {
-      const { ddiHex, raw } = rateToDdiValue(rate, opts.unitSystem, opts.rateUnit);
-      const code = i + 1; // 0 reserved for "undefined zone"
+  const tznXml = [...byRate]
+    .map(([rate, group], index) => {
+      const { ddiHex, raw } = rateToDdiValue(rate, options.unitSystem, options.rateUnit);
+      const code = index + 1; // 0 reserved for "undefined zone"
       const plns = group.map((p) => plotToPln(p.geometry)).join("");
       return (
-        `<TZN A="${code}" B="${escapeXml(`rate ${rate} ${opts.rateUnit}`)}">` +
+        `<TZN A="${code}" B="${escapeXml(`rate ${rate} ${options.rateUnit}`)}">` +
         `<PDV A="${ddiHex}" B="${raw}"/>${plns}</TZN>`
       );
     })
@@ -187,8 +187,8 @@ export function writeIsoxml(plots: IsoxmlPlotInput[], opts: IsoxmlOptions): Uint
     `<?xml version="1.0" encoding="UTF-8"?>` +
     `<ISO11783_TaskData VersionMajor="4" VersionMinor="3" ` +
     `ManagementSoftwareManufacturer="ofpetrial-ts" ManagementSoftwareVersion="0.0.0" DataTransferOrigin="1">` +
-    `<PFD A="${pfdId}" C="${escapeXml(opts.inputName)}" D="${Math.round(totalArea)}"/>` +
-    `<TSK A="${taskId}" B="${escapeXml(`${opts.inputName} trial design`)}" E="${pfdId}" G="1">${tznXml}</TSK>` +
+    `<PFD A="${pfdId}" C="${escapeXml(options.inputName)}" D="${Math.round(totalArea)}"/>` +
+    `<TSK A="${taskId}" B="${escapeXml(`${options.inputName} trial design`)}" E="${pfdId}" G="1">${tznXml}</TSK>` +
     `</ISO11783_TaskData>`;
 
   return new TextEncoder().encode(xml);

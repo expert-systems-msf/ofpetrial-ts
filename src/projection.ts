@@ -12,15 +12,15 @@ export function utmZone(lon: number): number {
 /** EPSG code for the UTM zone covering (lon, lat): 326xx north / 327xx south. */
 export function utmEpsg(lon: number, lat: number): number {
   const zone = utmZone(lon);
-  const base = lat >= 0 ? 32600 : 32700;
+  const base = lat >= 0 ? 32_600 : 32_700;
   return base + zone;
 }
 
 /** proj4 definition string for a UTM EPSG code (326xx north / 327xx south). */
 export function utmProjString(epsg: number): string {
-  const north = epsg < 32700;
+  const isNorth = epsg < 32_700;
   const zone = epsg % 100;
-  return `+proj=utm +zone=${zone} +datum=WGS84 +units=m +no_defs${north ? "" : " +south"}`;
+  return `+proj=utm +zone=${zone} +datum=WGS84 +units=m +no_defs${isNorth ? "" : " +south"}`;
 }
 
 /**

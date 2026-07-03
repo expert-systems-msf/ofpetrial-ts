@@ -59,7 +59,9 @@ function assertClose(actual: unknown, expected: unknown, tol: number, path: stri
   } else if (Array.isArray(expected)) {
     expect(Array.isArray(actual), path).toBe(true);
     expect((actual as unknown[]).length, path).toBe(expected.length);
-    expected.forEach((e, i) => assertClose((actual as unknown[])[i], e, tol, `${path}[${i}]`));
+    expected.forEach((e, index) =>
+      assertClose((actual as unknown[])[index], e, tol, `${path}[${index}]`)
+    );
   } else if (expected !== null && typeof expected === "object") {
     for (const [key, e] of Object.entries(expected)) {
       assertClose((actual as Record<string, unknown>)[key], e, tol, `${path}.${key}`);

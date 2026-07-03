@@ -59,9 +59,9 @@ const SHAPE_TYPE_POLYLINE = 3;
 /** Shoelace signed area; positive = CCW, negative = CW (standard x/y convention). */
 function signedArea(ring: Ring): number {
   let sum = 0;
-  for (let i = 0; i < ring.length - 1; i++) {
-    const [x1, y1] = ring[i]!;
-    const [x2, y2] = ring[i + 1]!;
+  for (let index = 0; index < ring.length - 1; index++) {
+    const [x1, y1] = ring[index]!;
+    const [x2, y2] = ring[index + 1]!;
     sum += x1 * y2 - x2 * y1;
   }
   return sum / 2;
@@ -82,11 +82,11 @@ function polygonRings(geometry: Polygon | MultiPolygon): Ring[] {
   const polygons = geometry.type === "Polygon" ? [geometry.coordinates] : geometry.coordinates;
   const rings: Ring[] = [];
   for (const poly of polygons) {
-    poly.forEach((ring, i) => {
+    poly.forEach((ring, index) => {
       const r = ring as Ring;
-      const wantClockwise = i === 0; // exterior ring
+      const isWantClockwise = index === 0; // exterior ring
       const isClockwise = signedArea(r) < 0;
-      rings.push(wantClockwise === isClockwise ? r : reversed(r));
+      rings.push(isWantClockwise === isClockwise ? r : reversed(r));
     });
   }
   return rings;
@@ -122,7 +122,7 @@ interface Bbox {
 }
 
 function partsBbox(parts: Ring[]): Bbox {
-  if (parts.length === 0 || parts.every((p) => p.length === 0)) {
+  if (parts.every((p) => p.length === 0)) {
     throw new ExportError("writeShapefile: feature has no rings/points (empty geometry)");
   }
   let xMin = Infinity;
@@ -154,8 +154,8 @@ function mergeBbox(a: Bbox, b: Bbox): Bbox {
 // ---------------------------------------------------------------------------
 
 function recordContentLengthBytes(parts: Ring[]): number {
-  const numPoints = parts.reduce((n, p) => n + p.length, 0);
-  return 4 + 32 + 4 + 4 + 4 * parts.length + 16 * numPoints;
+  const numberPoints = parts.reduce((n, p) => n + p.length, 0);
+  return 4 + 32 + 4 + 4 + 4 * parts.length + 16 * numberPoints;
 }
 
 function writeShpRecordContent(
@@ -175,8 +175,8 @@ function writeShpRecordContent(
   o += 32;
   view.setInt32(o, parts.length, true);
   o += 4;
-  const numPoints = parts.reduce((n, p) => n + p.length, 0);
-  view.setInt32(o, numPoints, true);
+  const numberPoints = parts.reduce((n, p) => n + p.length, 0);
+  view.setInt32(o, numberPoints, true);
   o += 4;
   let pointIndex = 0;
   for (const part of parts) {
@@ -203,10 +203,10 @@ function writeShpAndShx(
   const shpTotalBytes = 100 + shpBodyBytes;
   const shxTotalBytes = 100 + 8 * featureParts.length;
 
-  const shpBuf = new ArrayBuffer(shpTotalBytes);
-  const shxBuf = new ArrayBuffer(shxTotalBytes);
-  const shpView = new DataView(shpBuf);
-  const shxView = new DataView(shxBuf);
+  const shpBuffer = new ArrayBuffer(shpTotalBytes);
+  const shxBuffer = new ArrayBuffer(shxTotalBytes);
+  const shpView = new DataView(shpBuffer);
+  const shxView = new DataView(shxBuffer);
 
   const datasetBbox =
     featureParts.length > 0
@@ -215,7 +215,7 @@ function writeShpAndShx(
 
   function writeHeader(view: DataView, fileLengthWords: number): void {
     view.setInt32(0, 9994, false);
-    for (let i = 4; i <= 20; i += 4) view.setInt32(i, 0, false);
+    for (let index = 4; index <= 20; index += 4) view.setInt32(index, 0, false);
     view.setInt32(24, fileLengthWords, false);
     view.setInt32(28, 1000, true);
     view.setInt32(32, shapeType, true);
@@ -223,7 +223,7 @@ function writeShpAndShx(
     view.setFloat64(44, datasetBbox.yMin, true);
     view.setFloat64(52, datasetBbox.xMax, true);
     view.setFloat64(60, datasetBbox.yMax, true);
-    for (let i = 68; i < 100; i += 8) view.setFloat64(i, 0, true);
+    for (let index = 68; index < 100; index += 8) view.setFloat64(index, 0, true);
   }
 
   writeHeader(shpView, shpTotalBytes / 2);
@@ -231,9 +231,9 @@ function writeShpAndShx(
 
   let shpOffset = 100;
   let shxOffset = 100;
-  featureParts.forEach((parts, i) => {
-    const contentLength = contentLengths[i]!;
-    shpView.setInt32(shpOffset, i + 1, false);
+  for (const [index, parts] of featureParts.entries()) {
+    const contentLength = contentLengths[index]!;
+    shpView.setInt32(shpOffset, index + 1, false);
     shpView.setInt32(shpOffset + 4, contentLength / 2, false);
     writeShpRecordContent(shpView, shpOffset + 8, shapeType, parts);
 
@@ -242,9 +242,9 @@ function writeShpAndShx(
 
     shpOffset += 8 + contentLength;
     shxOffset += 8;
-  });
+  }
 
-  return { shp: new Uint8Array(shpBuf), shx: new Uint8Array(shxBuf) };
+  return { shp: new Uint8Array(shpBuffer), shx: new Uint8Array(shxBuffer) };
 }
 
 // ---------------------------------------------------------------------------
@@ -258,7 +258,7 @@ function padName(name: string): Uint8Array {
     );
   }
   const bytes = new Uint8Array(11);
-  for (let i = 0; i < name.length; i++) bytes[i] = name.charCodeAt(i);
+  for (let index = 0; index < name.length; index++) bytes[index] = name.charCodeAt(index);
   return bytes;
 }
 
@@ -305,22 +305,22 @@ function writeDbf(features: ShapefileFeatureInput[], fields: ShapefileFieldSpec[
       );
     }
   }
-  const numFields = fields.length;
-  const headerSize = 32 + 32 * numFields + 1;
+  const numberFields = fields.length;
+  const headerSize = 32 + 32 * numberFields + 1;
   const recordSize = 1 + fields.reduce((n, f) => n + f.length, 0);
-  const numRecords = features.length;
-  const totalSize = headerSize + numRecords * recordSize + 1; // +1 EOF marker
+  const numberRecords = features.length;
+  const totalSize = headerSize + numberRecords * recordSize + 1; // +1 EOF marker
 
-  const buf = new ArrayBuffer(totalSize);
-  const bytes = new Uint8Array(buf);
-  const view = new DataView(buf);
+  const buffer = new ArrayBuffer(totalSize);
+  const bytes = new Uint8Array(buffer);
+  const view = new DataView(buffer);
 
   const now = new Date();
   bytes[0] = 0x03;
   bytes[1] = now.getFullYear() - 1900;
   bytes[2] = now.getMonth() + 1;
   bytes[3] = now.getDate();
-  view.setUint32(4, numRecords, true);
+  view.setUint32(4, numberRecords, true);
   view.setUint16(8, headerSize, true);
   view.setUint16(10, recordSize, true);
 
@@ -341,7 +341,7 @@ function writeDbf(features: ShapefileFeatureInput[], fields: ShapefileFieldSpec[
     for (const field of fields) {
       const value = feature.properties[field.name] ?? null;
       const text = formatField(value, field);
-      for (let i = 0; i < text.length; i++) bytes[o + i] = text.charCodeAt(i);
+      for (let index = 0; index < text.length; index++) bytes[o + index] = text.charCodeAt(index);
       o += field.length;
     }
   }
@@ -358,15 +358,15 @@ function writeDbf(features: ShapefileFeatureInput[], fields: ShapefileFieldSpec[
  */
 export function writeShapefile(
   features: ShapefileFeatureInput[],
-  opts: WriteShapefileOptions
+  options: WriteShapefileOptions
 ): ShapefileBytes {
   if (features.length === 0) {
     throw new ExportError("writeShapefile: cannot write a layer with zero features");
   }
-  const shapeType = opts.geometryType === "polygon" ? SHAPE_TYPE_POLYGON : SHAPE_TYPE_POLYLINE;
-  const featureParts = features.map((f) => partsOf(opts.geometryType, f.geometry));
+  const shapeType = options.geometryType === "polygon" ? SHAPE_TYPE_POLYGON : SHAPE_TYPE_POLYLINE;
+  const featureParts = features.map((f) => partsOf(options.geometryType, f.geometry));
   const { shp, shx } = writeShpAndShx(shapeType, featureParts);
-  const dbf = writeDbf(features, opts.fields);
+  const dbf = writeDbf(features, options.fields);
   const prj = new TextEncoder().encode(WGS84_PRJ);
   return { shp, shx, dbf, prj };
 }

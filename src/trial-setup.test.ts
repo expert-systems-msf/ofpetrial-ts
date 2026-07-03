@@ -86,7 +86,7 @@ describe("prepPlot", () => {
     };
     expect(() => prepPlot({ ...base, machineWidth: 0 })).toThrow(ValidationError);
     expect(() => prepPlot({ ...base, machineWidth: -60 })).toThrow(ValidationError);
-    expect(() => prepPlot({ ...base, machineWidth: Number.NaN })).toThrow(ValidationError);
+    expect(() => prepPlot({ ...base, machineWidth: NaN })).toThrow(ValidationError);
     expect(() => prepPlot({ ...base, sectionNum: 0 })).toThrow(ValidationError);
     // guard runs even when plotWidth is supplied (R skips it in that case)
     expect(() => prepPlot({ ...base, sectionNum: 0, plotWidth: 30 })).toThrow(ValidationError);
@@ -121,15 +121,15 @@ describe("prepRate", () => {
 
   it("freezes explicit rates with sequential ranks", () => {
     const ri = prepRate(pi, {
-      gcRate: 34000,
+      gcRate: 34_000,
       unit: "seeds",
-      rates: [20000, 26000, 32000, 38000, 44000],
+      rates: [20_000, 26_000, 32_000, 38_000, 44_000],
     });
-    expect(ri.rates_data.map((r) => r.rate)).toEqual([20000, 26000, 32000, 38000, 44000]);
+    expect(ri.rates_data.map((r) => r.rate)).toEqual([20_000, 26_000, 32_000, 38_000, 44_000]);
     expect(ri.rates_data.map((r) => r.rate_rank)).toEqual([1, 2, 3, 4, 5]);
     expect(ri.design_type).toBeNull(); // NA in R; ls applies at assignment
     expect(ri.num_rates).toBe(5);
-    expect(ri.tgt_rate_equiv).toEqual([20000, 26000, 32000, 38000, 44000]); // passthrough
+    expect(ri.tgt_rate_equiv).toEqual([20_000, 26_000, 32_000, 38_000, 44_000]); // passthrough
   });
 
   it("derives rates from min/max anchored on gcRate", () => {
@@ -147,21 +147,21 @@ describe("prepRate", () => {
 
   it("reorders sparse rates with gcRate first (rank 1)", () => {
     const ri = prepRate(pi, {
-      gcRate: 34000,
+      gcRate: 34_000,
       unit: "seeds",
-      rates: [20000, 27000, 34000, 41000, 48000],
+      rates: [20_000, 27_000, 34_000, 41_000, 48_000],
       designType: "sparse",
     });
-    expect(ri.rates_data[0]).toEqual({ rate: 34000, rate_rank: 1 });
+    expect(ri.rates_data[0]).toEqual({ rate: 34_000, rate_rank: 1 });
     expect(ri.rates_data).toHaveLength(5);
   });
 
   it("rejects sparse without gcRate in the rates (R: silent corrupt output)", () => {
     expect(() =>
       prepRate(pi, {
-        gcRate: 34000,
+        gcRate: 34_000,
         unit: "seeds",
-        rates: [20000, 27000, 41000, 48000],
+        rates: [20_000, 27_000, 41_000, 48_000],
         designType: "sparse",
       })
     ).toThrow(ValidationError);
@@ -182,7 +182,7 @@ describe("prepRate", () => {
 
   it("carries rank sequences and the rate jump threshold", () => {
     const ri = prepRate(pi, {
-      gcRate: 34000,
+      gcRate: 34_000,
       unit: "seeds",
       rates: [1, 2, 3, 4, 5],
       rankSeqWs: [1, 3, 5, 2, 4],

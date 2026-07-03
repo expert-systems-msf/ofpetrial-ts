@@ -91,10 +91,10 @@ function inputDesignFromFixture(
 
 function trialDesignFromFixture(caseDir: string, inputNames: string[]): TrialDesign {
   const plotInfos = load<PlotInfo[][]>(`${caseDir}/plot-info.json`);
-  const inputs = inputNames.map((name, i) =>
-    inputDesignFromFixture(caseDir, name, plotInfos[i]![0]!)
+  const inputs = inputNames.map((name, index) =>
+    inputDesignFromFixture(caseDir, name, plotInfos[index]![0]!)
   );
-  return { inputs, seed: 20260702 };
+  return { inputs, seed: 20_260_702 };
 }
 
 // Integration-level tolerance for the LIVE geometry path only: these tests
@@ -124,29 +124,29 @@ function expectAlignmentMatches(
   expect(actual.length).toBe(expected.length);
   expect(actual.length).toBeGreaterThan(0);
   const offset = actual[0]!.ha_strip_id - expected[0]!.ha_strip_id;
-  for (let i = 0; i < expected.length; i++) {
-    const a = actual[i]!;
-    const e = expected[i]!;
-    expect(a.ha_strip_id - offset, `ha_strip_id offset consistency at row ${i}`).toBe(
+  for (const [index, element] of expected.entries()) {
+    const a = actual[index]!;
+    const e = element!;
+    expect(a.ha_strip_id - offset, `ha_strip_id offset consistency at row ${index}`).toBe(
       e.ha_strip_id
     );
-    expect(a.strip_id, `strip_id at row ${i}`).toBe(e.strip_id);
+    expect(a.strip_id, `strip_id at row ${index}`).toBe(e.strip_id);
     expect(
       relClose(a.area, e.area, LIVE_JOIN_TOL),
-      `area at row ${i}: ${a.area} vs ${e.area}`
+      `area at row ${index}: ${a.area} vs ${e.area}`
     ).toBe(true);
-    expect(relClose(a.ha_area, e.ha_area, LIVE_JOIN_TOL), `ha_area at row ${i}`).toBe(true);
+    expect(relClose(a.ha_area, e.ha_area, LIVE_JOIN_TOL), `ha_area at row ${index}`).toBe(true);
     expect(
       relClose(a.total_intersecting_ha_area, e.total_intersecting_ha_area, LIVE_JOIN_TOL),
-      `total_intersecting_ha_area at row ${i}`
+      `total_intersecting_ha_area at row ${index}`
     ).toBe(true);
     expect(
       relClose(a.intersecting_pct, e.intersecting_pct, LIVE_JOIN_TOL),
-      `intersecting_pct at row ${i}`
+      `intersecting_pct at row ${index}`
     ).toBe(true);
     expect(
       relClose(a.dominant_pct, e.dominant_pct, LIVE_JOIN_TOL),
-      `dominant_pct at row ${i}`
+      `dominant_pct at row ${index}`
     ).toBe(true);
   }
 }
@@ -165,11 +165,11 @@ function expectAlignmentExact(
   expected: AlignmentOverlapRow[]
 ): void {
   expect(actual.length).toBe(expected.length);
-  for (let i = 0; i < expected.length; i++) {
-    const a = actual[i]!;
-    const e = expected[i]!;
-    expect(a.ha_strip_id, `ha_strip_id at row ${i}`).toBe(e.ha_strip_id);
-    expect(a.strip_id, `strip_id at row ${i}`).toBe(e.strip_id);
+  for (const [index, element] of expected.entries()) {
+    const a = actual[index]!;
+    const e = element!;
+    expect(a.ha_strip_id, `ha_strip_id at row ${index}`).toBe(e.ha_strip_id);
+    expect(a.strip_id, `strip_id at row ${index}`).toBe(e.strip_id);
     for (const col of [
       "area",
       "ha_area",
@@ -177,7 +177,7 @@ function expectAlignmentExact(
       "intersecting_pct",
       "dominant_pct",
     ] as const) {
-      expect(relClose(a[col], e[col], 1e-6), `${col} at row ${i}: ${a[col]} vs ${e[col]}`).toBe(
+      expect(relClose(a[col], e[col], 1e-6), `${col} at row ${index}: ${a[col]} vs ${e[col]}`).toBe(
         true
       );
     }
@@ -203,9 +203,9 @@ describe("checkAlignment parity with R — precomputed fragments (task 6.1, 1e-6
 
         const result = checkAlignment(td, fragments);
         expect(result).toHaveLength(testCase.inputNames.length);
-        result.forEach((r, i) => {
-          expect(r.inputName).toBe(expected.alignment[i]!.inputName);
-          expectAlignmentExact(r.overlapData, expected.alignment[i]!.overlapData);
+        result.forEach((r, index) => {
+          expect(r.inputName).toBe(expected.alignment[index]!.inputName);
+          expectAlignmentExact(r.overlapData, expected.alignment[index]!.overlapData);
         });
       });
     }
@@ -246,9 +246,9 @@ describe("checkAlignment live-geometry integration (task 6.1)", () => {
 
     const result = checkAlignment(td);
     expect(result).toHaveLength(2);
-    for (let i = 0; i < 2; i++) {
-      expect(result[i]!.inputName).toBe(expected.alignment[i]!.inputName);
-      expectAlignmentMatches(result[i]!.overlapData, expected.alignment[i]!.overlapData);
+    for (let index = 0; index < 2; index++) {
+      expect(result[index]!.inputName).toBe(expected.alignment[index]!.inputName);
+      expectAlignmentMatches(result[index]!.overlapData, expected.alignment[index]!.overlapData);
     }
   });
 });
@@ -324,7 +324,7 @@ describe("checkOrthoWithChars parity with R — precomputed fragments (task 6.3a
             guidanceLines: { type: "FeatureCollection", features: [] },
           },
         ],
-        seed: 20260702,
+        seed: 20_260_702,
       };
 
       const result = checkOrthoWithChars(td, fragments, SOIL_VARS);
@@ -360,7 +360,7 @@ describe("checkOrthoWithChars parity with R — precomputed fragments (task 6.3a
           guidanceLines: { type: "FeatureCollection", features: [] },
         },
       ],
-      seed: 20260702,
+      seed: 20_260_702,
     };
 
     const result = checkOrthoWithChars(td, fragments, SOIL_VARS);
@@ -398,7 +398,7 @@ describe("spatialJoin + checkOrthoWithChars integration (task 6.3b, 1e-3)", () =
           guidanceLines: { type: "FeatureCollection", features: [] },
         },
       ],
-      seed: 20260702,
+      seed: 20_260_702,
     };
 
     const result = checkOrthoWithChars(td, soilLayer, SOIL_VARS);
@@ -556,5 +556,5 @@ describe("cross-validation: assignRates designs stay within R's reference range 
         ).toBeLessThanOrEqual(0.3);
       }
     }
-  }, 30000);
+  }, 30_000);
 });

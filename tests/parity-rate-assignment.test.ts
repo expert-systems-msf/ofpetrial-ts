@@ -51,7 +51,7 @@ function trialDesignFromFixture(): TrialDesign {
     abLine: { type: "Feature", properties: {}, geometry: { type: "LineString", coordinates: [] } },
     guidanceLines: { type: "FeatureCollection", features: [] },
   };
-  return { inputs: [input], seed: 20260702 };
+  return { inputs: [input], seed: 20_260_702 };
 }
 
 describe("addBlocks parity with R (task 5.4)", () => {
@@ -93,11 +93,11 @@ describe("addBlocks parity with R (task 5.4)", () => {
   it("sets block_id and plot_id_within_block to null on headland plots (R: NA)", () => {
     const td = trialDesignFromFixture();
     const result = addBlocks(td);
-    const headlandProps = result.inputs[0]!.headlands.features.map(
+    const headlandProperties = result.inputs[0]!.headlands.features.map(
       (f) => f.properties as { block_id: number | null; plot_id_within_block: number | null }
     );
-    expect(headlandProps.length).toBeGreaterThan(0);
-    for (const p of headlandProps) {
+    expect(headlandProperties.length).toBeGreaterThan(0);
+    for (const p of headlandProperties) {
       expect(p.block_id).toBeNull();
       expect(p.plot_id_within_block).toBeNull();
     }

@@ -50,7 +50,7 @@ function makeSingleInputExpData(plotInfo: PlotInfo): ExpData {
   return makeExpPlots({ inputPlotInfo: plotInfo, boundary, abLine });
 }
 
-function expProps(f: Feature): {
+function expProperties(f: Feature): {
   stripId: number;
   plotId: number;
   rate: number;
@@ -73,15 +73,15 @@ function expProps(f: Feature): {
   };
 }
 
-function groupByStripIds(input: InputDesign): Map<number, ReturnType<typeof expProps>[]> {
-  const map = new Map<number, ReturnType<typeof expProps>[]>();
+function groupByStripIds(input: InputDesign): Map<number, ReturnType<typeof expProperties>[]> {
+  const map = new Map<number, ReturnType<typeof expProperties>[]>();
   for (const f of input.plots.features) {
-    const props = expProps(f);
-    const arr = map.get(props.stripId) ?? [];
-    arr.push(props);
-    map.set(props.stripId, arr);
+    const properties = expProperties(f);
+    const array = map.get(properties.stripId) ?? [];
+    array.push(properties);
+    map.set(properties.stripId, array);
   }
-  for (const arr of map.values()) arr.sort((a, b) => a.plotId - b.plotId);
+  for (const array of map.values()) array.sort((a, b) => a.plotId - b.plotId);
   return map;
 }
 
@@ -89,9 +89,9 @@ describe("assignRates: single input (ls design, task 5.2)", () => {
   const plotInfo = seedPlotInfo();
   const expData = makeSingleInputExpData(plotInfo);
   const rateInfo = prepRate(plotInfo, {
-    gcRate: 34000,
+    gcRate: 34_000,
     unit: "seeds",
-    rates: [20000, 26000, 32000, 38000, 44000],
+    rates: [20_000, 26_000, 32_000, 38_000, 44_000],
   });
 
   it("assigns exactly one rate to every experimental plot, and gc_rate to the headland", () => {
@@ -99,14 +99,14 @@ describe("assignRates: single input (ls design, task 5.2)", () => {
     const input = td.inputs[0]!;
     expect(input.plots.features.length).toBeGreaterThan(0);
     for (const f of input.plots.features) {
-      const props = expProps(f);
-      expect(rateInfo.tgt_rate_original).toContain(props.rate);
-      expect(props.rateRank).toBeGreaterThanOrEqual(1);
-      expect(props.rateRank).toBeLessThanOrEqual(5);
-      expect(props.type).toBe("experiment");
+      const properties = expProperties(f);
+      expect(rateInfo.tgt_rate_original).toContain(properties.rate);
+      expect(properties.rateRank).toBeGreaterThanOrEqual(1);
+      expect(properties.rateRank).toBeLessThanOrEqual(5);
+      expect(properties.type).toBe("experiment");
     }
     for (const f of input.headlands.features) {
-      expect((f.properties as { rate: number }).rate).toBe(34000);
+      expect((f.properties as { rate: number }).rate).toBe(34_000);
     }
     expect(td.seed).toBe(42);
   });
@@ -127,8 +127,8 @@ describe("assignRates: single input (ls design, task 5.2)", () => {
     const threshold = Math.ceil(5 / 2); // default: ceil(numRates / 2)
     const byStrip = groupByStripIds(td.inputs[0]!);
     for (const [, plots] of byStrip) {
-      for (let i = 1; i < plots.length; i++) {
-        expect(Math.abs(plots[i]!.rateRank - plots[i - 1]!.rateRank)).toBeLessThanOrEqual(
+      for (let index = 1; index < plots.length; index++) {
+        expect(Math.abs(plots[index]!.rateRank - plots[index - 1]!.rateRank)).toBeLessThanOrEqual(
           threshold
         );
       }
@@ -138,8 +138,8 @@ describe("assignRates: single input (ls design, task 5.2)", () => {
   it("is deterministic for a given seed", () => {
     const tdA = assignRates(expData, rateInfo, { seed: 123 });
     const tdB = assignRates(expData, rateInfo, { seed: 123 });
-    const ratesA = tdA.inputs[0]!.plots.features.map((f) => expProps(f).rate);
-    const ratesB = tdB.inputs[0]!.plots.features.map((f) => expProps(f).rate);
+    const ratesA = tdA.inputs[0]!.plots.features.map((f) => expProperties(f).rate);
+    const ratesB = tdB.inputs[0]!.plots.features.map((f) => expProperties(f).rate);
     expect(ratesA).toEqual(ratesB);
   });
 
@@ -154,16 +154,16 @@ describe("assignRates: sparse design (task 5.1)", () => {
     const plotInfo = seedPlotInfo();
     const expData = makeSingleInputExpData(plotInfo);
     const rateInfo = prepRate(plotInfo, {
-      gcRate: 32000,
+      gcRate: 32_000,
       unit: "seeds",
-      rates: [32000, 20000, 26000, 38000, 44000],
+      rates: [32_000, 20_000, 26_000, 38_000, 44_000],
       designType: "sparse",
     });
 
     const td = assignRates(expData, rateInfo, { seed: 5 });
     const byStrip = groupByStripIds(td.inputs[0]!);
     for (const [, plots] of byStrip) {
-      const gcCount = plots.filter((p) => p.rate === 32000).length;
+      const gcCount = plots.filter((p) => p.rate === 32_000).length;
       const expected = Math.floor(plots.length / 2);
       expect(Math.abs(gcCount - expected)).toBeLessThanOrEqual(1);
     }
@@ -182,14 +182,14 @@ describe("assignRates: partial dosing (task 5.2, spec.md scenario)", () => {
     });
     const expData = makeExpPlots({ inputPlotInfo: [seedInfo, nh3Info], boundary, abLine });
     const seedRateInfo = prepRate(seedInfo, {
-      gcRate: 34000,
+      gcRate: 34_000,
       unit: "seeds",
-      rates: [20000, 26000, 32000, 38000, 44000],
+      rates: [20_000, 26_000, 32_000, 38_000, 44_000],
     });
 
     const td = assignRates(expData, seedRateInfo, { seed: 1 });
-    const seedInput = td.inputs.find((i) => i.plotInfo.input_name === "seed")!;
-    const nh3Input = td.inputs.find((i) => i.plotInfo.input_name === "NH3")!;
+    const seedInput = td.inputs.find((index) => index.plotInfo.input_name === "seed")!;
+    const nh3Input = td.inputs.find((index) => index.plotInfo.input_name === "NH3")!;
 
     expect(seedInput.rateInfo).not.toBeNull();
     expect(nh3Input.rateInfo).toBeNull();
@@ -203,7 +203,7 @@ describe("assignRates: partial dosing (task 5.2, spec.md scenario)", () => {
 
 /** Two inputs sharing the exact same plot geometry (same machine dims) and
  * an equal rate count — the precondition for joint two-input designing. */
-function twoJointInputs(numRates: number): { expData: ExpData; riA: RateInfo; riB: RateInfo } {
+function twoJointInputs(numberRates: number): { expData: ExpData; riA: RateInfo; riB: RateInfo } {
   const plotInfoA = prepPlot({
     inputName: "A",
     unitSystem: "imperial",
@@ -219,7 +219,7 @@ function twoJointInputs(numRates: number): { expData: ExpData; riA: RateInfo; ri
     harvesterWidth: 30,
   });
   const expData = makeExpPlots({ inputPlotInfo: [plotInfoA, plotInfoB], boundary, abLine });
-  const rates = Array.from({ length: numRates }, (_, i) => 100 + i * 10);
+  const rates = Array.from({ length: numberRates }, (_, index) => 100 + index * 10);
   const riA = prepRate(plotInfoA, { gcRate: rates[0]!, unit: "lb", rates });
   const riB = prepRate(plotInfoB, {
     gcRate: rates[0]!,
@@ -233,10 +233,10 @@ describe("assignRates: two-input joint designing (task 5.2/5.3)", () => {
   it("keeps the correlation between the two rate-rank plans below 0.3 (general case)", () => {
     const { expData, riA, riB } = twoJointInputs(5);
     const td = assignRates(expData, [riA, riB], { seed: 42 });
-    const inputA = td.inputs.find((i) => i.plotInfo.input_name === "A")!;
-    const inputB = td.inputs.find((i) => i.plotInfo.input_name === "B")!;
-    const ranksA = inputA.plots.features.map((f) => expProps(f).rateRank);
-    const ranksB = inputB.plots.features.map((f) => expProps(f).rateRank);
+    const inputA = td.inputs.find((index) => index.plotInfo.input_name === "A")!;
+    const inputB = td.inputs.find((index) => index.plotInfo.input_name === "B")!;
+    const ranksA = inputA.plots.features.map((f) => expProperties(f).rateRank);
+    const ranksB = inputB.plots.features.map((f) => expProperties(f).rateRank);
     expect(Math.abs(sampleCorrelation(ranksA, ranksB))).toBeLessThan(0.3);
   });
 
@@ -246,8 +246,8 @@ describe("assignRates: two-input joint designing (task 5.2/5.3)", () => {
     const tdSeed2 = assignRates(expData, [riA, riB], { seed: 999 });
     const ratesOf = (td: typeof tdSeed1, name: string): number[] =>
       td.inputs
-        .find((i) => i.plotInfo.input_name === name)!
-        .plots.features.map((f) => expProps(f).rate);
+        .find((index) => index.plotInfo.input_name === name)!
+        .plots.features.map((f) => expProperties(f).rate);
     expect(ratesOf(tdSeed1, "A")).toEqual(ratesOf(tdSeed2, "A"));
     expect(ratesOf(tdSeed1, "B")).toEqual(ratesOf(tdSeed2, "B"));
   });
@@ -257,7 +257,7 @@ describe("assignRates: two-input joint designing (task 5.2/5.3)", () => {
     const td = assignRates(expData, [riA, riB], { seed: 3 });
     for (const input of td.inputs) {
       for (const f of input.plots.features) {
-        expect(input.rateInfo!.tgt_rate_original).toContain(expProps(f).rate);
+        expect(input.rateInfo!.tgt_rate_original).toContain(expProperties(f).rate);
       }
     }
   });
@@ -269,12 +269,12 @@ describe("assignRatesConditional (task 5.3)", () => {
     const partial = assignRates(expData, riA, { seed: 42 });
     const conditioned = assignRatesConditional(expData, riB, partial, { seed: 42 });
 
-    const inputA = conditioned.inputs.find((i) => i.plotInfo.input_name === "A")!;
-    const inputB = conditioned.inputs.find((i) => i.plotInfo.input_name === "B")!;
+    const inputA = conditioned.inputs.find((index) => index.plotInfo.input_name === "A")!;
+    const inputB = conditioned.inputs.find((index) => index.plotInfo.input_name === "B")!;
     expect(inputB.rateInfo).not.toBeNull();
 
-    const ranksA = inputA.plots.features.map((f) => expProps(f).rateRank);
-    const ranksB = inputB.plots.features.map((f) => expProps(f).rateRank);
+    const ranksA = inputA.plots.features.map((f) => expProperties(f).rateRank);
+    const ranksB = inputB.plots.features.map((f) => expProperties(f).rateRank);
     expect(ranksB.length).toBe(ranksA.length);
     expect(Math.abs(sampleCorrelation(ranksA, ranksB))).toBeLessThan(0.3);
 
@@ -308,11 +308,11 @@ describe("assignRatesConditional (task 5.3)", () => {
 describe("assignRates: str / rstr / rb / ejca designs (task 5.1)", () => {
   const plotInfo = seedPlotInfo();
   const expData = makeSingleInputExpData(plotInfo);
-  const RATES_5 = [20000, 26000, 32000, 38000, 44000];
-  const RATES_4 = [20000, 26000, 38000, 44000];
+  const RATES_5 = [20_000, 26_000, 32_000, 38_000, 44_000];
+  const RATES_4 = [20_000, 26_000, 38_000, 44_000];
 
   function rateInfoFor(designType: string, rates: number[]): RateInfo {
-    return prepRate(plotInfo, { gcRate: 34000, unit: "seeds", rates, designType });
+    return prepRate(plotInfo, { gcRate: 34_000, unit: "seeds", rates, designType });
   }
 
   function assertOneRateFromLadder(designType: string, rates: number[]): void {
@@ -320,17 +320,17 @@ describe("assignRates: str / rstr / rb / ejca designs (task 5.1)", () => {
     const input = td.inputs[0]!;
     expect(input.plots.features.length).toBeGreaterThan(0);
     for (const f of input.plots.features) {
-      expect(rates).toContain(expProps(f).rate);
+      expect(rates).toContain(expProperties(f).rate);
     }
   }
 
   function assertDeterministicBySeed(designType: string, rates: number[]): void {
     const ri = rateInfoFor(designType, rates);
     const a = assignRates(expData, ri, { seed: 77 }).inputs[0]!.plots.features.map(
-      (f) => expProps(f).rate
+      (f) => expProperties(f).rate
     );
     const b = assignRates(expData, ri, { seed: 77 }).inputs[0]!.plots.features.map(
-      (f) => expProps(f).rate
+      (f) => expProperties(f).rate
     );
     expect(a).toEqual(b);
   }
@@ -361,17 +361,17 @@ describe("assignRates: str / rstr / rb / ejca designs (task 5.1)", () => {
   }
 
   it("rb: rates are balanced within each block (each rate once per complete set of numRates plots)", () => {
-    const numRates = 5;
+    const numberRates = 5;
     const td = assignRates(expData, rateInfoFor("rb", RATES_5), { seed: 13 });
     const input = td.inputs[0]!;
     // Recompute R's block partition: block_row/block_col by integer division.
     const byBlock = new Map<string, number[]>();
     for (const f of input.plots.features) {
-      const { stripId, plotId, rateRank } = expProps(f);
-      const key = `${Math.floor((plotId - 1) / numRates) + 1}:${Math.floor((stripId - 1) / numRates) + 1}`;
-      const arr = byBlock.get(key) ?? [];
-      arr.push(rateRank);
-      byBlock.set(key, arr);
+      const { stripId, plotId, rateRank } = expProperties(f);
+      const key = `${Math.floor((plotId - 1) / numberRates) + 1}:${Math.floor((stripId - 1) / numberRates) + 1}`;
+      const array = byBlock.get(key) ?? [];
+      array.push(rateRank);
+      byBlock.set(key, array);
     }
     expect(byBlock.size).toBeGreaterThan(1);
     for (const ranks of byBlock.values()) {
@@ -380,10 +380,10 @@ describe("assignRates: str / rstr / rb / ejca designs (task 5.1)", () => {
       const values = [...counts.values()];
       // partial border blocks: counts differ by at most 1
       expect(Math.max(...values) - Math.min(...values)).toBeLessThanOrEqual(1);
-      if (ranks.length % numRates === 0) {
+      if (ranks.length % numberRates === 0) {
         // complete blocks: each rate appears exactly ranks.length / numRates times
-        expect(counts.size).toBe(numRates);
-        for (const v of values) expect(v).toBe(ranks.length / numRates);
+        expect(counts.size).toBe(numberRates);
+        for (const v of values) expect(v).toBe(ranks.length / numberRates);
       }
     }
   });
@@ -414,16 +414,16 @@ describe("hole-split strips: feature order is preserved, never re-sorted by plot
     abLine: holesAbLine,
   });
   const rateInfo = prepRate(plotInfo, {
-    gcRate: 34000,
+    gcRate: 34_000,
     unit: "seeds",
-    rates: [20000, 26000, 32000, 38000, 44000],
+    rates: [20_000, 26_000, 32_000, 38_000, 44_000],
   });
 
   it("the fixture actually contains a hole-split strip (duplicate plot_ids)", () => {
     const seen = new Set<string>();
     let hasDuplicate = false;
     for (const f of layout.inputs[0]!.plots.features) {
-      const { stripId, plotId } = expProps(f);
+      const { stripId, plotId } = expProperties(f);
       const key = `${stripId}:${plotId}`;
       if (seen.has(key)) hasDuplicate = true;
       seen.add(key);
@@ -436,12 +436,16 @@ describe("hole-split strips: feature order is preserved, never re-sorted by plot
     const inputFeatures = layout.inputs[0]!.plots.features;
     const outputFeatures = td.inputs[0]!.plots.features;
     expect(outputFeatures.length).toBe(inputFeatures.length);
-    for (let i = 0; i < inputFeatures.length; i++) {
-      expect(JSON.stringify(outputFeatures[i]!.geometry)).toBe(
-        JSON.stringify(inputFeatures[i]!.geometry)
+    for (const [index, inputFeature] of inputFeatures.entries()) {
+      expect(JSON.stringify(outputFeatures[index]!.geometry)).toBe(
+        JSON.stringify(inputFeature!.geometry)
       );
-      expect(expProps(outputFeatures[i]!).stripId).toBe(expProps(inputFeatures[i]!).stripId);
-      expect(expProps(outputFeatures[i]!).plotId).toBe(expProps(inputFeatures[i]!).plotId);
+      expect(expProperties(outputFeatures[index]!).stripId).toBe(
+        expProperties(inputFeature!).stripId
+      );
+      expect(expProperties(outputFeatures[index]!).plotId).toBe(
+        expProperties(inputFeature!).plotId
+      );
     }
   });
 
@@ -450,10 +454,10 @@ describe("hole-split strips: feature order is preserved, never re-sorted by plot
     const basicSeq = genBasicRankWs(5, null);
     const byStrip = new Map<number, number[]>();
     for (const f of td.inputs[0]!.plots.features) {
-      const { stripId, rateRank } = expProps(f);
-      const arr = byStrip.get(stripId) ?? [];
-      arr.push(rateRank);
-      byStrip.set(stripId, arr);
+      const { stripId, rateRank } = expProperties(f);
+      const array = byStrip.get(stripId) ?? [];
+      array.push(rateRank);
+      byStrip.set(stripId, array);
     }
     for (const [, ranks] of byStrip) {
       const rotation = getRankWsForStrip(ranks[0]!, basicSeq);
@@ -503,11 +507,11 @@ describe("rank-sequence primitives: exact values verified against R (ofpetrial 0
     const n = 5;
     const mat = seq.map((x) => getRankWsForStrip(x, rankSeqWs));
     for (const colDelta of [-1, 1]) {
-      for (let j = 0; j < n; j++) {
+      for (let index = 0; index < n; index++) {
         let zeros = 0;
-        for (let i = 0; i < n; i++) {
-          const shifted = mat[(i + 1) % n]![(((j + colDelta) % n) + n) % n]!;
-          if (mat[i]![j]! - shifted === 0) zeros += 1;
+        for (let index_ = 0; index_ < n; index_++) {
+          const shifted = mat[(index_ + 1) % n]![(((index + colDelta) % n) + n) % n]!;
+          if (mat[index_]![index]! === shifted) zeros += 1;
         }
         expect(zeros).toBeLessThan(n);
       }
@@ -524,8 +528,8 @@ describe("rank-sequence primitives: exact values verified against R (ofpetrial 0
   it("getRankForRb: complete permutation per numRates chunk, distinct remainder, deterministic", () => {
     const ranks = getRankForRb(5, 12, createRng(3));
     expect(ranks).toHaveLength(12);
-    expect([...ranks.slice(0, 5)].sort((a, b) => a - b)).toEqual([1, 2, 3, 4, 5]);
-    expect([...ranks.slice(5, 10)].sort((a, b) => a - b)).toEqual([1, 2, 3, 4, 5]);
+    expect(ranks.slice(0, 5).sort((a, b) => a - b)).toEqual([1, 2, 3, 4, 5]);
+    expect(ranks.slice(5, 10).sort((a, b) => a - b)).toEqual([1, 2, 3, 4, 5]);
     const remainder = ranks.slice(10);
     expect(new Set(remainder).size).toBe(2);
     for (const r of remainder) {
@@ -541,9 +545,9 @@ describe("addBlocks + assignRates integration (task 5.4)", () => {
     const plotInfo = seedPlotInfo();
     const expData = makeSingleInputExpData(plotInfo);
     const rateInfo = prepRate(plotInfo, {
-      gcRate: 34000,
+      gcRate: 34_000,
       unit: "seeds",
-      rates: [20000, 26000, 32000, 38000, 44000],
+      rates: [20_000, 26_000, 32_000, 38_000, 44_000],
     });
     const td = assignRates(expData, rateInfo, { seed: 42 });
     const blocked = addBlocks(td);

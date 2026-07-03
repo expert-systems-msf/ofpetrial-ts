@@ -13,25 +13,25 @@ describe("plotKey", () => {
 
 describe("typed errors", () => {
   it("ValidationError is an OfpetrialError and an Error", () => {
-    const err = new ValidationError("bad input");
-    expect(err).toBeInstanceOf(ValidationError);
-    expect(err).toBeInstanceOf(OfpetrialError);
-    expect(err).toBeInstanceOf(Error);
-    expect(err.name).toBe("ValidationError");
-    expect(err.message).toBe("bad input");
+    const error = new ValidationError("bad input");
+    expect(error).toBeInstanceOf(ValidationError);
+    expect(error).toBeInstanceOf(OfpetrialError);
+    expect(error).toBeInstanceOf(Error);
+    expect(error.name).toBe("ValidationError");
+    expect(error.message).toBe("bad input");
   });
 
   it("GeometryError is an OfpetrialError", () => {
-    const err = new GeometryError("bad geometry");
-    expect(err).toBeInstanceOf(GeometryError);
-    expect(err).toBeInstanceOf(OfpetrialError);
-    expect(err.name).toBe("GeometryError");
+    const error = new GeometryError("bad geometry");
+    expect(error).toBeInstanceOf(GeometryError);
+    expect(error).toBeInstanceOf(OfpetrialError);
+    expect(error.name).toBe("GeometryError");
   });
 
   it("ExportError is an OfpetrialError", () => {
-    const err = new ExportError("bad export");
-    expect(err).toBeInstanceOf(ExportError);
-    expect(err).toBeInstanceOf(OfpetrialError);
-    expect(err.name).toBe("ExportError");
+    const error = new ExportError("bad export");
+    expect(error).toBeInstanceOf(ExportError);
+    expect(error).toBeInstanceOf(OfpetrialError);
+    expect(error.name).toBe("ExportError");
   });
 });

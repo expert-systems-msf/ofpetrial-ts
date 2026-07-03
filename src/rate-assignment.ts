@@ -44,9 +44,9 @@ function range(from: number, to: number): number[] {
   return rangeStep(from, to, 1);
 }
 
-function repeatArray<T>(arr: T[], times: number): T[] {
+function repeatArray<T>(array: T[], times: number): T[] {
   const out: T[] = [];
-  for (let i = 0; i < times; i++) out.push(...arr);
+  for (let index = 0; index < times; index++) out.push(...array);
   return out;
 }
 
@@ -66,22 +66,25 @@ function median(values: number[]): number {
  * matters because both `gen_basic_rank_ws` and `get_starting_rank_as_ls`
  * break ties by taking the first-encountered best permutation.
  */
-function allPermutations<T>(arr: T[]): T[][] {
-  if (arr.length <= 1) return [arr.slice()];
+function allPermutations<T>(array: T[]): T[][] {
+  if (array.length <= 1) return [[...array]];
   const out: T[][] = [];
-  for (let i = 0; i < arr.length; i++) {
-    const rest = [...arr.slice(0, i), ...arr.slice(i + 1)];
-    for (const p of allPermutations(rest)) out.push([arr[i]!, ...p]);
+  for (let index = 0; index < array.length; index++) {
+    const rest = [...array.slice(0, index), ...array.slice(index + 1)];
+    for (const p of allPermutations(rest)) out.push([array[index]!, ...p]);
   }
   return out;
 }
 
 /** `.GRP` semantics: group id (1-based) assigned by order of first appearance. */
-export function groupIdsByFirstAppearance<T>(items: T[], keyFn: (item: T) => string): number[] {
+export function groupIdsByFirstAppearance<T>(
+  items: T[],
+  keyFunction: (item: T) => string
+): number[] {
   const seen = new Map<string, number>();
   let next = 1;
   return items.map((item) => {
-    const key = keyFn(item);
+    const key = keyFunction(item);
     let id = seen.get(key);
     if (id === undefined) {
       id = next;
@@ -96,7 +99,7 @@ export function groupIdsByFirstAppearance<T>(items: T[], keyFn: (item: T) => str
 // ! Plot geometry helpers (UTM centroids, per-strip grouping)
 // !===========================================================
 
-function plotProps(f: Feature): { stripId: number; plotId: number } {
+function plotProperties(f: Feature): { stripId: number; plotId: number } {
   const p = f.properties as { strip_id: number; plot_id: number };
   return { stripId: p.strip_id, plotId: p.plot_id };
 }
@@ -111,10 +114,10 @@ function plotProps(f: Feature): { stripId: number; plotId: number } {
 function groupByStrip(plots: FeatureCollection): Map<number, Feature[]> {
   const map = new Map<number, Feature[]>();
   for (const f of plots.features) {
-    const { stripId } = plotProps(f);
-    const arr = map.get(stripId) ?? [];
-    arr.push(f);
-    map.set(stripId, arr);
+    const { stripId } = plotProperties(f);
+    const array = map.get(stripId) ?? [];
+    array.push(f);
+    map.set(stripId, array);
   }
   return map;
 }
@@ -131,7 +134,7 @@ function utmCentroid(f: Feature, epsg: number): [number, number] {
   return toUtm(c, epsg).point;
 }
 
-function dist2(a: [number, number], b: [number, number]): number {
+function distribution2(a: [number, number], b: [number, number]): number {
   const dx = a[0] - b[0];
   const dy = a[1] - b[1];
   return dx * dx + dy * dy;
@@ -150,8 +153,8 @@ function distance(a: [number, number], b: [number, number]): number {
  * (the dedup-by-index in R's `unique(c(f_seq, s_seq))` is just array rotation).
  */
 export function getRankWsForStrip(startingRank: number, basicSeq: number[]): number[] {
-  const idx = basicSeq.indexOf(startingRank);
-  return [...basicSeq.slice(idx), ...basicSeq.slice(0, idx)];
+  const index = basicSeq.indexOf(startingRank);
+  return [...basicSeq.slice(index), ...basicSeq.slice(0, index)];
 }
 
 /** R `get_rank_ws_for_strip_sparse`. */
@@ -175,7 +178,7 @@ export function genBasicRankWsSparse(length: number): number[] {
       : [...rangeStep(1, length, 2), ...rangeStep(length - 1, 2, -2)];
   const seq = base.slice(1);
   const nInsert = 2 * seq.length - 1;
-  for (let i = 1; i <= nInsert; i += 2) seq.splice(i, 0, 1);
+  for (let index = 1; index <= nInsert; index += 2) seq.splice(index, 0, 1);
   return seq;
 }
 
@@ -185,36 +188,36 @@ export function genBasicRankWsSparse(length: number): number[] {
  * (least jump/zigzag score, first tie wins — no randomness here, unlike most
  * of this module).
  */
-export function genBasicRankWs(numRates: number, rateJumpThresholdIn: number | null): number[] {
-  const rateJumpThreshold = rateJumpThresholdIn ?? Math.ceil(numRates / 2);
+export function genBasicRankWs(numberRates: number, rateJumpThresholdIn: number | null): number[] {
+  const rateJumpThreshold = rateJumpThresholdIn ?? Math.ceil(numberRates / 2);
 
-  if (numRates >= 9) {
-    return numRates % 2 === 0
-      ? [...rangeStep(1, numRates, 2), ...rangeStep(numRates, 2, -2)]
-      : [...rangeStep(1, numRates, 2), ...rangeStep(numRates - 1, 2, -2)];
+  if (numberRates >= 9) {
+    return numberRates % 2 === 0
+      ? [...rangeStep(1, numberRates, 2), ...rangeStep(numberRates, 2, -2)]
+      : [...rangeStep(1, numberRates, 2), ...rangeStep(numberRates - 1, 2, -2)];
   }
-  if (numRates === 2) return [1, 2];
+  if (numberRates === 2) return [1, 2];
 
-  const perms = allPermutations(range(1, numRates));
+  const perms = allPermutations(range(1, numberRates));
   let bestId = -1;
   let bestScore = Infinity;
-  for (let idx = 0; idx < perms.length; idx++) {
-    const seq = perms[idx]!;
-    const diffs = seq.map((v, j) => v - seq[(j + 1) % seq.length]!);
+  for (const [index, perm] of perms.entries()) {
+    const seq = perm!;
+    const diffs = seq.map((v, index) => v - seq[(index + 1) % seq.length]!);
     const maxJump = Math.max(...diffs.map((d) => Math.abs(d)));
     if (maxJump > rateJumpThreshold) continue;
     const jumpScore = diffs.reduce((a, d) => a + d * d, 0);
-    const rolling = diffs.slice(0, -1).map((d, j) => d + diffs[j + 1]!);
+    const rolling = diffs.slice(0, -1).map((d, index) => d + diffs[index + 1]!);
     const zigzagScore = rolling.reduce((a, d) => a + Math.abs(d), 0) ** 2;
     const totalScore = jumpScore + zigzagScore;
     if (totalScore < bestScore) {
       bestScore = totalScore;
-      bestId = idx;
+      bestId = index;
     }
   }
   if (bestId === -1) {
     throw new ValidationError(
-      `No rank sequence for ${numRates} rates satisfies rate_jump_threshold=${rateJumpThreshold}.`
+      `No rank sequence for ${numberRates} rates satisfies rate_jump_threshold=${rateJumpThreshold}.`
     );
   }
   return perms[bestId]!;
@@ -225,18 +228,18 @@ export function genBasicRankWs(numRates: number, rateJumpThresholdIn: number | n
 // !===========================================================
 
 /** R `get_starting_rank_as` (design_type "str"/"sparse" across-strip rotation). */
-export function getStartingRankAs(numLevels: number, rng: Rng): number[] {
-  if (numLevels <= 1) return [1];
-  const perms = allPermutations(range(1, numLevels));
+export function getStartingRankAs(numberLevels: number, rng: Rng): number[] {
+  if (numberLevels <= 1) return [1];
+  const perms = allPermutations(range(1, numberLevels));
   let bestScore = -Infinity;
   let best: number[][] = [];
   for (const seq of perms) {
     let sum = 0;
-    for (let i = 0; i < numLevels; i++) {
-      const diff = seq[i]! - seq[(i + 1) % numLevels]!;
+    for (let index = 0; index < numberLevels; index++) {
+      const diff = seq[index]! - seq[(index + 1) % numberLevels]!;
       sum += diff * diff;
     }
-    const score = sum / numLevels;
+    const score = sum / numberLevels;
     if (score > bestScore) {
       bestScore = score;
       best = [seq];
@@ -251,11 +254,11 @@ function circShift(mat: number[][], rowDelta: number, colDelta: number): number[
   const n = mat.length;
   const m = mat[0]!.length;
   const out: number[][] = [];
-  for (let i = 0; i < n; i++) {
-    const si = (((i + rowDelta) % n) + n) % n;
+  for (let index = 0; index < n; index++) {
+    const si = (((index + rowDelta) % n) + n) % n;
     const row: number[] = [];
-    for (let j = 0; j < m; j++) {
-      const sj = (((j + colDelta) % m) + m) % m;
+    for (let index = 0; index < m; index++) {
+      const sj = (((index + colDelta) % m) + m) % m;
       row.push(mat[si]![sj]!);
     }
     out.push(row);
@@ -264,15 +267,15 @@ function circShift(mat: number[][], rowDelta: number, colDelta: number): number[
 }
 
 function matSub(a: number[][], b: number[][]): number[][] {
-  return a.map((row, i) => row.map((v, j) => v - b[i]![j]!));
+  return a.map((row, index) => row.map((v, index_) => v - b[index]![index_]!));
 }
 
 function maxOverColumns(mat: number[][], pred: (v: number) => number): number {
   const cols = mat[0]!.length;
   let best = -Infinity;
-  for (let j = 0; j < cols; j++) {
+  for (let index = 0; index < cols; index++) {
     let sum = 0;
-    for (const row of mat) sum += pred(row[j]!);
+    for (const row of mat) sum += pred(row[index]!);
     if (sum > best) best = sum;
   }
   return best;
@@ -292,9 +295,9 @@ function meanAbs(mat: number[][]): number {
 function meanAbsSum(a: number[][], b: number[][]): number {
   let sum = 0;
   let count = 0;
-  for (let i = 0; i < a.length; i++) {
-    for (let j = 0; j < a[i]!.length; j++) {
-      sum += Math.abs(a[i]![j]!) + Math.abs(b[i]![j]!);
+  for (const [index, element] of a.entries()) {
+    for (let index_ = 0; index_ < element!.length; index_++) {
+      sum += Math.abs(element![index_]!) + Math.abs(b[index]![index_]!);
       count += 1;
     }
   }
@@ -309,24 +312,26 @@ function meanAbsSum(a: number[][], b: number[][]): number {
  * the full permutation search R does.
  */
 export function getStartingRankAsLs(rankSeqWs: number[], rng: Rng): number[] {
-  const numRates = rankSeqWs.length;
+  const numberRates = rankSeqWs.length;
 
-  if (numRates <= 3) return rng.shuffle(range(1, numRates));
+  if (numberRates <= 3) return rng.shuffle(range(1, numberRates));
 
-  if (numRates >= 9) {
-    const temp = range(1, numRates);
-    const out = new Array<number>(numRates);
+  if (numberRates >= 9) {
+    const temporary = range(1, numberRates);
+    const out = new Array<number>(numberRates);
     const evenPositions: number[] = [];
-    for (let i = 0; i < numRates; i++) if ((i + 1) % 2 === 0) evenPositions.push(i);
-    const evenValsReversed = evenPositions.map((i) => temp[i]!).reverse();
-    evenPositions.forEach((i, k) => {
-      out[i] = evenValsReversed[k]!;
-    });
-    for (let i = 0; i < numRates; i++) if ((i + 1) % 2 !== 0) out[i] = temp[i]!;
+    for (let index = 0; index < numberRates; index++)
+      if ((index + 1) % 2 === 0) evenPositions.push(index);
+    const evenValsReversed = evenPositions.map((index) => temporary[index]!).reverse();
+    for (const [k, index] of evenPositions.entries()) {
+      out[index] = evenValsReversed[k]!;
+    }
+    for (let index = 0; index < numberRates; index++)
+      if ((index + 1) % 2 !== 0) out[index] = temporary[index]!;
     return out;
   }
 
-  const perms = allPermutations(range(1, numRates));
+  const perms = allPermutations(range(1, numberRates));
   const scored = perms.map((seq) => {
     const mat = seq.map((x) => getRankWsForStrip(x, rankSeqWs));
     const matDif = matSub(mat, circShift(mat, 1, 0));
@@ -345,8 +350,8 @@ export function getStartingRankAsLs(rankSeqWs: number[], rng: Rng): number[] {
   let filtered = scored.filter(
     (s) =>
       s.check1Horizontal <= minCheck1 + 2 &&
-      s.check0DiagUp < numRates &&
-      s.check0DiagDown < numRates
+      s.check0DiagUp < numberRates &&
+      s.check0DiagDown < numberRates
   );
   if (filtered.length === 0) filtered = scored; // defensive: R's own filters would leave 0 rows too
 
@@ -356,12 +361,12 @@ export function getStartingRankAsLs(rankSeqWs: number[], rng: Rng): number[] {
 }
 
 /** R `get_rank_for_rb`: full-block random permutations plus a random remainder. */
-export function getRankForRb(numRates: number, numPlots: number, rng: Rng): number[] {
-  const nCompBlock = Math.floor(numPlots / numRates);
-  const nRemaining = numPlots % numRates;
+export function getRankForRb(numberRates: number, numberPlots: number, rng: Rng): number[] {
+  const nCompBlock = Math.floor(numberPlots / numberRates);
+  const nRemaining = numberPlots % numberRates;
   const out: number[] = [];
-  for (let b = 0; b < nCompBlock; b++) out.push(...rng.shuffle(range(1, numRates)));
-  out.push(...rng.sample(range(1, numRates), nRemaining));
+  for (let b = 0; b < nCompBlock; b++) out.push(...rng.shuffle(range(1, numberRates)));
+  out.push(...rng.sample(range(1, numberRates), nRemaining));
   return out;
 }
 
@@ -377,16 +382,16 @@ function assignLs(
   rateJumpThreshold: number | null,
   rng: Rng
 ): Map<Feature, RateData> {
-  const numRates = ratesData.length;
+  const numberRates = ratesData.length;
   let rankSeqWs = rankSeqWsIn;
   let rankSeqAs = rankSeqAsIn;
   if (rankSeqWs === null && rankSeqAs === null) {
-    rankSeqWs = genBasicRankWs(numRates, rateJumpThreshold);
+    rankSeqWs = genBasicRankWs(numberRates, rateJumpThreshold);
     rankSeqAs = getStartingRankAsLs(rankSeqWs, rng);
   } else if (rankSeqWs !== null && rankSeqAs === null) {
     rankSeqAs = getStartingRankAsLs(rankSeqWs, rng);
   } else if (rankSeqWs === null && rankSeqAs !== null) {
-    rankSeqWs = genBasicRankWs(numRates, rateJumpThreshold);
+    rankSeqWs = genBasicRankWs(numberRates, rateJumpThreshold);
   }
   // else: both specified, use as-is (R message about respecting the specified
   // sequences skipped — no effect on the returned design).
@@ -394,7 +399,7 @@ function assignLs(
   const stripGroups = groupByStrip(plots);
   const stripIds = [...stripGroups.keys()];
   const maxStripId = stripIds.length === 0 ? 0 : Math.max(...stripIds);
-  const fullStartSeqLong = repeatArray(rankSeqAs!, Math.ceil(maxStripId / numRates) + 5);
+  const fullStartSeqLong = repeatArray(rankSeqAs!, Math.ceil(maxStripId / numberRates) + 5);
 
   const epsg = firstEpsg(plots.features);
   const centroidsByStrip = new Map<number, Array<[number, number]>>();
@@ -409,43 +414,43 @@ function assignLs(
   const finishedRanks = new Map<number, number[]>();
   let shiftCounter = 0;
 
-  for (let i = 1; i <= maxStripId; i++) {
-    const workingFeatures = stripGroups.get(i) ?? [];
-    const numPlotsWs = workingFeatures.length;
-    let startRank = fullStartSeqLong[i - 1 + shiftCounter]!;
+  for (let index = 1; index <= maxStripId; index++) {
+    const workingFeatures = stripGroups.get(index) ?? [];
+    const numberPlotsWs = workingFeatures.length;
+    let startRank = fullStartSeqLong[index - 1 + shiftCounter]!;
     let rateRanks = repeatArray(
       getRankWsForStrip(startRank, rankSeqWs!),
-      Math.ceil(numPlotsWs / rankSeqWs!.length)
-    ).slice(0, numPlotsWs);
+      Math.ceil(numberPlotsWs / rankSeqWs!.length)
+    ).slice(0, numberPlotsWs);
 
-    if (i > 1) {
-      const prevCentroids = centroidsByStrip.get(i - 1) ?? [];
-      const prevRanks = finishedRanks.get(i - 1) ?? [];
-      const curCentroids = centroidsByStrip.get(i)!;
-      const neighborRanks = curCentroids.map((c) => {
-        let bestIdx = 0;
-        let bestDist = Infinity;
-        for (let k = 0; k < prevCentroids.length; k++) {
-          const d = dist2(c, prevCentroids[k]!);
-          if (d < bestDist) {
-            bestDist = d;
-            bestIdx = k;
+    if (index > 1) {
+      const previousCentroids = centroidsByStrip.get(index - 1) ?? [];
+      const previousRanks = finishedRanks.get(index - 1) ?? [];
+      const currentCentroids = centroidsByStrip.get(index)!;
+      const neighborRanks = currentCentroids.map((c) => {
+        let bestIndex = 0;
+        let bestDistribution = Infinity;
+        for (const [k, previousCentroid] of previousCentroids.entries()) {
+          const d = distribution2(c, previousCentroid!);
+          if (d < bestDistribution) {
+            bestDistribution = d;
+            bestIndex = k;
           }
         }
-        return prevRanks[bestIdx];
+        return previousRanks[bestIndex];
       });
       const duplicationScore = mean(rateRanks.map((r, k) => (r === neighborRanks[k] ? 1 : 0)));
       if (duplicationScore > 0.5) {
         shiftCounter += 1;
-        startRank = fullStartSeqLong[i - 1 + shiftCounter]!;
+        startRank = fullStartSeqLong[index - 1 + shiftCounter]!;
         rateRanks = repeatArray(
           getRankWsForStrip(startRank, rankSeqWs!),
-          Math.ceil(numPlotsWs / rankSeqWs!.length)
-        ).slice(0, numPlotsWs);
+          Math.ceil(numberPlotsWs / rankSeqWs!.length)
+        ).slice(0, numberPlotsWs);
       }
     }
 
-    finishedRanks.set(i, rateRanks);
+    finishedRanks.set(index, rateRanks);
     workingFeatures.forEach((f, k) => result.set(f, ratesData[rateRanks[k]! - 1]!));
   }
 
@@ -457,39 +462,39 @@ function assignRb(
   ratesData: RateData[],
   rng: Rng
 ): Map<Feature, RateData> {
-  const numRates = ratesData.length;
+  const numberRates = ratesData.length;
   const features = plots.features;
   const blockKey = (f: Feature): string => {
-    const { plotId, stripId } = plotProps(f);
-    const blockRow = Math.floor((plotId - 1) / numRates) + 1;
-    const blockCol = Math.floor((stripId - 1) / numRates) + 1;
+    const { plotId, stripId } = plotProperties(f);
+    const blockRow = Math.floor((plotId - 1) / numberRates) + 1;
+    const blockCol = Math.floor((stripId - 1) / numberRates) + 1;
     return `${blockRow}:${blockCol}`;
   };
   const blockIds = groupIdsByFirstAppearance(features, blockKey);
   const byBlock = new Map<number, Feature[]>();
-  features.forEach((f, i) => {
-    const bid = blockIds[i]!;
-    const arr = byBlock.get(bid) ?? [];
-    arr.push(f);
-    byBlock.set(bid, arr);
+  features.forEach((f, index) => {
+    const bid = blockIds[index]!;
+    const array = byBlock.get(bid) ?? [];
+    array.push(f);
+    byBlock.set(bid, array);
   });
 
   const result = new Map<Feature, RateData>();
   for (const blockFeatures of byBlock.values()) {
-    const ranks = getRankForRb(numRates, blockFeatures.length, rng);
-    blockFeatures.forEach((f, i) => result.set(f, ratesData[ranks[i]! - 1]!));
+    const ranks = getRankForRb(numberRates, blockFeatures.length, rng);
+    blockFeatures.forEach((f, index) => result.set(f, ratesData[ranks[index]! - 1]!));
   }
   return result;
 }
 
-function assignStr(
+function assignString(
   plots: FeatureCollection,
   ratesData: RateData[],
   rankSeqAsIn: number[] | null,
   rng: Rng
 ): Map<Feature, RateData> {
-  const numRates = ratesData.length;
-  const startRankAs = rankSeqAsIn ?? getStartingRankAs(numRates, rng);
+  const numberRates = ratesData.length;
+  const startRankAs = rankSeqAsIn ?? getStartingRankAs(numberRates, rng);
   const stripGroups = groupByStrip(plots);
   const result = new Map<Feature, RateData>();
   for (const [sid, feats] of stripGroups) {
@@ -504,13 +509,13 @@ function assignRstr(
   ratesData: RateData[],
   rng: Rng
 ): Map<Feature, RateData> {
-  const numRates = ratesData.length;
+  const numberRates = ratesData.length;
   const stripGroups = groupByStrip(plots);
   const stripIds = [...stripGroups.keys()];
   const maxStripId = stripIds.length === 0 ? 0 : Math.max(...stripIds);
-  const blocks = Math.max(1, Math.ceil(maxStripId / numRates));
+  const blocks = Math.max(1, Math.ceil(maxStripId / numberRates));
   const startRankAs: number[] = [];
-  for (let b = 0; b < blocks; b++) startRankAs.push(...rng.shuffle(range(1, numRates)));
+  for (let b = 0; b < blocks; b++) startRankAs.push(...rng.shuffle(range(1, numberRates)));
 
   const result = new Map<Feature, RateData>();
   for (const [sid, feats] of stripGroups) {
@@ -527,9 +532,9 @@ function assignSparse(
   rankSeqAsIn: number[] | null,
   rng: Rng
 ): Map<Feature, RateData> {
-  const numRates = ratesData.length;
-  const basicSeq = rankSeqWsIn ?? genBasicRankWsSparse(numRates);
-  const startRankAs = rankSeqAsIn ?? getStartingRankAs(numRates - 1, rng).map((x) => x + 1);
+  const numberRates = ratesData.length;
+  const basicSeq = rankSeqWsIn ?? genBasicRankWsSparse(numberRates);
+  const startRankAs = rankSeqAsIn ?? getStartingRankAs(numberRates - 1, rng).map((x) => x + 1);
   const stripGroups = groupByStrip(plots);
   const result = new Map<Feature, RateData>();
   for (const [sid, feats] of stripGroups) {
@@ -539,7 +544,7 @@ function assignSparse(
       0,
       feats.length
     );
-    feats.forEach((f, i) => result.set(f, ratesData[ranks[i]! - 1]!));
+    feats.forEach((f, index) => result.set(f, ratesData[ranks[index]! - 1]!));
   }
   return result;
 }
@@ -561,24 +566,24 @@ function assignEjca(
 
   for (const tier of tiers) {
     if (tier.rates.length === 0) continue;
-    const numLevels = tier.rates.length;
-    const basicSeq = genBasicRankWs(numLevels, rateJumpThreshold);
+    const numberLevels = tier.rates.length;
+    const basicSeq = genBasicRankWs(numberLevels, rateJumpThreshold);
 
     const stripIds = [...stripGroups.keys()]
       .filter((sid) => (sid % 2 === 1) === tier.isOddStrip)
       .sort((a, b) => a - b);
 
     const rows: Feature[] = [];
-    stripIds.forEach((sid, groupIdx) => {
+    stripIds.forEach((sid, groupIndex) => {
       const feats = stripGroups.get(sid)!;
-      rows.push(...((groupIdx + 1) % 2 === 0 ? [...feats].reverse() : feats));
+      rows.push(...((groupIndex + 1) % 2 === 0 ? [...feats].reverse() : feats));
     });
 
-    const rankInTierSeq = repeatArray(basicSeq, Math.ceil(rows.length / numLevels)).slice(
+    const rankInTierSeq = repeatArray(basicSeq, Math.ceil(rows.length / numberLevels)).slice(
       0,
       rows.length
     );
-    rows.forEach((f, i) => result.set(f, tier.rates[rankInTierSeq[i]! - 1]!));
+    for (const [index, f] of rows.entries()) result.set(f, tier.rates[rankInTierSeq[index]! - 1]!);
   }
 
   return result;
@@ -596,22 +601,29 @@ export function assignRatesByInput(
 ): Map<Feature, RateData> {
   const designType = designTypeIn ?? "ls";
   switch (designType) {
-    case "ls":
+    case "ls": {
       return assignLs(plots, ratesData, rankSeqWs, rankSeqAs, rateJumpThreshold, rng);
-    case "rb":
+    }
+    case "rb": {
       return assignRb(plots, ratesData, rng);
-    case "str":
-      return assignStr(plots, ratesData, rankSeqAs, rng);
-    case "rstr":
+    }
+    case "str": {
+      return assignString(plots, ratesData, rankSeqAs, rng);
+    }
+    case "rstr": {
       return assignRstr(plots, ratesData, rng);
-    case "sparse":
+    }
+    case "sparse": {
       return assignSparse(plots, ratesData, rankSeqWs, rankSeqAs, rng);
-    case "ejca":
+    }
+    case "ejca": {
       return assignEjca(plots, ratesData, rateJumpThreshold);
-    default:
+    }
+    default: {
       throw new ValidationError(
         `design_type "${designType}" does not match any of the design type options available.`
       );
+    }
   }
 }
 
@@ -633,7 +645,7 @@ export function assignRateRankByStrip(
       0,
       feats.length
     );
-    feats.forEach((f, i) => result.set(f, ranks[i]!));
+    feats.forEach((f, index) => result.set(f, ranks[index]!));
   }
   return result;
 }
@@ -654,8 +666,8 @@ export function makeDesignFor2By2(
   return { a, b };
 }
 
-function defaultRateJumpThreshold(numRates: number): number {
-  return numRates <= 4 ? numRates - 1 : numRates - 2;
+function defaultRateJumpThreshold(numberRates: number): number {
+  return numberRates <= 4 ? numberRates - 1 : numberRates - 2;
 }
 
 interface CombEntry {
@@ -682,8 +694,8 @@ function variabilityScore(
       const diff = rateTable[k]! - candidateRank;
       sum += diff * diff * W[rowIndex]![k]!;
     }
-    const diffPrev = rateTable[rowIndex - 1]! - candidateRank;
-    sum += (-(diffPrev * diffPrev) / 2) * W[rowIndex]![rowIndex - 1]!;
+    const diffPrevious = rateTable[rowIndex - 1]! - candidateRank;
+    sum += (-(diffPrevious * diffPrevious) / 2) * W[rowIndex]![rowIndex - 1]!;
   }
   return sum / rowIndex;
 }
@@ -762,14 +774,14 @@ export function getDesignForSecond(
   rateJumpThresholdIn: number | null,
   rng: Rng
 ): Map<Feature, RateData> {
-  const numRates = ratesDataSecond.length;
-  const numPlots = secondFeatures.length;
-  const rateJumpThreshold = rateJumpThresholdIn ?? defaultRateJumpThreshold(numRates);
+  const numberRates = ratesDataSecond.length;
+  const numberPlots = secondFeatures.length;
+  const rateJumpThreshold = rateJumpThresholdIn ?? defaultRateJumpThreshold(numberRates);
 
   const distinctFirstRanks = [...new Set(firstDesignRates)];
   const combEntries: CombEntry[] = [];
   for (const r1 of distinctFirstRanks) {
-    for (let r2 = 1; r2 <= numRates; r2++)
+    for (let r2 = 1; r2 <= numberRates; r2++)
       combEntries.push({ rateRank1: r1, rateRank2: r2, cases: 0 });
   }
   const updateComb = (r1: number, r2: number): void => {
@@ -778,43 +790,47 @@ export function getDesignForSecond(
 
   const epsg = firstEpsg(secondFeatures);
   const centroids = secondFeatures.map((f) => utmCentroid(f, epsg));
-  const n = numPlots;
-  const invDist: number[][] = Array.from({ length: n }, () => new Array<number>(n).fill(0));
-  for (let i = 0; i < n; i++) {
-    for (let j = 0; j < n; j++) {
-      if (i !== j) invDist[i]![j] = 1 / Math.max(distance(centroids[i]!, centroids[j]!), 1e-9);
+  const n = numberPlots;
+  const invDistribution: number[][] = Array.from({ length: n }, () => new Array<number>(n).fill(0));
+  for (let index = 0; index < n; index++) {
+    for (let index_ = 0; index_ < n; index_++) {
+      if (index !== index_)
+        invDistribution[index]![index_] =
+          1 / Math.max(distance(centroids[index]!, centroids[index_]!), 1e-9);
     }
   }
-  const rowSums = invDist.map((row) => row.reduce((a, b) => a + b, 0));
+  const rowSums = invDistribution.map((row) => row.reduce((a, b) => a + b, 0));
   const W: number[][] = Array.from({ length: n }, (_, a) =>
-    Array.from({ length: n }, (_, b) => (rowSums[b] === 0 ? 0 : invDist[a]![b]! / rowSums[b]!))
+    Array.from({ length: n }, (_, b) =>
+      rowSums[b] === 0 ? 0 : invDistribution[a]![b]! / rowSums[b]!
+    )
   );
 
   const stripIndex = new Map<number, number[]>();
-  secondFeatures.forEach((f, i) => {
-    const { stripId } = plotProps(f);
-    const arr = stripIndex.get(stripId) ?? [];
-    arr.push(i);
-    stripIndex.set(stripId, arr);
-  });
+  for (const [index, f] of secondFeatures.entries()) {
+    const { stripId } = plotProperties(f);
+    const array = stripIndex.get(stripId) ?? [];
+    array.push(index);
+    stripIndex.set(stripId, array);
+  }
 
-  const rateTable: number[] = new Array<number>(numPlots);
+  const rateTable: number[] = new Array<number>(numberPlots);
 
-  for (let rowIndex = 0; rowIndex < numPlots; rowIndex++) {
-    const { stripId, plotId } = plotProps(secondFeatures[rowIndex]!);
+  for (let rowIndex = 0; rowIndex < numberPlots; rowIndex++) {
+    const { stripId, plotId } = plotProperties(secondFeatures[rowIndex]!);
     const rateRank1st = firstDesignRates[rowIndex]!;
 
     if (stripId === 1) {
       let rateRank2nd: number;
       if (plotId === 1) {
-        rateRank2nd = rng.nextInt(numRates) + 1;
+        rateRank2nd = rng.nextInt(numberRates) + 1;
       } else {
-        const prev = rateTable[rowIndex - 1]!;
+        const previous = rateTable[rowIndex - 1]!;
         const candidates = combEntries.filter(
           (c) =>
-            c.rateRank2 !== prev &&
+            c.rateRank2 !== previous &&
             c.rateRank1 === rateRank1st &&
-            Math.abs(c.rateRank2 - prev) <= rateJumpThreshold
+            Math.abs(c.rateRank2 - previous) <= rateJumpThreshold
         );
         const minCases = Math.min(...candidates.map((c) => c.cases));
         const tied = candidates.filter((c) => c.cases === minCases);
@@ -823,22 +839,22 @@ export function getDesignForSecond(
       rateTable[rowIndex] = rateRank2nd;
       updateComb(rateRank1st, rateRank2nd);
     } else {
-      const prevIndices = stripIndex.get(stripId - 1) ?? [];
-      let nearestIdx = prevIndices[0] ?? rowIndex - 1;
-      let bestDist = Infinity;
-      for (const idx of prevIndices) {
-        const d = dist2(centroids[rowIndex]!, centroids[idx]!);
-        if (d < bestDist) {
-          bestDist = d;
-          nearestIdx = idx;
+      const previousIndices = stripIndex.get(stripId - 1) ?? [];
+      let nearestIndex = previousIndices[0] ?? rowIndex - 1;
+      let bestDistribution = Infinity;
+      for (const index of previousIndices) {
+        const d = distribution2(centroids[rowIndex]!, centroids[index]!);
+        if (d < bestDistribution) {
+          bestDistribution = d;
+          nearestIndex = index;
         }
       }
-      const rateRank2ndNb = rateTable[nearestIdx]!;
-      const rateRank2ndPrev = rateTable[rowIndex - 1]!;
+      const rateRank2ndNb = rateTable[nearestIndex]!;
+      const rateRank2ndPrevious = rateTable[rowIndex - 1]!;
       const rateRank2nd = findRate(
         rowIndex,
         plotId,
-        { rateRank1st, rateRank2ndNb, rateRank2ndPrev },
+        { rateRank1st, rateRank2ndNb, rateRank2ndPrev: rateRank2ndPrevious },
         combEntries,
         rateTable,
         W,
@@ -850,7 +866,8 @@ export function getDesignForSecond(
   }
 
   const result = new Map<Feature, RateData>();
-  secondFeatures.forEach((f, i) => result.set(f, ratesDataSecond[rateTable[i]! - 1]!));
+  for (const [index, f] of secondFeatures.entries())
+    result.set(f, ratesDataSecond[rateTable[index]! - 1]!);
   return result;
 }
 
@@ -864,8 +881,8 @@ function multipleOfTheOther(a: number, b: number): boolean {
 
 function geometryIdentical(a: FeatureCollection, b: FeatureCollection): boolean {
   if (a.features.length !== b.features.length) return false;
-  for (let i = 0; i < a.features.length; i++) {
-    if (JSON.stringify(a.features[i]!.geometry) !== JSON.stringify(b.features[i]!.geometry))
+  for (let index = 0; index < a.features.length; index++) {
+    if (JSON.stringify(a.features[index]!.geometry) !== JSON.stringify(b.features[index]!.geometry))
       return false;
   }
   return true;
@@ -889,17 +906,17 @@ function assignRatesTwoInput(
   const [layoutA, layoutB] = layouts;
   const [riA, riB] = rateInfos;
 
-  const numRatesLs: [number, number] = [riA.rates_data.length, riB.rates_data.length];
-  const requireJoint =
+  const numberRatesLs: [number, number] = [riA.rates_data.length, riB.rates_data.length];
+  const isRequireJoint =
     geometryIdentical(layoutA.plots, layoutB.plots) &&
     bothLs(rateInfos) &&
-    multipleOfTheOther(numRatesLs[0], numRatesLs[1]) &&
+    multipleOfTheOther(numberRatesLs[0], numberRatesLs[1]) &&
     noRankSeqSpecified(rateInfos);
 
   const result = new Map<string, Map<Feature, RateData>>();
 
-  if (requireJoint) {
-    if (numRatesLs[0] === 2 && numRatesLs[1] === 2) {
+  if (isRequireJoint) {
+    if (numberRatesLs[0] === 2 && numberRatesLs[1] === 2) {
       const { a, b } = makeDesignFor2By2(layoutA.plots, riA.rates_data, riB.rates_data);
       result.set(layoutA.plotInfo.input_name, a);
       result.set(layoutB.plotInfo.input_name, b);
@@ -1090,15 +1107,15 @@ export function assignRatesConditional(
       "existingDesign must be a two-input TrialDesign with exactly one dosed input and one geometry-only input."
     );
   }
-  const dosedIdx = existingDesign.inputs.findIndex((i) => i.rateInfo !== null);
-  const undosedIdx = existingDesign.inputs.findIndex((i) => i.rateInfo === null);
-  if (dosedIdx === -1 || undosedIdx === -1) {
+  const dosedIndex = existingDesign.inputs.findIndex((index) => index.rateInfo !== null);
+  const undosedIndex = existingDesign.inputs.findIndex((index) => index.rateInfo === null);
+  if (dosedIndex === -1 || undosedIndex === -1) {
     throw new ValidationError(
       "existingDesign must be a two-input TrialDesign with exactly one dosed input and one geometry-only input."
     );
   }
-  const dosedInput = existingDesign.inputs[dosedIdx]!;
-  const undosedInput = existingDesign.inputs[undosedIdx]!;
+  const dosedInput = existingDesign.inputs[dosedIndex]!;
+  const undosedInput = existingDesign.inputs[undosedIndex]!;
 
   if (rateInfo.input_name !== undosedInput.plotInfo.input_name) {
     throw new ValidationError(
@@ -1134,14 +1151,17 @@ export function assignRatesConditional(
   }
   const firstDesignRates = dosedInput.plots.features.map((f) => firstRatesByFeature.get(f)!);
 
-  const numRatesLs: [number, number] = [rateInfo.rates_data.length, new Set(firstDesignRates).size];
-  const requireJoint =
+  const numberRatesLs: [number, number] = [
+    rateInfo.rates_data.length,
+    new Set(firstDesignRates).size,
+  ];
+  const isRequireJoint =
     (rateInfo.design_type === "ls" || rateInfo.design_type === null) &&
-    multipleOfTheOther(numRatesLs[0], numRatesLs[1]) &&
+    multipleOfTheOther(numberRatesLs[0], numberRatesLs[1]) &&
     rateInfo.rank_seq_ws === null &&
     rateInfo.rank_seq_as === null;
 
-  const assigned = requireJoint
+  const assigned = isRequireJoint
     ? getDesignForSecond(
         firstDesignRates,
         matchingLayout.plots.features,
@@ -1160,8 +1180,8 @@ export function assignRatesConditional(
       );
 
   const newInputDesign = buildInputDesign(matchingLayout, rateInfo, assigned);
-  const inputs = existingDesign.inputs.slice();
-  inputs[undosedIdx] = newInputDesign;
+  const inputs = [...existingDesign.inputs];
+  inputs[undosedIndex] = newInputDesign;
   return { inputs, seed };
 }
 
@@ -1180,20 +1200,20 @@ function addBlocksForInput(input: InputDesign): InputDesign {
   if (input.rateInfo === null) return input;
 
   const features = input.plots.features;
-  const numRates = new Set(features.map((f) => (f.properties as { rate: number }).rate)).size;
-  if (numRates === 0) return input;
+  const numberRates = new Set(features.map((f) => (f.properties as { rate: number }).rate)).size;
+  if (numberRates === 0) return input;
 
   const blockKey = (f: Feature): string => {
-    const { plotId, stripId } = plotProps(f);
-    const blockRow = Math.floor((plotId - 1) / numRates) + 1;
-    const blockCol = Math.floor((stripId - 1) / numRates) + 1;
+    const { plotId, stripId } = plotProperties(f);
+    const blockRow = Math.floor((plotId - 1) / numberRates) + 1;
+    const blockCol = Math.floor((stripId - 1) / numberRates) + 1;
     return `${blockRow}:${blockCol}`;
   };
   const blockIds = groupIdsByFirstAppearance(features, blockKey);
 
   const withinBlockCounters = new Map<number, number>();
-  const newFeatures = features.map((f, i) => {
-    const blockId = blockIds[i]!;
+  const newFeatures = features.map((f, index) => {
+    const blockId = blockIds[index]!;
     const count = (withinBlockCounters.get(blockId) ?? 0) + 1;
     withinBlockCounters.set(blockId, count);
     return {
@@ -1230,42 +1250,42 @@ export interface ChangeRatesOptions {
  * modifies the first input regardless of the option). Also: unknown
  * strip/plot targets throw here instead of R's silent no-op.
  */
-export function changeRates(td: TrialDesign, opts: ChangeRatesOptions): TrialDesign {
-  const rateBy = opts.rateBy ?? "all";
+export function changeRates(td: TrialDesign, options: ChangeRatesOptions): TrialDesign {
+  const rateBy = options.rateBy ?? "all";
 
   let targetIndex: number;
   if (td.inputs.length === 1) {
     targetIndex = 0;
   } else {
-    if (!opts.inputName) {
+    if (!options.inputName) {
       throw new ValidationError(
         'Please specify which input you want to change rates for using the "inputName" option.'
       );
     }
-    targetIndex = td.inputs.findIndex((inp) => inp.plotInfo.input_name === opts.inputName);
+    targetIndex = td.inputs.findIndex((inp) => inp.plotInfo.input_name === options.inputName);
     if (targetIndex === -1) {
-      throw new ValidationError(`No input named "${opts.inputName}" in this trial design.`);
+      throw new ValidationError(`No input named "${options.inputName}" in this trial design.`);
     }
   }
   const target = td.inputs[targetIndex]!;
 
-  const existingStripIds = new Set(target.plots.features.map((f) => plotProps(f).stripId));
-  const missingStrips = opts.stripIds.filter((s) => !existingStripIds.has(s));
+  const existingStripIds = new Set(target.plots.features.map((f) => plotProperties(f).stripId));
+  const missingStrips = options.stripIds.filter((s) => !existingStripIds.has(s));
   if (missingStrips.length > 0) {
     throw new ValidationError(
       `Strip id(s) not found in this input's design: ${missingStrips.join(", ")}.`
     );
   }
 
-  if (opts.plotIds) {
+  if (options.plotIds) {
     const missingPairs: string[] = [];
-    for (const s of opts.stripIds) {
+    for (const s of options.stripIds) {
       const plotIdsInStrip = new Set(
         target.plots.features
-          .filter((f) => plotProps(f).stripId === s)
-          .map((f) => plotProps(f).plotId)
+          .filter((f) => plotProperties(f).stripId === s)
+          .map((f) => plotProperties(f).plotId)
       );
-      for (const p of opts.plotIds) {
+      for (const p of options.plotIds) {
         if (!plotIdsInStrip.has(p)) missingPairs.push(`(${s}, ${p})`);
       }
     }
@@ -1279,62 +1299,62 @@ export function changeRates(td: TrialDesign, opts: ChangeRatesOptions): TrialDes
   let plotMatrix: number[][] = [];
 
   if (rateBy === "all") {
-    const arr = Array.isArray(opts.newRates) ? opts.newRates : [opts.newRates];
-    if (arr.length !== 1 || Array.isArray(arr[0])) {
+    const array = Array.isArray(options.newRates) ? options.newRates : [options.newRates];
+    if (array.length !== 1 || Array.isArray(array[0])) {
       throw new ValidationError('For rateBy "all", newRates must be a single number.');
     }
-    scalarRate = arr[0] as number;
+    scalarRate = array[0] as number;
   } else if (rateBy === "strip") {
-    if (!Array.isArray(opts.newRates) || opts.newRates.length !== opts.stripIds.length) {
-      const got = Array.isArray(opts.newRates) ? opts.newRates.length : 1;
+    if (!Array.isArray(options.newRates) || options.newRates.length !== options.stripIds.length) {
+      const got = Array.isArray(options.newRates) ? options.newRates.length : 1;
       throw new ValidationError(
-        `For rateBy "strip", newRates must have the same length as stripIds (${opts.stripIds.length}), got ${got}.`
+        `For rateBy "strip", newRates must have the same length as stripIds (${options.stripIds.length}), got ${got}.`
       );
     }
-    stripRates = opts.newRates as number[];
+    stripRates = options.newRates as number[];
   } else {
-    if (!opts.plotIds || opts.plotIds.length === 0) {
+    if (!options.plotIds || options.plotIds.length === 0) {
       throw new ValidationError('For rateBy "plot", plotIds is required.');
     }
-    for (let i = 1; i < opts.plotIds.length; i++) {
-      if (opts.plotIds[i]! <= opts.plotIds[i - 1]!) {
+    for (let index = 1; index < options.plotIds.length; index++) {
+      if (options.plotIds[index]! <= options.plotIds[index - 1]!) {
         throw new ValidationError('plotIds must be strictly increasing for rateBy "plot".');
       }
     }
-    const mat = opts.newRates as number[][];
-    const rowsOk = Array.isArray(mat) && mat.length === opts.plotIds.length;
+    const mat = options.newRates as number[][];
+    const isRowsOk = Array.isArray(mat) && mat.length === options.plotIds.length;
     const colsOk =
-      rowsOk && mat.every((row) => Array.isArray(row) && row.length === opts.stripIds.length);
-    if (!rowsOk || !colsOk) {
+      isRowsOk && mat.every((row) => Array.isArray(row) && row.length === options.stripIds.length);
+    if (!isRowsOk || !colsOk) {
       throw new ValidationError(
-        `For rateBy "plot", newRates must be a ${opts.plotIds.length} x ${opts.stripIds.length} matrix (plotIds x stripIds).`
+        `For rateBy "plot", newRates must be a ${options.plotIds.length} x ${options.stripIds.length} matrix (plotIds x stripIds).`
       );
     }
     plotMatrix = mat;
   }
 
   const newFeatures = target.plots.features.map((f) => {
-    const { stripId, plotId } = plotProps(f);
-    if (!opts.stripIds.includes(stripId)) return f;
+    const { stripId, plotId } = plotProperties(f);
+    if (!options.stripIds.includes(stripId)) return f;
 
     let newRate: number;
     if (rateBy === "all") {
-      if (opts.plotIds && !opts.plotIds.includes(plotId)) return f;
+      if (options.plotIds && !options.plotIds.includes(plotId)) return f;
       newRate = scalarRate;
     } else if (rateBy === "strip") {
-      if (opts.plotIds && !opts.plotIds.includes(plotId)) return f;
-      newRate = stripRates[opts.stripIds.indexOf(stripId)]!;
+      if (options.plotIds && !options.plotIds.includes(plotId)) return f;
+      newRate = stripRates[options.stripIds.indexOf(stripId)]!;
     } else {
-      if (!opts.plotIds!.includes(plotId)) return f;
-      const plotIdx = opts.plotIds!.indexOf(plotId);
-      const stripIdx = opts.stripIds.indexOf(stripId);
-      newRate = plotMatrix[plotIdx]![stripIdx]!;
+      if (!options.plotIds!.includes(plotId)) return f;
+      const plotIndex = options.plotIds!.indexOf(plotId);
+      const stripIndex = options.stripIds.indexOf(stripId);
+      newRate = plotMatrix[plotIndex]![stripIndex]!;
     }
     return { ...f, properties: { ...f.properties, rate: newRate } };
   });
 
   const newInput: InputDesign = { ...target, plots: { ...target.plots, features: newFeatures } };
-  const newInputs = td.inputs.slice();
+  const newInputs = [...td.inputs];
   newInputs[targetIndex] = newInput;
   return { ...td, inputs: newInputs };
 }

@@ -37,17 +37,17 @@ function assertLayerParity(
   r: { shp: ReturnType<typeof readShp>; dbf: ReturnType<typeof readDbf> }
 ): void {
   expect(ours.dbf.records.length).toBe(r.dbf.records.length);
-  ours.dbf.records.forEach((rec, i) => {
-    const rRec = r.dbf.records[i]!;
+  ours.dbf.records.forEach((rec, index) => {
+    const rRec = r.dbf.records[index]!;
     expect(rec.type).toBe(rRec.type);
     expect(rec.rate).toBeCloseTo(rRec.rate as number, 6);
-    const oursGeom = ours.shp.features[i]!;
-    const rGeom = r.shp.features[i]!;
+    const oursGeom = ours.shp.features[index]!;
+    const rGeom = r.shp.features[index]!;
     expect(oursGeom.parts.length).toBe(rGeom.parts.length);
-    oursGeom.parts.forEach((ring, ringIdx) => {
-      const rRing = rGeom.parts[ringIdx]!;
-      ring.forEach(([x, y], ptIdx) => {
-        const [rx, ry] = rRing[ptIdx]!;
+    oursGeom.parts.forEach((ring, ringIndex) => {
+      const rRing = rGeom.parts[ringIndex]!;
+      ring.forEach(([x, y], ptIndex) => {
+        const [rx, ry] = rRing[ptIndex]!;
         expect(Math.abs(x - rx)).toBeLessThan(1e-7);
         expect(Math.abs(y - ry)).toBeLessThan(1e-7);
       });
@@ -97,8 +97,8 @@ for (const { caseDir, inputs } of CASES) {
         const oursShp = readShp(files["harvester-ab-line/harvester-ab-line.shp"]!);
         const rShp = loadRShp(`fixtures/${caseDir}/${unit}/r-exports/ab-line-harvester.shp`);
         expect(oursShp.features.length).toBe(rShp.features.length);
-        oursShp.features[0]!.parts[0]!.forEach(([x, y], i) => {
-          const [rx, ry] = rShp.features[0]!.parts[0]![i]!;
+        oursShp.features[0]!.parts[0]!.forEach(([x, y], index) => {
+          const [rx, ry] = rShp.features[0]!.parts[0]![index]!;
           expect(Math.abs(x - rx)).toBeLessThan(1e-7);
           expect(Math.abs(y - ry)).toBeLessThan(1e-7);
         });
@@ -121,7 +121,7 @@ for (const { caseDir, inputs } of CASES) {
       it("layers match their frozen trial-design.geojson (feature count + headland rate)", () => {
         const td = loadTrialDesign(caseDir, unit, [...inputs]);
         for (const inputName of inputs) {
-          const input = td.inputs.find((i) => i.plotInfo.input_name === inputName)!;
+          const input = td.inputs.find((index) => index.plotInfo.input_name === inputName)!;
           const features = [
             ...input.plots.features.map((f) => ({
               geometry: f.geometry as never,
@@ -175,7 +175,7 @@ describe("writeTrialFiles(ext=isoxml) — two-input DDI mapping (imperial)", () 
     expect(seedPdvs.every((p) => p.attrs.A === "000B")).toBe(true);
     expect(nh3Pdvs.every((p) => p.attrs.A === "0006")).toBe(true);
 
-    const nh3 = td.inputs.find((i) => i.plotInfo.input_name === "NH3")!;
+    const nh3 = td.inputs.find((index) => index.plotInfo.input_name === "NH3")!;
     const gcRate = nh3.rateInfo!.gc_rate;
     const { raw } = rateToDdiValue(gcRate, "imperial", "lb");
     expect(nh3Pdvs.some((p) => p.attrs.B === String(raw))).toBe(true);

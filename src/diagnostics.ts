@@ -38,7 +38,8 @@ type BBox = [number, number, number, number]; // xmin, ymin, xmax, ymax
 function polygonRingsArea(rings: Position[][]): number {
   if (rings.length === 0) return 0;
   let total = Math.abs(signedRingArea(rings[0]!));
-  for (let i = 1; i < rings.length; i++) total -= Math.abs(signedRingArea(rings[i]!));
+  for (let index = 1; index < rings.length; index++)
+    total -= Math.abs(signedRingArea(rings[index]!));
   return total;
 }
 
@@ -253,7 +254,7 @@ function aggregateAlignmentFragments(fragments: AlignmentFragment[]): AlignmentO
   return overlapData;
 }
 
-type PlotProps = { plot_id: number; strip_id: number };
+type PlotProperties = { plot_id: number; strip_id: number };
 
 /**
  * Harvester strips at `harvester_width` against the input's harvest guidance
@@ -289,7 +290,7 @@ function alignmentForInput(input: InputDesign): AlignmentResult {
   const epsg = utmEpsgFromFeatures([...plotFeatures, ...headlandFeatures]);
 
   const plotsUtm = plotFeatures.map((f) => ({
-    stripId: (f.properties as PlotProps).strip_id,
+    stripId: (f.properties as PlotProperties).strip_id,
     geom: projectGeom(f.geometry, epsg),
   }));
   const headlandsUtm = headlandFeatures.map((f) => projectGeom(f.geometry, epsg));
@@ -299,8 +300,8 @@ function alignmentForInput(input: InputDesign): AlignmentResult {
   const p1 = toUtm([g0![0]!, g0![1]!], epsg).point;
   const p2 = toUtm([g1![0]!, g1![1]!], epsg).point;
   const abVec: Pt = [p2[0] - p1[0], p2[1] - p1[1]];
-  const abLen = Math.hypot(abVec[0], abVec[1]);
-  const nml: Pt = [abVec[0] / abLen, abVec[1] / abLen];
+  const abLength = Math.hypot(abVec[0], abVec[1]);
+  const nml: Pt = [abVec[0] / abLength, abVec[1] / abLength];
   const p90: Pt = [-nml[1], nml[0]]; // R: ab_xy_nml_p90 (90 deg CCW rotation)
   const dot = (p: Pt, v: Pt): number => p[0] * v[0] + p[1] * v[1];
   const vLine = dot(p1, p90);
@@ -402,9 +403,9 @@ export function checkAlignment(
         `checkAlignment received ${fragments.length} fragment table(s) for ${td.inputs.length} input(s).`
       );
     }
-    return td.inputs.map((input, i) => ({
+    return td.inputs.map((input, index) => ({
       inputName: input.plotInfo.input_name,
-      overlapData: aggregateAlignmentFragments(fragments[i]!),
+      overlapData: aggregateAlignmentFragments(fragments[index]!),
     }));
   }
   return td.inputs.map(alignmentForInput);
@@ -482,20 +483,20 @@ export function checkOrthoInputs(td: TrialDesign, fragments?: OrthoInputsFragmen
 // ! spatialJoin (R: st_intersection / st_join used inside summarize_chars)
 // !===========================================================
 
-type DesignProps = { type?: string; strip_id?: number; plot_id?: number; rate: number };
+type DesignProperties = { type?: string; strip_id?: number; plot_id?: number; rate: number };
 
-function extractNumericValues(props: Record<string, unknown> | null): Record<string, number> {
+function extractNumericValues(properties: Record<string, unknown> | null): Record<string, number> {
   const out: Record<string, number> = {};
-  if (!props) return out;
-  for (const [k, v] of Object.entries(props)) {
+  if (!properties) return out;
+  for (const [k, v] of Object.entries(properties)) {
     if (typeof v === "number") out[k] = v;
   }
   return out;
 }
 
-function designPlotKey(props: DesignProps): string {
-  if (props.type === "headland") return "headland";
-  return plotKey(props.strip_id!, props.plot_id!);
+function designPlotKey(properties: DesignProperties): string {
+  if (properties.type === "headland") return "headland";
+  return plotKey(properties.strip_id!, properties.plot_id!);
 }
 
 /**
@@ -524,14 +525,14 @@ export function spatialJoin(
       const dGeom = designFeature.geometry as Polygon | MultiPolygon | null;
       if (!dGeom) continue;
       const dFeature = asFeature(dGeom);
-      const props = designFeature.properties as DesignProps;
+      const properties = designFeature.properties as DesignProperties;
       for (const soilFeature of soilFeatures) {
         const point = soilFeature.geometry as Point | null;
         if (!point) continue;
         if (!booleanPointInPolygon(point.coordinates as Position, dFeature)) continue;
         fragments.push({
-          plotKey: designPlotKey(props),
-          rate: props.rate,
+          plotKey: designPlotKey(properties),
+          rate: properties.rate,
           values: extractNumericValues(soilFeature.properties),
         });
       }
@@ -541,7 +542,7 @@ export function spatialJoin(
       const dGeom = designFeature.geometry as Polygon | MultiPolygon | null;
       if (!dGeom) continue;
       const dBbox = bboxOfGeom(dGeom);
-      const props = designFeature.properties as DesignProps;
+      const properties = designFeature.properties as DesignProperties;
       for (const soilFeature of soilFeatures) {
         const sGeom = soilFeature.geometry as Polygon | MultiPolygon | null;
         if (!sGeom) continue;
@@ -550,8 +551,8 @@ export function spatialJoin(
         if (!ov) continue;
         if (planarArea(ov) <= 0) continue;
         fragments.push({
-          plotKey: designPlotKey(props),
-          rate: props.rate,
+          plotKey: designPlotKey(properties),
+          rate: properties.rate,
           values: extractNumericValues(soilFeature.properties),
         });
       }
@@ -581,8 +582,8 @@ function buildFullDesignFeatureCollection(input: InputDesign): FeatureCollection
   };
 }
 
-function availableNumericKeys(props: Record<string, unknown>): string[] {
-  return Object.keys(props).filter((k) => typeof props[k] === "number");
+function availableNumericKeys(properties: Record<string, unknown>): string[] {
+  return Object.keys(properties).filter((k) => typeof properties[k] === "number");
 }
 
 /**
@@ -605,9 +606,9 @@ function availableNumericKeys(props: Record<string, unknown>): string[] {
 export function checkOrthoWithChars(
   td: TrialDesign,
   soilData: FeatureCollection | SoilFragment[],
-  vars: string[]
+  variables: string[]
 ): OrthoWithCharsResult[] {
-  if (vars.length === 0) {
+  if (variables.length === 0) {
     throw new ValidationError("checkOrthoWithChars requires a non-empty vars list.");
   }
 
@@ -616,8 +617,8 @@ export function checkOrthoWithChars(
       throw new ValidationError("checkOrthoWithChars received an empty soil fragment table.");
     }
     const sample = soilData[0]!.values;
-    for (const v of vars) {
-      if (!(v in sample)) {
+    for (const v of variables) {
+      if (!Object.hasOwn(sample, v)) {
         throw new ValidationError(
           `Variable "${v}" not found in the soil fragment table. Available columns: ${Object.keys(sample).join(", ")}.`
         );
@@ -627,11 +628,11 @@ export function checkOrthoWithChars(
     if (soilData.features.length === 0) {
       throw new ValidationError("checkOrthoWithChars received an empty soil layer (no features).");
     }
-    const sampleProps = (soilData.features[0]!.properties ?? {}) as Record<string, unknown>;
-    for (const v of vars) {
-      if (typeof sampleProps[v] !== "number") {
+    const sampleProperties = (soilData.features[0]!.properties ?? {}) as Record<string, unknown>;
+    for (const v of variables) {
+      if (typeof sampleProperties[v] !== "number") {
         throw new ValidationError(
-          `Variable "${v}" not found (or not numeric) in the soil layer. Available numeric columns: ${availableNumericKeys(sampleProps).join(", ")}.`
+          `Variable "${v}" not found (or not numeric) in the soil layer. Available numeric columns: ${availableNumericKeys(sampleProperties).join(", ")}.`
         );
       }
     }
@@ -642,7 +643,7 @@ export function checkOrthoWithChars(
       ? soilData
       : spatialJoin(buildFullDesignFeatureCollection(input), soilData);
 
-    const correlations = vars.map((v) => ({
+    const correlations = variables.map((v) => ({
       var: v,
       corWithRate: pearsonCorrelation(
         fragments

@@ -21,7 +21,7 @@ describe("createRng", () => {
 
   it("next() returns values in [0, 1)", () => {
     const rng = createRng(7);
-    for (let i = 0; i < 1000; i++) {
+    for (let index = 0; index < 1000; index++) {
       const v = rng.next();
       expect(v).toBeGreaterThanOrEqual(0);
       expect(v).toBeLessThan(1);
@@ -41,9 +41,9 @@ describe("createRng", () => {
   describe("nextInt", () => {
     it("returns integers within [0, maxExclusive)", () => {
       const rng = createRng(123);
-      for (let i = 0; i < 500; i++) {
+      for (let index = 0; index < 500; index++) {
         const v = rng.nextInt(7);
-        expect(Number.isInteger(v)).toBe(true);
+        expect(Number.isSafeInteger(v)).toBe(true);
         expect(v).toBeGreaterThanOrEqual(0);
         expect(v).toBeLessThan(7);
       }

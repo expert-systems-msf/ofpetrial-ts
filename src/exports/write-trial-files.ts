@@ -43,7 +43,7 @@ export const AB_LINE_FIELDS = [{ name: "ab_id", type: "N" as const, length: 9 }]
  * characters.
  */
 function assertSafeInputName(inputName: string): void {
-  const hasControlChars = /[\u0000-\u001f\u007f]/.test(inputName);
+  const hasControlChars = /[\u0000-\u001F\u007F]/.test(inputName);
   if (
     inputName.length === 0 ||
     inputName.includes("/") ||
@@ -53,7 +53,7 @@ function assertSafeInputName(inputName: string): void {
     hasControlChars
   ) {
     throw new ExportError(
-      `writeTrialFiles: unsafe input_name ${JSON.stringify(inputName)} — must not be empty, contain "/", "\\", "..", control characters, or start with "."`
+      String.raw`writeTrialFiles: unsafe input_name ${JSON.stringify(inputName)} — must not be empty, contain "/", "\", "..", control characters, or start with "."`
     );
   }
 }
@@ -125,46 +125,57 @@ export function writeTrialFiles(td: TrialDesign, opts: WriteTrialFilesOptions): 
     assertSafeInputName(inputName);
     const trialFeatures = trialDesignFeatures(input);
 
-    if (opts.ext === "shp") {
-      Object.assign(
-        entries,
-        shapefileZipEntries(inputName, inputName, trialFeatures, "polygon", TRIAL_DESIGN_FIELDS),
-        shapefileZipEntries(
-          inputName,
-          "ab-line",
-          abLineFeatures(input.abLine),
-          "polyline",
-          AB_LINE_FIELDS
-        )
-      );
-    } else if (opts.ext === "geojson") {
-      entries[`${inputName}/${inputName}.geojson`] = writeGeoJson(trialFeatures);
-      entries[`${inputName}/ab-line.geojson`] = writeGeoJson(abLineFeatures(input.abLine));
-    } else if (opts.ext === "isoxml") {
-      const rateUnit = input.rateInfo?.unit;
-      if (!rateUnit) {
-        throw new ExportError(
-          `writeTrialFiles: input "${inputName}" has no rateInfo (required for ISOXML)`
+    switch (opts.ext) {
+      case "shp": {
+        Object.assign(
+          entries,
+          shapefileZipEntries(inputName, inputName, trialFeatures, "polygon", TRIAL_DESIGN_FIELDS),
+          shapefileZipEntries(
+            inputName,
+            "ab-line",
+            abLineFeatures(input.abLine),
+            "polyline",
+            AB_LINE_FIELDS
+          )
         );
+
+        break;
       }
-      const plots = trialFeatures.map((f) => ({
-        geometry: f.geometry as Polygon | MultiPolygon,
-        rate: f.properties["rate"] as number,
-      }));
-      // ISO 11783-10 terminals scan the medium root for TASKDATA/TASKDATA.XML.
-      // Single input: emit exactly that, so unzipping onto a USB stick imports
-      // directly. Multiple inputs: one TASKDATA dir per input subdirectory —
-      // copy ONE input's TASKDATA/ folder to the medium root per transfer
-      // (docs/isoxml-units.md, "Terminal import").
-      const isoxmlPath =
-        td.inputs.length === 1 ? "TASKDATA/TASKDATA.XML" : `${inputName}/TASKDATA/TASKDATA.XML`;
-      entries[isoxmlPath] = writeIsoxml(plots, {
-        inputName,
-        unitSystem: input.plotInfo.unit_system,
-        rateUnit,
-      });
-    } else {
-      throw new ExportError(`writeTrialFiles: unsupported ext "${String(opts.ext)}"`);
+      case "geojson": {
+        entries[`${inputName}/${inputName}.geojson`] = writeGeoJson(trialFeatures);
+        entries[`${inputName}/ab-line.geojson`] = writeGeoJson(abLineFeatures(input.abLine));
+
+        break;
+      }
+      case "isoxml": {
+        const rateUnit = input.rateInfo?.unit;
+        if (!rateUnit) {
+          throw new ExportError(
+            `writeTrialFiles: input "${inputName}" has no rateInfo (required for ISOXML)`
+          );
+        }
+        const plots = trialFeatures.map((f) => ({
+          geometry: f.geometry as Polygon | MultiPolygon,
+          rate: f.properties["rate"] as number,
+        }));
+        // ISO 11783-10 terminals scan the medium root for TASKDATA/TASKDATA.XML.
+        // Single input: emit exactly that, so unzipping onto a USB stick imports
+        // directly. Multiple inputs: one TASKDATA dir per input subdirectory —
+        // copy ONE input's TASKDATA/ folder to the medium root per transfer
+        // (docs/isoxml-units.md, "Terminal import").
+        const isoxmlPath =
+          td.inputs.length === 1 ? "TASKDATA/TASKDATA.XML" : `${inputName}/TASKDATA/TASKDATA.XML`;
+        entries[isoxmlPath] = writeIsoxml(plots, {
+          inputName,
+          unitSystem: input.plotInfo.unit_system,
+          rateUnit,
+        });
+
+        break;
+      }
+      default: {
+        throw new ExportError(`writeTrialFiles: unsupported ext "${String(opts.ext)}"`);
+      }
     }
   }
 

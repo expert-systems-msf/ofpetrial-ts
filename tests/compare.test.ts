@@ -45,7 +45,7 @@ describe("overlapRatio", () => {
 
   it("is 0 for disjoint polygons", () => {
     const r = square(-88.2, 40.1, 0.001);
-    const ts = square(-88.0, 40.1, 0.001);
+    const ts = square(-88, 40.1, 0.001);
     expect(overlapRatio(ts, r)).toBe(0);
   });
 });
@@ -60,7 +60,7 @@ describe("centroidDistanceMeters", () => {
     const r = square(-71.2, 46.8, 0.001);
     const ts = square(-71.2, 46.8 + 1e-5, 0.001);
     const d = centroidDistanceMeters(ts, r);
-    expect(d).toBeGreaterThan(1.0);
+    expect(d).toBeGreaterThan(1);
     expect(d).toBeLessThan(1.2);
   });
 });

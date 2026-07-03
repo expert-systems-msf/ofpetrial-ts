@@ -54,7 +54,7 @@ describe("convertRates", () => {
   });
 
   it("passes through unknown input names unchanged", () => {
-    expect(convertRates("seed", "seeds", 34000)).toBe(34000);
+    expect(convertRates("seed", "seeds", 34_000)).toBe(34_000);
   });
 
   it("falls back to factor 1 for an unknown (input, unit) combination (deviation: R yields numeric(0))", () => {

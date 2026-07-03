@@ -103,10 +103,10 @@ describe("writeShapefile — trial-design layer (simple1, imperial)", () => {
   it(".shx offsets/lengths agree with the .shp record table", () => {
     const shxView = new DataView(shx.buffer, shx.byteOffset, shx.byteLength);
     const shpView = new DataView(shp.buffer, shp.byteOffset, shp.byteLength);
-    const numRecords = features.length;
+    const numberRecords = features.length;
     let shpOffset = 100;
-    for (let i = 0; i < numRecords; i++) {
-      const shxRecOffset = 100 + i * 8;
+    for (let index = 0; index < numberRecords; index++) {
+      const shxRecOffset = 100 + index * 8;
       const offsetWords = shxView.getInt32(shxRecOffset, false);
       const lengthWords = shxView.getInt32(shxRecOffset + 4, false);
       expect(offsetWords * 2).toBe(shpOffset);
@@ -133,16 +133,16 @@ describe("writeShapefile — trial-design layer (simple1, imperial)", () => {
     expect(headlandRecords.length).toBe(1);
     expect(headlandRecords[0]!.strip_id).toBeNull();
     expect(headlandRecords[0]!.plot_id).toBeNull();
-    expect(headlandRecords[0]!.rate).toBeCloseTo(34000, 6);
+    expect(headlandRecords[0]!.rate).toBeCloseTo(34_000, 6);
   });
 
   it("fixes ring winding to the shapefile convention regardless of input winding", () => {
     const shpResult = readShp(shp);
     function signedArea(ring: Array<[number, number]>): number {
       let sum = 0;
-      for (let i = 0; i < ring.length - 1; i++) {
-        const [x1, y1] = ring[i]!;
-        const [x2, y2] = ring[i + 1]!;
+      for (let index = 0; index < ring.length - 1; index++) {
+        const [x1, y1] = ring[index]!;
+        const [x2, y2] = ring[index + 1]!;
         sum += x1 * y2 - x2 * y1;
       }
       return sum / 2;
@@ -187,19 +187,19 @@ describe("writeShapefile — R fixture parity (simple1, imperial)", () => {
   // tests/parity-exports.test.ts's with-holes case).
   it("same attributes and coordinates as R, matched by row index", () => {
     expect(ours.dbf.records.length).toBe(r.dbf.records.length);
-    ours.dbf.records.forEach((rec, i) => {
-      const rRec = r.dbf.records[i]!;
+    ours.dbf.records.forEach((rec, index) => {
+      const rRec = r.dbf.records[index]!;
       expect(rec.rate).toBeCloseTo(rRec.rate as number, 6);
       expect(rec.type).toBe(rRec.type);
 
-      const oursGeom = ours.shp.features[i]!;
-      const rGeom = r.shp.features[i]!;
+      const oursGeom = ours.shp.features[index]!;
+      const rGeom = r.shp.features[index]!;
       expect(oursGeom.parts.length).toBe(rGeom.parts.length);
-      oursGeom.parts.forEach((ring, ringIdx) => {
-        const rRing = rGeom.parts[ringIdx]!;
+      oursGeom.parts.forEach((ring, ringIndex) => {
+        const rRing = rGeom.parts[ringIndex]!;
         expect(ring.length).toBe(rRing.length);
-        ring.forEach(([x, y], ptIdx) => {
-          const [rx, ry] = rRing[ptIdx]!;
+        ring.forEach(([x, y], ptIndex) => {
+          const [rx, ry] = rRing[ptIndex]!;
           expect(Math.abs(x - rx)).toBeLessThan(1e-7);
           expect(Math.abs(y - ry)).toBeLessThan(1e-7);
         });
@@ -229,8 +229,8 @@ describe("writeShapefile — ab-line layer (polyline)", () => {
     expect(ours.shp.shapeType).toBe(3); // PolyLine
     expect(ours.dbf.records).toEqual(r.dbf.records);
     expect(ours.shp.features[0]!.parts[0]!.length).toBe(r.shp.features[0]!.parts[0]!.length);
-    ours.shp.features[0]!.parts[0]!.forEach(([x, y], i) => {
-      const [rx, ry] = r.shp.features[0]!.parts[0]![i]!;
+    ours.shp.features[0]!.parts[0]!.forEach(([x, y], index) => {
+      const [rx, ry] = r.shp.features[0]!.parts[0]![index]!;
       expect(Math.abs(x - rx)).toBeLessThan(1e-7);
       expect(Math.abs(y - ry)).toBeLessThan(1e-7);
     });

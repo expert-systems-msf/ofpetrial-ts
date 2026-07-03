@@ -12,7 +12,7 @@ function trialDesignFeatures(
   inputName: string,
   td: ReturnType<typeof loadTrialDesign>
 ): GeoJsonFeatureInput[] {
-  const input = td.inputs.find((i) => i.plotInfo.input_name === inputName)!;
+  const input = td.inputs.find((index) => index.plotInfo.input_name === inputName)!;
   const features: GeoJsonFeatureInput[] = [];
   for (const f of input.plots.features) {
     const p = f.properties as { rate: number; strip_id: number; plot_id: number };
@@ -33,9 +33,9 @@ function trialDesignFeatures(
 
 function signedArea(ring: ReadonlyArray<readonly number[]>): number {
   let sum = 0;
-  for (let i = 0; i < ring.length - 1; i++) {
-    const [x1, y1] = ring[i]!;
-    const [x2, y2] = ring[i + 1]!;
+  for (let index = 0; index < ring.length - 1; index++) {
+    const [x1, y1] = ring[index]!;
+    const [x2, y2] = ring[index + 1]!;
     sum += x1! * y2! - x2! * y1!;
   }
   return sum / 2;
@@ -65,7 +65,12 @@ describe("writeGeoJson — RFC 7946 shape", () => {
     expect(fc.features.length).toBe(features.length);
     for (const f of fc.features) {
       expect(f.type).toBe("Feature");
-      expect(Object.keys(f.properties).sort()).toEqual(["plot_id", "rate", "strip_id", "type"]);
+      expect(Object.keys(f.properties).sort((a, b) => a.localeCompare(b))).toEqual([
+        "plot_id",
+        "rate",
+        "strip_id",
+        "type",
+      ]);
     }
   });
 
@@ -101,7 +106,7 @@ describe("writeGeoJson — fixture parity (simple1, imperial)", () => {
       td.inputs[0]!.plots.features.length + td.inputs[0]!.headlands.features.length
     );
     const headland = fc.features.find((f) => f.properties.type === "headland")!;
-    expect(headland.properties.rate).toBeCloseTo(34000, 6);
+    expect(headland.properties.rate).toBeCloseTo(34_000, 6);
     expect(headland.properties.strip_id).toBeNull();
     expect(headland.properties.plot_id).toBeNull();
   });

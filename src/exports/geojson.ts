@@ -16,9 +16,9 @@ export interface GeoJsonFeatureInput {
 
 function signedArea(ring: Ring): number {
   let sum = 0;
-  for (let i = 0; i < ring.length - 1; i++) {
-    const [x1, y1] = ring[i]!;
-    const [x2, y2] = ring[i + 1]!;
+  for (let index = 0; index < ring.length - 1; index++) {
+    const [x1, y1] = ring[index]!;
+    const [x2, y2] = ring[index + 1]!;
     sum += x1 * y2 - x2 * y1;
   }
   return sum / 2;
@@ -34,13 +34,15 @@ function fixPolygonWinding(geometry: Polygon | MultiPolygon): Polygon | MultiPol
   if (geometry.type === "Polygon") {
     return {
       type: "Polygon",
-      coordinates: geometry.coordinates.map((ring, i) => rightHandRing(ring as Ring, i === 0)),
+      coordinates: geometry.coordinates.map((ring, index) =>
+        rightHandRing(ring as Ring, index === 0)
+      ),
     };
   }
   return {
     type: "MultiPolygon",
     coordinates: geometry.coordinates.map((poly) =>
-      poly.map((ring, i) => rightHandRing(ring as Ring, i === 0))
+      poly.map((ring, index) => rightHandRing(ring as Ring, index === 0))
     ),
   };
 }

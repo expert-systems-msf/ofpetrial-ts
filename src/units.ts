@@ -120,21 +120,21 @@ export function convertRates(
   rate: number,
   conversionType: "to_n_equiv" | "from_n_equiv" = "to_n_equiv"
 ): number {
-  if (!INPUT_UNIT_CONVERSION_TABLE.some((r) => r.type === inputName)) {
+  if (INPUT_UNIT_CONVERSION_TABLE.every((r) => r.type !== inputName)) {
     return rate;
   }
 
   let workingRate = rate;
   let newUnit = unit;
-  let metricReporting = false;
+  let isMetricReporting = false;
   if (unit === "liters") {
     workingRate = rate * LITERS_TO_GALLONS;
     newUnit = "gallons";
-    metricReporting = true;
+    isMetricReporting = true;
   } else if (unit === "kg") {
     workingRate = convUnit(rate, "kg", "pounds");
     newUnit = "lb";
-    metricReporting = true;
+    isMetricReporting = true;
   }
 
   let convFactorN: number;
@@ -148,7 +148,7 @@ export function convertRates(
     convFactorN = row ? row.convFactor : 1;
   }
 
-  if (metricReporting) {
+  if (isMetricReporting) {
     convFactorN = convFactorN * convUnit(1, "pounds", "kg") * convUnit(1, "hectares", "acres");
   }
 

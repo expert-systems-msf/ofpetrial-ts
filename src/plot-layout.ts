@@ -47,9 +47,9 @@ function ringCentroid(ring: Ring): { area: number; cx: number; cy: number } {
   let a = 0;
   let cx = 0;
   let cy = 0;
-  for (let i = 0; i < ring.length - 1; i++) {
-    const [x1, y1] = ring[i]!;
-    const [x2, y2] = ring[i + 1]!;
+  for (let index = 0; index < ring.length - 1; index++) {
+    const [x1, y1] = ring[index]!;
+    const [x2, y2] = ring[index + 1]!;
     const w = x1 * y2 - x2 * y1;
     a += w;
     cx += (x1 + x2) * w;
@@ -63,14 +63,14 @@ function ringCentroid(ring: Ring): { area: number; cx: number; cy: number } {
 function cleanRing(ring: Pt[]): Ring | null {
   const out: Pt[] = [];
   for (const p of ring) {
-    const last = out[out.length - 1];
+    const last = out.at(-1);
     if (!last || Math.abs(last[0] - p[0]) > 1e-12 || Math.abs(last[1] - p[1]) > 1e-12) {
       out.push([p[0], p[1]]);
     }
   }
   if (out.length > 1) {
     const first = out[0]!;
-    const last = out[out.length - 1]!;
+    const last = out.at(-1)!;
     if (Math.abs(first[0] - last[0]) <= 1e-12 && Math.abs(first[1] - last[1]) <= 1e-12) {
       out.pop();
     }
@@ -85,9 +85,9 @@ function mergeIntervals(list: Interval[]): Interval[] {
   if (list.length === 0) return [];
   const sorted = [...list].sort((a, b) => a[0] - b[0]);
   const out: Interval[] = [[sorted[0]![0], sorted[0]![1]]];
-  for (let i = 1; i < sorted.length; i++) {
-    const [s, e] = sorted[i]!;
-    const last = out[out.length - 1]!;
+  for (let index = 1; index < sorted.length; index++) {
+    const [s, e] = sorted[index]!;
+    const last = out.at(-1)!;
     if (s <= last[1]) {
       last[1] = Math.max(last[1], e);
     } else {
@@ -120,9 +120,9 @@ function subtractIntervals(base: Interval[], minus: Interval[]): Interval[] {
  */
 function ringIntervalsAt(ring: Ring, v: number): Interval[] {
   const xs: number[] = [];
-  for (let i = 0; i < ring.length - 1; i++) {
-    const [x1, y1] = ring[i]!;
-    const [x2, y2] = ring[i + 1]!;
+  for (let index = 0; index < ring.length - 1; index++) {
+    const [x1, y1] = ring[index]!;
+    const [x2, y2] = ring[index + 1]!;
     if (y1 > v !== y2 > v) {
       xs.push(x1 + ((v - y1) * (x2 - x1)) / (y2 - y1));
     }
@@ -136,7 +136,7 @@ function ringIntervalsAt(ring: Ring, v: number): Interval[] {
   }
   xs.sort((a, b) => a - b);
   const out: Interval[] = [];
-  for (let i = 0; i + 1 < xs.length; i += 2) out.push([xs[i]!, xs[i + 1]!]);
+  for (let index = 0; index + 1 < xs.length; index += 2) out.push([xs[index]!, xs[index + 1]!]);
   return out;
 }
 
@@ -147,17 +147,19 @@ function ringsIntervalsAt(rings: Ring[], v: number): Interval[] {
 }
 
 /** Minimum distance from a point to any segment of the given rings. */
-function distToRings(pt: Pt, rings: Ring[]): number {
+function distributionToRings(pt: Pt, rings: Ring[]): number {
   let best = Infinity;
   for (const ring of rings) {
-    for (let i = 0; i < ring.length - 1; i++) {
-      const [x1, y1] = ring[i]!;
-      const [x2, y2] = ring[i + 1]!;
+    for (let index = 0; index < ring.length - 1; index++) {
+      const [x1, y1] = ring[index]!;
+      const [x2, y2] = ring[index + 1]!;
       const dx = x2 - x1;
       const dy = y2 - y1;
-      const len2 = dx * dx + dy * dy;
+      const length2 = dx * dx + dy * dy;
       const t =
-        len2 === 0 ? 0 : Math.max(0, Math.min(1, ((pt[0] - x1) * dx + (pt[1] - y1) * dy) / len2));
+        length2 === 0
+          ? 0
+          : Math.max(0, Math.min(1, ((pt[0] - x1) * dx + (pt[1] - y1) * dy) / length2));
       const px = x1 + t * dx;
       const py = y1 + t * dy;
       best = Math.min(best, Math.hypot(pt[0] - px, pt[1] - py));
@@ -180,15 +182,15 @@ function samplePointInRing(ring: Ring): Pt | null {
   let sx = 0;
   let sy = 0;
   const n = ring.length - 1;
-  for (let i = 0; i < n; i++) {
-    sx += ring[i]![0];
-    sy += ring[i]![1];
+  for (let index = 0; index < n; index++) {
+    sx += ring[index]![0];
+    sy += ring[index]![1];
   }
   const mean: Pt = [sx / n, sy / n];
   if (booleanPointInPolygon(mean, poly)) return mean;
-  for (let i = 0; i < n; i++) {
-    const a = ring[i]!;
-    const b = ring[(i + 2) % n]!;
+  for (let index = 0; index < n; index++) {
+    const a = ring[index]!;
+    const b = ring[(index + 2) % n]!;
     const mid: Pt = [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2];
     if (booleanPointInPolygon(mid, poly)) return mid;
   }
@@ -220,18 +222,18 @@ function samplePointInRing(ring: Ring): Pt | null {
  * closes one. Arc discretization matches sf's st_buffer default of
  * nQuadSegs = 30.
  */
-function offsetRingRound(ring: Ring, dist: number): Ring | null {
+function offsetRingRound(ring: Ring, distribution: number): Ring | null {
   const pts = ring.slice(0, -1);
   const n = pts.length;
   if (n < 3) return null;
   const out: Pt[] = [];
   const arcStep = Math.PI / 2 / 30;
-  for (let i = 0; i < n; i++) {
-    const prev = pts[(i - 1 + n) % n]!;
-    const cur = pts[i]!;
-    const next = pts[(i + 1) % n]!;
-    const d1: Pt = [cur[0] - prev[0], cur[1] - prev[1]];
-    const d2: Pt = [next[0] - cur[0], next[1] - cur[1]];
+  for (let index = 0; index < n; index++) {
+    const previous = pts[(index - 1 + n) % n]!;
+    const current = pts[index]!;
+    const next = pts[(index + 1) % n]!;
+    const d1: Pt = [current[0] - previous[0], current[1] - previous[1]];
+    const d2: Pt = [next[0] - current[0], next[1] - current[1]];
     const l1 = Math.hypot(d1[0], d1[1]);
     const l2 = Math.hypot(d2[0], d2[1]);
     if (l1 === 0 || l2 === 0) continue;
@@ -240,23 +242,23 @@ function offsetRingRound(ring: Ring, dist: number): Ring | null {
     // right normal of a CCW ring points outward
     const n1: Pt = [t1[1], -t1[0]];
     const n2: Pt = [t2[1], -t2[0]];
-    const a: Pt = [cur[0] + dist * n1[0], cur[1] + dist * n1[1]];
-    const b: Pt = [cur[0] + dist * n2[0], cur[1] + dist * n2[1]];
+    const a: Pt = [current[0] + distribution * n1[0], current[1] + distribution * n1[1]];
+    const b: Pt = [current[0] + distribution * n2[0], current[1] + distribution * n2[1]];
     const cross = t1[0] * t2[1] - t1[1] * t2[0];
     if (Math.abs(cross) < 1e-9) {
       out.push(a);
-    } else if (cross * dist > 0) {
+    } else if (cross * distribution > 0) {
       // the offset edges diverge here: round join around the vertex
-      const a1 = Math.atan2(a[1] - cur[1], a[0] - cur[0]);
-      const a2 = Math.atan2(b[1] - cur[1], b[0] - cur[0]);
+      const a1 = Math.atan2(a[1] - current[1], a[0] - current[0]);
+      const a2 = Math.atan2(b[1] - current[1], b[0] - current[0]);
       let delta = a2 - a1;
       while (delta > Math.PI) delta -= 2 * Math.PI;
       while (delta < -Math.PI) delta += 2 * Math.PI;
       const steps = Math.max(1, Math.ceil(Math.abs(delta) / arcStep));
-      const r = Math.abs(dist);
-      for (let j = 0; j <= steps; j++) {
-        const ang = a1 + (delta * j) / steps;
-        out.push([cur[0] + r * Math.cos(ang), cur[1] + r * Math.sin(ang)]);
+      const r = Math.abs(distribution);
+      for (let index = 0; index <= steps; index++) {
+        const ang = a1 + (delta * index) / steps;
+        out.push([current[0] + r * Math.cos(ang), current[1] + r * Math.sin(ang)]);
       }
     } else {
       // the offset edges cross: their intersection is the new vertex
@@ -274,10 +276,10 @@ function unkinkRing(ring: Ring): Ring[] {
   let features: Array<Feature<Polygon>>;
   try {
     features = unkinkPolygon(ringToPolygonFeature(ring)).features;
-  } catch (e) {
+  } catch (error) {
     // never let a still-kinked ring flow into the scanline silently
     throw new GeometryError(
-      `unkink failed on an offset ring (${ring.length - 1} vertices): ${String(e)}`
+      `unkink failed on an offset ring (${ring.length - 1} vertices): ${String(error)}`
     );
   }
   const out: Ring[] = [];
@@ -299,20 +301,20 @@ function toCcw(ring: Ring): Ring {
  * the original ring) — this discards the inverted loops a plain offset
  * produces where the shape is narrower than 2 * dist.
  */
-function shrinkRing(ring: Ring, dist: number): Ring[] {
-  const raw = offsetRingRound(ring, -dist);
+function shrinkRing(ring: Ring, distribution: number): Ring[] {
+  const raw = offsetRingRound(ring, -distribution);
   if (!raw) return [];
   const out: Ring[] = [];
   for (const piece of unkinkRing(raw)) {
     const pt = samplePointInRing(piece);
-    if (pt && distToRings(pt, [ring]) >= dist - 0.01) out.push(toCcw(piece));
+    if (pt && distributionToRings(pt, [ring]) >= distribution - 0.01) out.push(toCcw(piece));
   }
   return out;
 }
 
 /** Grows a CCW ring outward by `dist`, keeping the dominant piece. */
-function growRing(ring: Ring, dist: number): Ring[] {
-  const raw = offsetRingRound(ring, dist);
+function growRing(ring: Ring, distribution: number): Ring[] {
+  const raw = offsetRingRound(ring, distribution);
   if (!raw) return [];
   const pieces = unkinkRing(raw);
   if (pieces.length <= 1) return pieces.map(toCcw);
@@ -361,23 +363,23 @@ interface FieldFrame {
  * R st_buffer(field, -dist) as far as the scanline needs it: shells shrink,
  * holes grow, and hole overflow is resolved by the 1-D interval subtraction.
  */
-function erodeField(field: FieldFrame, dist: number): RingRegion {
+function erodeField(field: FieldFrame, distribution: number): RingRegion {
   const shells: Ring[] = [];
   const holes: Ring[] = [];
   for (const poly of field.polys) {
-    shells.push(...shrinkRing(poly.shell, dist));
-    for (const hole of poly.holes) holes.push(...growRing(hole, dist));
+    shells.push(...shrinkRing(poly.shell, distribution));
+    for (const hole of poly.holes) holes.push(...growRing(hole, distribution));
   }
   return { shells, holes };
 }
 
 /** R st_buffer(field, +dist): shells grow, holes shrink (and may vanish). */
-function dilateField(field: FieldFrame, dist: number): RingRegion {
+function dilateField(field: FieldFrame, distribution: number): RingRegion {
   const shells: Ring[] = [];
   const holes: Ring[] = [];
   for (const poly of field.polys) {
-    shells.push(...growRing(poly.shell, dist));
-    for (const hole of poly.holes) holes.push(...shrinkRing(hole, dist));
+    shells.push(...growRing(poly.shell, distribution));
+    for (const hole of poly.holes) holes.push(...shrinkRing(hole, distribution));
   }
   return { shells, holes };
 }
@@ -404,13 +406,13 @@ function collectPolygonFeatures(
 /** Whether any two non-adjacent ring segments properly intersect. */
 function ringIsSimple(ring: Ring): boolean {
   const n = ring.length - 1;
-  for (let i = 0; i < n; i++) {
-    const [ax, ay] = ring[i]!;
-    const [bx, by] = ring[i + 1]!;
-    for (let j = i + 2; j < n; j++) {
-      if (i === 0 && j === n - 1) continue; // adjacent through the closure
-      const [cx, cy] = ring[j]!;
-      const [dx, dy] = ring[j + 1]!;
+  for (let index = 0; index < n; index++) {
+    const [ax, ay] = ring[index]!;
+    const [bx, by] = ring[index + 1]!;
+    for (let index_ = index + 2; index_ < n; index_++) {
+      if (index === 0 && index_ === n - 1) continue; // adjacent through the closure
+      const [cx, cy] = ring[index_]!;
+      const [dx, dy] = ring[index_ + 1]!;
       const d1 = (bx - ax) * (cy - ay) - (by - ay) * (cx - ax);
       const d2 = (bx - ax) * (dy - ay) - (by - ay) * (dx - ax);
       const d3 = (dx - cx) * (ay - cy) - (dy - cy) * (ax - cx);
@@ -510,10 +512,12 @@ function extractAbLine(
   const features = input!.type === "FeatureCollection" ? input!.features : [input!];
   // R: ab_sf[1, ] — only the first line is used when several are supplied
   for (const f of features) {
-    if (f.geometry?.type === "LineString") {
-      const coords = f.geometry.coordinates;
-      if (coords.length >= 2) return [coords[0]!, coords[1]!];
+    if (f.geometry?.type !== "LineString") {
+      continue;
     }
+
+    const coords = f.geometry.coordinates;
+    if (coords.length >= 2) return [coords[0]!, coords[1]!];
   }
   return missing();
 }
@@ -536,16 +540,16 @@ interface StripPlots {
 }
 
 /** R get_trial_plot_data: divide a strip's usable length into plot lengths. */
-function trialPlotLengths(tot: number, minLen: number, maxLen: number): number[] {
-  const numPlots = Math.floor(tot / minLen);
-  if (numPlots < 1) return [];
-  const remainder = tot - numPlots * minLen;
-  const additional = remainder / numPlots;
-  const len = additional + minLen > maxLen ? maxLen : minLen + additional;
-  return Array.from({ length: numPlots }, () => len);
+function trialPlotLengths(tot: number, minLength: number, maxLength: number): number[] {
+  const numberPlots = Math.floor(tot / minLength);
+  if (numberPlots < 1) return [];
+  const remainder = tot - numberPlots * minLength;
+  const additional = remainder / numberPlots;
+  const length = additional + minLength > maxLength ? maxLength : minLength + additional;
+  return Array.from({ length: numberPlots }, () => length);
 }
 
-interface MakeTrialPlotsParams {
+interface MakeTrialPlotsParameters {
   field: FieldFrame;
   /** v of the (possibly shifted) plot heading in the ab-line frame. */
   anchorV: number;
@@ -564,8 +568,8 @@ interface MakeTrialPlotsParams {
  * for the second-input edge-side sign, which depends on the pre-shift grid
  * phase and is reproduced below.
  */
-function makeTrialPlotsByInput(params: MakeTrialPlotsParams): StripPlots[] {
-  const { field, anchorV, plotInfo, ablineType, secondInput } = params;
+function makeTrialPlotsByInput(parameters: MakeTrialPlotsParameters): StripPlots[] {
+  const { field, anchorV, plotInfo, ablineType, secondInput } = parameters;
   const pw = plotInfo.plot_width;
   const halfW = pw / 2;
   const radius = field.bboxDiag / 2 + 100;
@@ -583,10 +587,10 @@ function makeTrialPlotsByInput(params: MakeTrialPlotsParams): StripPlots[] {
     gridShift = delta < 0 ? -halfW : halfW;
   } else if (ablineType === "lock") {
     const sectionWidth = plotInfo.section_width;
-    const numSectionsInPlot = roundHalfEven(pw / sectionWidth);
-    const machineOdd = plotInfo.section_num % 2 === 1;
-    const plotOdd = numSectionsInPlot % 2 === 1;
-    if (machineOdd !== plotOdd) gridShift = sectionWidth / 2;
+    const numberSectionsInPlot = roundHalfEven(pw / sectionWidth);
+    const isMachineOdd = plotInfo.section_num % 2 === 1;
+    const isPlotOdd = numberSectionsInPlot % 2 === 1;
+    if (isMachineOdd !== isPlotOdd) gridShift = sectionWidth / 2;
   }
   const baseV = anchorV + gridShift; // strip centers sit at baseV + k * pw
 
@@ -604,7 +608,7 @@ function makeTrialPlotsByInput(params: MakeTrialPlotsParams): StripPlots[] {
   for (let k = kHi; k >= kLo; k--) {
     const vc = baseV + k * pw;
     const plots: FramePlot[] = [];
-    let segIdx = 0;
+    let segIndex = 0;
     for (const [s0, s1] of regionIntervalsAt(eroded, vc)) {
       // R extend_or_shorten_line: trim (or extend, when dAdj < 0) both ends
       if (s1 - s0 <= 2 * dAdj) continue;
@@ -615,11 +619,11 @@ function makeTrialPlotsByInput(params: MakeTrialPlotsParams): StripPlots[] {
         plotInfo.max_plot_length
       );
       if (lengths.length === 0) continue;
-      segIdx++;
+      segIndex++;
       let start = u0;
-      lengths.forEach((len, j) => {
-        plots.push({ plotId: j + 1, u0: start, u1: start + len, polyLine: `${segIdx}_1` });
-        start += len;
+      lengths.forEach((length, index) => {
+        plots.push({ plotId: index + 1, u0: start, u1: start + length, polyLine: `${segIndex}_1` });
+        start += length;
       });
     }
     if (plots.length > 0) {
@@ -658,7 +662,7 @@ function makeAblinesData(strips: StripPlots[], plotWidth: number): AblineRow[] {
   const firstOf = (strip: StripPlots): FramePlot =>
     strip.plots.find((p) => p.plotId === 1) ?? strip.plots[0]!;
   const first = strips[0]!;
-  const last = strips[strips.length - 1]!;
+  const last = strips.at(-1)!;
   const candidates: Array<{ abId: 1 | 2; v: number; u: number }> = [
     { abId: 1, v: first.vc, u: (firstOf(first).u0 + firstOf(first).u1) / 2 },
     { abId: 2, v: last.vc, u: (firstOf(last).u0 + firstOf(last).u1) / 2 },
@@ -694,8 +698,8 @@ function chooseFreeAbline(
     const row = rows.find((r) => r.abId === 1)!;
     return { v: row.v, u: row.u };
   }
-  const wanted = machineWidth > plotWidth;
-  const row = rows.find((r) => r.intCheck === wanted);
+  const isWanted = machineWidth > plotWidth;
+  const row = rows.find((r) => r.intCheck === isWanted);
   if (!row) {
     throw new GeometryError(
       "Could not orient the ab-line: too few strips to run the direction check."
@@ -817,12 +821,15 @@ export function makeExpPlots(options: MakeExpPlotsOptions): ExpData {
   const abA = project(abaRaw);
   const abBIn = project(abbRaw);
   const abVec: Pt = [abBIn[0] - abA[0], abBIn[1] - abA[1]];
-  const abLen = Math.hypot(abVec[0], abVec[1]);
-  if (abLen === 0) throw new ValidationError("The ab-line is degenerate (zero length).");
-  const abB: Pt = [abA[0] + (bboxDiag / abLen) * abVec[0], abA[1] + (bboxDiag / abLen) * abVec[1]];
+  const abLength = Math.hypot(abVec[0], abVec[1]);
+  if (abLength === 0) throw new ValidationError("The ab-line is degenerate (zero length).");
+  const abB: Pt = [
+    abA[0] + (bboxDiag / abLength) * abVec[0],
+    abA[1] + (bboxDiag / abLength) * abVec[1],
+  ];
 
   // ! Ab-line frame (R prepare_ablines: ab_xy_nml / ab_xy_nml_p90)
-  const nml: Pt = [abVec[0] / abLen, abVec[1] / abLen];
+  const nml: Pt = [abVec[0] / abLength, abVec[1] / abLength];
   const p90: Pt = [nml[1], -nml[0]];
   const toFrame = ([x, y]: Pt): Pt => [x * nml[0] + y * nml[1], x * p90[0] + y * p90[1]];
   const fromFrame = ([u, v]: Pt): Pt => [u * nml[0] + v * p90[0], u * nml[1] + v * p90[1]];
@@ -882,7 +889,7 @@ export function makeExpPlots(options: MakeExpPlotsOptions): ExpData {
   const abURange: Interval = [Math.min(abAF[0], abBF[0]), Math.max(abAF[0], abBF[0])];
 
   // through lines extend the field bbox half-diagonal + 100 m each way (R ab_length)
-  const throughHalfLen = bboxDiag / 2 + 100;
+  const throughHalfLength = bboxDiag / 2 + 100;
   const dilated: RingRegion = dilateField(field, 20); // R st_buffer(field_sf, 20) for ab-line clipping
 
   const lineFeature = (xyPoints: Pt[]): Feature<LineString> => ({
@@ -893,7 +900,7 @@ export function makeExpPlots(options: MakeExpPlotsOptions): ExpData {
 
   /** Clips a free ab-line candidate to the +20 m dilated field (R make_ablines tail). */
   const clipFreeLine = (geom: AblineGeometry): Feature<LineString> => {
-    const lineRange: Interval = [geom.u - throughHalfLen, geom.u + throughHalfLen];
+    const lineRange: Interval = [geom.u - throughHalfLength, geom.u + throughHalfLength];
     const pieces = regionIntervalsAt(dilated, geom.v)
       .map(([a, b]): Interval => [Math.max(a, lineRange[0]), Math.min(b, lineRange[1])])
       .filter(([a, b]) => b > a);
@@ -902,7 +909,9 @@ export function makeExpPlots(options: MakeExpPlotsOptions): ExpData {
     }
     // R keeps the whole (possibly multi-part) intersection; a single part is
     // the practical case — with several parts we keep the longest.
-    const best = pieces.reduce((acc, p) => (p[1] - p[0] > acc[1] - acc[0] ? p : acc));
+    const best = pieces.reduce((accumulator, p) =>
+      p[1] - p[0] > accumulator[1] - accumulator[0] ? p : accumulator
+    );
     return lineFeature([fromFrame([best[0], geom.v]), fromFrame([best[1], geom.v])]);
   };
 
@@ -951,7 +960,7 @@ export function makeExpPlots(options: MakeExpPlotsOptions): ExpData {
         ? prepareAblineV(
             field,
             edge.v,
-            [edge.u - throughHalfLen, edge.u + throughHalfLen],
+            [edge.u - throughHalfLength, edge.u + throughHalfLength],
             pi2.plot_width
           )
         : prepareAblineV(field, vAb, abURange, pi2.plot_width);

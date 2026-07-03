@@ -12,7 +12,7 @@ import { loadTrialDesign } from "./exports-fixtures.js";
 import { countTag, parseTags } from "./exports-isoxml-reader.js";
 
 function plotsOf(inputName: string, td: ReturnType<typeof loadTrialDesign>): IsoxmlPlotInput[] {
-  const input = td.inputs.find((i) => i.plotInfo.input_name === inputName)!;
+  const input = td.inputs.find((index) => index.plotInfo.input_name === inputName)!;
   const plots: IsoxmlPlotInput[] = input.plots.features.map((f) => ({
     geometry: f.geometry as Polygon | MultiPolygon,
     rate: (f.properties as { rate: number }).rate,
@@ -28,7 +28,7 @@ function plotsOf(inputName: string, td: ReturnType<typeof loadTrialDesign>): Iso
 
 describe("rateToDdiValue — documented worked examples (docs/isoxml-units.md)", () => {
   it("34000 seeds/ac (imperial) -> DDI 000B, raw 8402", () => {
-    const { ddiHex, raw } = rateToDdiValue(34000, "imperial", "seeds");
+    const { ddiHex, raw } = rateToDdiValue(34_000, "imperial", "seeds");
     expect(ddiHex).toBe("000B");
     expect(raw).toBe(8402);
   });
@@ -36,7 +36,7 @@ describe("rateToDdiValue — documented worked examples (docs/isoxml-units.md)",
   it("180 lb/ac (imperial) -> DDI 0006, raw 20175", () => {
     const { ddiHex, raw } = rateToDdiValue(180, "imperial", "lb");
     expect(ddiHex).toBe("0006");
-    expect(raw).toBe(20175);
+    expect(raw).toBe(20_175);
   });
 
   it("throws ExportError on an unmapped rate unit", () => {
@@ -104,7 +104,10 @@ describe("writeIsoxml — 254-zone ceiling", () => {
         ],
       ],
     };
-    const plots: IsoxmlPlotInput[] = Array.from({ length: 255 }, (_, i) => ({ geometry, rate: i }));
+    const plots: IsoxmlPlotInput[] = Array.from({ length: 255 }, (_, index) => ({
+      geometry,
+      rate: index,
+    }));
     expect(() =>
       writeIsoxml(plots, { inputName: "seed", unitSystem: "imperial", rateUnit: "seeds" })
     ).toThrow(ExportError);
@@ -158,7 +161,7 @@ describe("writeIsoxml — metric units (hectare basis, kg and liters DDI mapping
 
   it("kg/ha -> DDI 0006 with mg/m2 conversion over 10 000 m2 (200 kg/ha -> 20000)", async () => {
     // 200 kg/ha = 200e6 mg / 10 000 m2 = 20 000 mg/m2, resolution 1 -> 20000.
-    expect(rateToDdiValue(200, "metric", "kg")).toEqual({ ddiHex: "0006", raw: 20000 });
+    expect(rateToDdiValue(200, "metric", "kg")).toEqual({ ddiHex: "0006", raw: 20_000 });
     const xml = await tinyMetricZip("kg", 200);
     const pdvs = parseTags(xml).filter((t) => t.name === "PDV");
     expect(pdvs).toHaveLength(1);
@@ -186,7 +189,8 @@ describe("writeIsoxml — metric units (hectare basis, kg and liters DDI mapping
     );
     expect(nh3Pdvs.length).toBeGreaterThan(0);
     expect(nh3Pdvs.every((p) => p.attrs.A === "0006")).toBe(true);
-    const gcRate = td.inputs.find((i) => i.plotInfo.input_name === "NH3")!.rateInfo!.gc_rate;
+    const gcRate = td.inputs.find((index) => index.plotInfo.input_name === "NH3")!.rateInfo!
+      .gc_rate;
     const { raw } = rateToDdiValue(gcRate, "metric", "kg");
     expect(nh3Pdvs.some((p) => p.attrs.B === String(raw))).toBe(true);
   });
