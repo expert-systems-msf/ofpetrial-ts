@@ -1,6 +1,6 @@
 {
   "name": "ofpetrial-ts",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "TypeScript port of the ofpetrial R package — design and diagnose on-farm experimental trials",
   "license": "GPL-3.0-or-later",
   "repository": {
