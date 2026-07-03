@@ -184,6 +184,27 @@ Design types (`RateInfo.design_type`, defaults to `"ls"` when `null`):
 
 Types: `AlignmentFragment`, `AlignmentOverlapRow`, `AlignmentResult`, `CharCorrelation`, `FactorClassSummary`, `FactorVarSummary`, `OrthoInputsFragment`, `OrthoWithCharsResult`, `RasterGrid`, `RasterPlotMean`, `RasterSoilData`.
 
+Both `spatialJoin` and `extractRasterMeans` take a **flattened**
+`FeatureCollection` (plots + headlands merged), not a `TrialDesign`:
+
+```ts
+const input = design.inputs[0];
+const flat = {
+  type: "FeatureCollection",
+  features: [...input.plots.features, ...input.headlands.features],
+};
+const fragments = spatialJoin(flat, soilLayer);
+const means = extractRasterMeans(flat, raster);
+```
+
+When feeding a precomputed fragment table to `checkOrthoWithChars`, each row
+must be `{ plotKey, rate, values: { <var>: ... } }` — flat rows (like R's
+`fragments.json` fixtures) need mapping first:
+
+```ts
+const fragments = rows.map(({ plotKey, rate, ...values }) => ({ plotKey, rate, values }));
+```
+
 ### Machine file export (`writeTrialFiles`, `writeTrialFilesToDisk`)
 
 | Export                  | Signature                                                                              | Description                                                                                                                                                                                         |
