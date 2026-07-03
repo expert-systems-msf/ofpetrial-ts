@@ -51,10 +51,10 @@
 
 ## 7. Exports machine (machine-file-export) — jalon : relecture indépendante verte
 
-- [ ] 7.1 Trancher shp-write vs writer maison sur pièces (test de relecture indépendante + ouverture QGIS) ; implémenter l'export Shapefile zippé (attributs rate/plot_id/strip_id/type, .prj WGS84)
-- [ ] 7.2 Export GeoJSON (FeatureCollection par intrant, RFC 7946)
-- [ ] 7.3 Export ISOXML : générateur TASKDATA.XML (PFD/TZN/PLN, doses converties en unités ISO) ; télécharger le XSD ISO 11783-10 depuis le portail AEF (vérifier licence redistribution) : si redistribution autorisée → versionner dans `tools/xsd/TASKDATA.xsd` + `xmllint --schema` en CI ; si redistribution interdite → téléchargement au moment du CI depuis URL AEF officielle ; si XSD inaccessible → remplacer par round-trip parse (écrire TASKDATA.XML → parser avec un parseur XML → asserter le compte d'éléments/attributs clés) ; marqué bêta dans la doc
-- [ ] 7.4 API `writeTrialFiles` unifiée (ext shp/geojson/isoxml, retour Uint8Array + helper disque Node/Deno) ; CI : relecture indépendante et comparaison aux exports R des fixtures
+- [x] 7.1 Trancher shp-write vs writer maison sur pièces (test de relecture indépendante + ouverture QGIS) ; implémenter l'export Shapefile zippé (attributs rate/plot_id/strip_id/type, .prj WGS84)
+- [x] 7.2 Export GeoJSON (FeatureCollection par intrant, RFC 7946)
+- [x] 7.3 Export ISOXML : générateur TASKDATA.XML (PFD/TZN/PLN, doses converties en unités ISO) ; télécharger le XSD ISO 11783-10 depuis le portail AEF (vérifier licence redistribution) : si redistribution autorisée → versionner dans `tools/xsd/TASKDATA.xsd` + `xmllint --schema` en CI ; si redistribution interdite → téléchargement au moment du CI depuis URL AEF officielle ; si XSD inaccessible → remplacer par round-trip parse (écrire TASKDATA.XML → parser avec un parseur XML → asserter le compte d'éléments/attributs clés) ; marqué bêta dans la doc
+- [x] 7.4 API `writeTrialFiles` unifiée (ext shp/geojson/isoxml, retour Uint8Array + helper disque Node/Deno) ; CI : relecture indépendante et comparaison aux exports R des fixtures
 - [ ] 7.5 Test manuel ISOXML sur terminal/simulateur ISOBUS (à organiser avec l'utilisateur ; bloquant pour retirer la mention bêta, pas pour publier) — point d'attention : les terminaux cherchent conventionnellement `TASKDATA/TASKDATA.XML` à la racine du support ; vérifier si le sous-répertoire `<inputName>/` empêche l'import direct et documenter la procédure de renommage si oui
 
 ## 8. Livraison

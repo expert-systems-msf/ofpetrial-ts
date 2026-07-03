@@ -58,6 +58,12 @@ Example (fixture `two-input`, imperial, `NH3` input, `gc_rate = 180` lb/ac):
 `180 * 453592.37 / 4046.8564224 = 20 174.9…` mg/m² → `/ 1 = 20175` (DDI 6 raw
 value, rounded).
 
+Metric example (fixture `two-input`, metric, `NH3` input, `gc_rate = 200`
+kg/ha): `200 * 1 000 000 / 10 000 = 20 000` mg/m² → `/ 1 = 20000` (DDI 6 raw
+value; exact, no rounding — the hectare basis is a power of ten). Volume
+analogue: 150 L/ha → `150 * 1 000 000 / 10 000 = 15 000` mm³/m² →
+`/ 0.01 = 1 500 000` (DDI 1 raw value).
+
 ## Status: beta
 
 R's `write_trial_files` has no ISOXML export, so there is no R reference

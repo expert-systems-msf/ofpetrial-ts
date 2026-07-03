@@ -35,6 +35,28 @@ export const TRIAL_DESIGN_FIELDS = [
 /** DBF schema for ab-line layers (applicator + harvester), matching R's `ab_id` field. */
 export const AB_LINE_FIELDS = [{ name: "ab_id", type: "N" as const, length: 9 }];
 
+/**
+ * Zip-Slip guard: input_name is free-form user data that becomes zip entry
+ * paths (and, via writeTrialFilesToDisk, on-disk paths). Reject anything
+ * that could escape the archive root or smuggle path separators / control
+ * characters.
+ */
+function assertSafeInputName(inputName: string): void {
+  const hasControlChars = /[\u0000-\u001f\u007f]/.test(inputName);
+  if (
+    inputName.length === 0 ||
+    inputName.includes("/") ||
+    inputName.includes("\\") ||
+    inputName.includes("..") ||
+    inputName.startsWith(".") ||
+    hasControlChars
+  ) {
+    throw new ExportError(
+      `writeTrialFiles: unsafe input_name ${JSON.stringify(inputName)} — must not be empty, contain "/", "\\", "..", control characters, or start with "."`,
+    );
+  }
+}
+
 /** Merges plots + headlands into the R `trial_design` layer's feature set (rate/strip_id/plot_id/type). */
 function trialDesignFeatures(input: InputDesign): ShapefileFeatureInput[] {
   const features: ShapefileFeatureInput[] = [];
@@ -99,6 +121,7 @@ export function writeTrialFiles(td: TrialDesign, opts: WriteTrialFilesOptions): 
 
   for (const input of td.inputs) {
     const inputName = input.plotInfo.input_name;
+    assertSafeInputName(inputName);
     const trialFeatures = trialDesignFeatures(input);
 
     if (opts.ext === "shp") {
@@ -162,13 +185,22 @@ export async function writeTrialFilesToDisk(
 ): Promise<void> {
   const { unzipSync } = await import("fflate");
   const { mkdir, writeFile } = await import("node:fs/promises");
-  const { dirname, join } = await import("node:path");
+  const { dirname, join, resolve, sep } = await import("node:path");
 
   const zipBytes = writeTrialFiles(td, opts);
   const files = unzipSync(zipBytes);
-  await mkdir(folderPath, { recursive: true });
+  const root = resolve(folderPath);
+  await mkdir(root, { recursive: true });
   for (const [relPath, bytes] of Object.entries(files)) {
-    const fullPath = join(folderPath, relPath);
+    const fullPath = resolve(join(root, relPath));
+    // Defense in depth against Zip-Slip: assertSafeInputName already blocks
+    // hostile input_name values at zip-creation time, but re-verify here
+    // that every resolved path stays under folderPath before touching disk.
+    if (!fullPath.startsWith(root + sep)) {
+      throw new ExportError(
+        `writeTrialFilesToDisk: zip entry ${JSON.stringify(relPath)} escapes the output folder`,
+      );
+    }
     await mkdir(dirname(fullPath), { recursive: true });
     await writeFile(fullPath, bytes);
   }

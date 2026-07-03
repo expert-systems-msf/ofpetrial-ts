@@ -121,10 +121,19 @@
       "rFunction": "write_trial_files",
       "tsFile": "src/exports.ts",
       "tsSymbol": "writeTrialFiles",
-      "testCases": [],
-      "status": "pending",
+      "testCases": [
+        "tests/exports-write-trial-files.test.ts",
+        "tests/parity-exports.test.ts",
+        "tests/exports-shapefile.test.ts",
+        "tests/exports-geojson.test.ts",
+        "tests/exports-isoxml.test.ts"
+      ],
+      "status": "ported",
       "deviations": [
-        "abline_type \"none\" excluded (crashes in R 0.1.3)"
+        "zip layout uses one subdirectory per input (collision-free across formats); R writes flat prefixed filenames — content parity verified against R exports",
+        "isoxml (beta) has no R counterpart: no field-boundary geometry under PFD, no guidance lines; DDI by unit family documented in docs/isoxml-units.md",
+        "input names are validated against path traversal (ExportError); R writes any name verbatim",
+        "abline_type \"none\" excluded (crashes upstream R 0.1.3)"
       ]
     }
   ],

@@ -67,16 +67,28 @@ export function rateToDdiValue(rate: number, unitSystem: "imperial" | "metric", 
 }
 
 function escapeXml(value: string): string {
-  return value
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;");
+  return (
+    value
+      // XML 1.0 forbids C0 control characters except tab/LF/CR — strip them
+      // rather than emit an unparseable document.
+      .replace(CONTROL_CHARS_RE, "")
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+  );
 }
+
+const CONTROL_CHARS_RE = /[\u0000-\u0008\u000b\u000c\u000e-\u001f]/g;
 
 function ringToPnt(ring: ReadonlyArray<readonly [number, number]>): string {
   return ring
-    .map(([lon, lat]) => `<PNT A="2" C="${lat.toFixed(9)}" D="${lon.toFixed(9)}"/>`)
+    .map(([lon, lat]) => {
+      if (!Number.isFinite(lon) || !Number.isFinite(lat)) {
+        throw new ExportError(`writeIsoxml: non-finite coordinate [${lon}, ${lat}]`);
+      }
+      return `<PNT A="2" C="${lat.toFixed(9)}" D="${lon.toFixed(9)}"/>`;
+    })
     .join("");
 }
 

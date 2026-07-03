@@ -10,7 +10,7 @@ import { TRIAL_DESIGN_FIELDS, AB_LINE_FIELDS } from "../src/exports/write-trial-
 import type { ShapefileFeatureInput } from "../src/exports/shapefile.js";
 import { writeShapefile } from "../src/exports/shapefile.js";
 import { loadTrialDesign } from "./exports-fixtures.js";
-import { readDbf, readShp } from "./exports-shp-reader.js";
+import { readDbf, readShp, readShpHeader } from "./exports-shp-reader.js";
 
 const ROOT = join(import.meta.dirname, "..");
 
@@ -56,6 +56,46 @@ describe("writeShapefile — trial-design layer (simple1, imperial)", () => {
     expect(shpResult.shapeType).toBe(5); // Polygon
     expect(shpResult.features.length).toBe(features.length);
     expect(dbfResult.records.length).toBe(features.length);
+  });
+
+  it("writes correct fixed .shp/.shx header fields (file code 9994 BE, file length in words BE, dataset bbox)", () => {
+    const shpResult = readShp(shp);
+    expect(shpResult.fileCode).toBe(9994);
+    expect(shpResult.fileLengthWords).toBe(shp.length / 2);
+
+    // Same 100-byte header layout on .shx (header-only read: .shx records
+    // are 8-byte index entries, not shape records).
+    const shxHeader = readShpHeader(shx);
+    expect(shxHeader.fileCode).toBe(9994);
+    expect(shxHeader.fileLengthWords).toBe(shx.length / 2);
+
+    // Dataset bbox must be the envelope of every coordinate in the file.
+    let xMin = Infinity;
+    let yMin = Infinity;
+    let xMax = -Infinity;
+    let yMax = -Infinity;
+    for (const feature of shpResult.features) {
+      for (const part of feature.parts) {
+        for (const [x, y] of part) {
+          xMin = Math.min(xMin, x);
+          yMin = Math.min(yMin, y);
+          xMax = Math.max(xMax, x);
+          yMax = Math.max(yMax, y);
+        }
+      }
+    }
+    expect(shpResult.bbox.xMin).toBeCloseTo(xMin, 12);
+    expect(shpResult.bbox.yMin).toBeCloseTo(yMin, 12);
+    expect(shpResult.bbox.xMax).toBeCloseTo(xMax, 12);
+    expect(shpResult.bbox.yMax).toBeCloseTo(yMax, 12);
+    // And match R's own header bbox for the same features (1e-7 deg).
+    const rShp = readShp(
+      new Uint8Array(readFileSync(join(ROOT, "fixtures/simple1/imperial/r-exports/trial-design-seed.shp"))),
+    );
+    expect(Math.abs(shpResult.bbox.xMin - rShp.bbox.xMin)).toBeLessThan(1e-7);
+    expect(Math.abs(shpResult.bbox.yMin - rShp.bbox.yMin)).toBeLessThan(1e-7);
+    expect(Math.abs(shpResult.bbox.xMax - rShp.bbox.xMax)).toBeLessThan(1e-7);
+    expect(Math.abs(shpResult.bbox.yMax - rShp.bbox.yMax)).toBeLessThan(1e-7);
   });
 
   it(".shx offsets/lengths agree with the .shp record table", () => {
@@ -232,6 +272,56 @@ describe("writeShapefile — error cases", () => {
       writeShapefile([{ geometry: lineGeom, properties: { ab_id: 1 } }], {
         geometryType: "polygon",
         fields: AB_LINE_FIELDS,
+      }),
+    ).toThrow(ExportError);
+  });
+
+  const squareGeom: Polygon = {
+    type: "Polygon",
+    coordinates: [
+      [
+        [0, 0],
+        [0, 1],
+        [1, 1],
+        [1, 0],
+        [0, 0],
+      ],
+    ],
+  };
+
+  it("throws ExportError on a DBF field name longer than 10 chars", () => {
+    expect(() =>
+      writeShapefile([{ geometry: squareGeom, properties: { verylongfieldname: 1 } }], {
+        geometryType: "polygon",
+        fields: [{ name: "verylongfieldname", type: "N", length: 9 }],
+      }),
+    ).toThrow(ExportError);
+  });
+
+  it("throws ExportError on a DBF field length above the single-byte maximum (255)", () => {
+    expect(() =>
+      writeShapefile([{ geometry: squareGeom, properties: { big: "x" } }], {
+        geometryType: "polygon",
+        fields: [{ name: "big", type: "C", length: 256 }],
+      }),
+    ).toThrow(ExportError);
+  });
+
+  it("throws ExportError on an empty geometry (zero rings/points)", () => {
+    const emptyGeom: Polygon = { type: "Polygon", coordinates: [] };
+    expect(() =>
+      writeShapefile([{ geometry: emptyGeom, properties: { ab_id: 1 } }], {
+        geometryType: "polygon",
+        fields: AB_LINE_FIELDS,
+      }),
+    ).toThrow(ExportError);
+  });
+
+  it("throws ExportError on null in a character ('C') field — '*' NA padding is numeric-only", () => {
+    expect(() =>
+      writeShapefile([{ geometry: squareGeom, properties: { label: null } }], {
+        geometryType: "polygon",
+        fields: [{ name: "label", type: "C", length: 20 }],
       }),
     ).toThrow(ExportError);
   });

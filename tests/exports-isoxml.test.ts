@@ -110,3 +110,84 @@ describe("writeIsoxml — 254-zone ceiling", () => {
     ).toThrow(ExportError);
   });
 });
+
+describe("writeIsoxml — metric units (hectare basis, kg and liters DDI mappings)", () => {
+  // A tiny synthetic TrialDesign: one plot at a known rate. Exercised through
+  // writeTrialFiles to cover the full metric ISOXML path end to end.
+  async function tinyMetricZip(rateUnit: string, rate: number) {
+    const { writeTrialFiles } = await import("../src/exports/write-trial-files.js");
+    const { unzipSync } = await import("fflate");
+    const geometry: Polygon = {
+      type: "Polygon",
+      coordinates: [
+        [
+          [-71.2, 46.8],
+          [-71.2, 46.801],
+          [-71.199, 46.801],
+          [-71.199, 46.8],
+          [-71.2, 46.8],
+        ],
+      ],
+    };
+    const base = loadTrialDesign("two-input", "metric", ["NH3"]);
+    const input = base.inputs[0]!;
+    const td = {
+      seed: 0,
+      inputs: [
+        {
+          ...input,
+          plotInfo: { ...input.plotInfo, input_name: "tiny", unit_system: "metric" as const },
+          rateInfo: { ...input.rateInfo!, unit: rateUnit },
+          plots: {
+            type: "FeatureCollection" as const,
+            features: [
+              {
+                type: "Feature" as const,
+                properties: { rate, strip_id: 1, plot_id: 1 },
+                geometry,
+              },
+            ],
+          },
+          headlands: { type: "FeatureCollection" as const, features: [] },
+        },
+      ],
+    };
+    const files = unzipSync(writeTrialFiles(td, { ext: "isoxml" }));
+    return new TextDecoder().decode(files["tiny/TASKDATA.XML"]!);
+  }
+
+  it("kg/ha -> DDI 0006 with mg/m2 conversion over 10 000 m2 (200 kg/ha -> 20000)", async () => {
+    // 200 kg/ha = 200e6 mg / 10 000 m2 = 20 000 mg/m2, resolution 1 -> 20000.
+    expect(rateToDdiValue(200, "metric", "kg")).toEqual({ ddiHex: "0006", raw: 20000 });
+    const xml = await tinyMetricZip("kg", 200);
+    const pdvs = parseTags(xml).filter((t) => t.name === "PDV");
+    expect(pdvs).toHaveLength(1);
+    expect(pdvs[0]!.attrs.A).toBe("0006");
+    expect(pdvs[0]!.attrs.B).toBe("20000");
+  });
+
+  it("liters/ha -> DDI 0001 with mm3/m2 conversion over 10 000 m2 (150 L/ha -> 1 500 000)", async () => {
+    // 150 L/ha = 150e6 mm3 / 10 000 m2 = 15 000 mm3/m2, resolution 0.01 -> 1 500 000.
+    expect(rateToDdiValue(150, "metric", "liters")).toEqual({ ddiHex: "0001", raw: 1_500_000 });
+    const xml = await tinyMetricZip("liters", 150);
+    const pdvs = parseTags(xml).filter((t) => t.name === "PDV");
+    expect(pdvs).toHaveLength(1);
+    expect(pdvs[0]!.attrs.A).toBe("0001");
+    expect(pdvs[0]!.attrs.B).toBe("1500000");
+  });
+
+  it("metric fixture NH3 (kg) flows through writeTrialFiles with DDI 0006", async () => {
+    const { writeTrialFiles } = await import("../src/exports/write-trial-files.js");
+    const { unzipSync } = await import("fflate");
+    const td = loadTrialDesign("two-input", "metric", ["seed", "NH3"]);
+    const files = unzipSync(writeTrialFiles(td, { ext: "isoxml" }));
+    const nh3Pdvs = parseTags(new TextDecoder().decode(files["NH3/TASKDATA.XML"]!)).filter(
+      (t) => t.name === "PDV",
+    );
+    expect(nh3Pdvs.length).toBeGreaterThan(0);
+    expect(nh3Pdvs.every((p) => p.attrs.A === "0006")).toBe(true);
+    const gcRate = td.inputs.find((i) => i.plotInfo.input_name === "NH3")!.rateInfo!.gc_rate;
+    const { raw } = rateToDdiValue(gcRate, "metric", "kg");
+    expect(nh3Pdvs.some((p) => p.attrs.B === String(raw))).toBe(true);
+  });
+});

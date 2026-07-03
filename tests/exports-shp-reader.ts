@@ -10,11 +10,41 @@ export interface ReadShpFeature {
 
 export interface ReadShpResult {
   shapeType: number;
+  /** Big-endian magic at offset 0 — must be 9994 per the ESRI spec. */
+  fileCode: number;
+  /** Big-endian file length at offset 24, in 16-bit words (bytes / 2). */
+  fileLengthWords: number;
+  /** Dataset bounding box from the 100-byte header (little-endian doubles). */
+  bbox: { xMin: number; yMin: number; xMax: number; yMax: number };
   features: ReadShpFeature[];
+}
+
+export interface ShpHeader {
+  fileCode: number;
+  fileLengthWords: number;
+  shapeType: number;
+  bbox: { xMin: number; yMin: number; xMax: number; yMax: number };
+}
+
+/** Reads only the 100-byte fixed header — shared layout between .shp and .shx. */
+export function readShpHeader(bytes: Uint8Array): ShpHeader {
+  const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+  return {
+    fileCode: view.getInt32(0, false),
+    fileLengthWords: view.getInt32(24, false),
+    shapeType: view.getInt32(32, true),
+    bbox: {
+      xMin: view.getFloat64(36, true),
+      yMin: view.getFloat64(44, true),
+      xMax: view.getFloat64(52, true),
+      yMax: view.getFloat64(60, true),
+    },
+  };
 }
 
 export function readShp(bytes: Uint8Array): ReadShpResult {
   const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+  const { fileCode, fileLengthWords, bbox } = readShpHeader(bytes);
   const shapeType = view.getInt32(32, true);
   const features: ReadShpFeature[] = [];
   let offset = 100;
@@ -51,7 +81,7 @@ export function readShp(bytes: Uint8Array): ReadShpResult {
     }
     offset = contentStart + contentLengthWords * 2;
   }
-  return { shapeType, features };
+  return { shapeType, fileCode, fileLengthWords, bbox, features };
 }
 
 export interface DbfFieldDef {

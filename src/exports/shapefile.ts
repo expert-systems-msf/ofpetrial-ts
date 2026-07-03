@@ -14,6 +14,9 @@
 // (fixtures/*/imperial/r-exports/*.shp) for header layout, ring winding and
 // DBF NA encoding (see comments below); an independent reader written for
 // the test suite re-parses this module's own output (no self-validation).
+// GDAL ogrinfo/ogr2ogr 3.13 verification was additionally run locally on
+// 2026-07-02 (one-time D7 "QGIS-openable" gate; the recurring gate is the
+// independent-reader test suite).
 import type { LineString, MultiLineString, MultiPolygon, Polygon } from "geojson";
 import { ExportError } from "../types.js";
 
@@ -116,6 +119,9 @@ interface Bbox {
 }
 
 function partsBbox(parts: Ring[]): Bbox {
+  if (parts.length === 0 || parts.every((p) => p.length === 0)) {
+    throw new ExportError("writeShapefile: feature has no rings/points (empty geometry)");
+  }
   let xMin = Infinity;
   let yMin = Infinity;
   let xMax = -Infinity;
@@ -238,9 +244,13 @@ function writeShpAndShx(
 // ---------------------------------------------------------------------------
 
 function padName(name: string): Uint8Array {
+  if (name.length > 10) {
+    throw new ExportError(
+      `DBF field name "${name}" exceeds 10 characters (dBase III name cell is 11 bytes incl. NUL)`,
+    );
+  }
   const bytes = new Uint8Array(11);
-  const truncated = name.slice(0, 10);
-  for (let i = 0; i < truncated.length; i++) bytes[i] = truncated.charCodeAt(i);
+  for (let i = 0; i < name.length; i++) bytes[i] = name.charCodeAt(i);
   return bytes;
 }
 
@@ -251,10 +261,17 @@ function padName(name: string): Uint8Array {
  * (verified byte-for-byte against fixtures/simple1/imperial/r-exports/
  * trial-design-seed.dbf's headland row: strip_id/plot_id are `null` in R
  * and stored as 18 '*' characters, i.e. two 9-wide fields fully starred).
+ * The '*' NA convention only exists for numeric fields; a null on a "C"
+ * field has no dBase encoding here and throws.
  */
 function formatField(value: number | string | null, field: ShapefileFieldSpec): string {
   const { type, length, decimals = 0 } = field;
   if (value === null) {
+    if (type !== "N") {
+      throw new ExportError(
+        `DBF field "${field.name}": null is only supported on numeric ("N") fields`,
+      );
+    }
     return "*".repeat(length);
   }
   if (type === "C") {
@@ -270,6 +287,15 @@ function formatField(value: number | string | null, field: ShapefileFieldSpec): 
 }
 
 function writeDbf(features: ShapefileFeatureInput[], fields: ShapefileFieldSpec[]): Uint8Array {
+  for (const field of fields) {
+    // The DBF field-length descriptor is a single byte: lengths > 255 would
+    // silently wrap. (padName rejects names > 10 chars for the same reason.)
+    if (field.length > 255) {
+      throw new ExportError(
+        `DBF field "${field.name}" length ${field.length} exceeds the single-byte maximum (255)`,
+      );
+    }
+  }
   const numFields = fields.length;
   const headerSize = 32 + 32 * numFields + 1;
   const recordSize = 1 + fields.reduce((n, f) => n + f.length, 0);

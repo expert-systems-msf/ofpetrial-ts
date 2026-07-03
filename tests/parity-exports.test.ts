@@ -55,95 +55,111 @@ function assertLayerParity(
   });
 }
 
-describe("writeTrialFiles(ext=shp) — two-input R parity (imperial)", () => {
-  const td = loadTrialDesign("two-input", "imperial", ["seed", "NH3"]);
-  const zip = writeTrialFiles(td, { ext: "shp" });
-  const files = unzipSync(zip);
+// D9: strict imperial/metric equality — every parity case runs in both unit
+// systems. simple1's design geojson lives under <case>/<unit>/seed/, the
+// two-input case under <case>/<unit>/{seed,NH3}/.
+const CASES = [
+  { caseDir: "simple1", inputs: ["seed"] },
+  { caseDir: "two-input", inputs: ["seed", "NH3"] },
+] as const;
+const UNITS = ["imperial", "metric"] as const;
 
-  it("seed and NH3 trial-design layers match R's trial-design-{seed,NH3}.shp/.dbf", () => {
-    for (const inputName of ["seed", "NH3"]) {
-      const ours = {
-        shp: readShp(files[`${inputName}/${inputName}.shp`]!),
-        dbf: readDbf(files[`${inputName}/${inputName}.dbf`]!),
-      };
-      const r = {
-        shp: loadRShp(`fixtures/two-input/imperial/r-exports/trial-design-${inputName}.shp`),
-        dbf: loadRDbf(`fixtures/two-input/imperial/r-exports/trial-design-${inputName}.dbf`),
-      };
-      assertLayerParity(ours, r);
-    }
-  });
+for (const { caseDir, inputs } of CASES) {
+  for (const unit of UNITS) {
+    describe(`writeTrialFiles(ext=shp) — ${caseDir} R parity (${unit})`, () => {
+      const td = loadTrialDesign(caseDir, unit, [...inputs]);
+      const zip = writeTrialFiles(td, { ext: "shp" });
+      const files = unzipSync(zip);
 
-  it("ab-line layers match R's ab-line-{seed,NH3}.shp/.dbf", () => {
-    for (const inputName of ["seed", "NH3"]) {
-      const oursDbf = readDbf(files[`${inputName}/ab-line.dbf`]!);
-      const rDbf = loadRDbf(`fixtures/two-input/imperial/r-exports/ab-line-${inputName}.dbf`);
-      expect(oursDbf.records).toEqual(rDbf.records);
-    }
-  });
+      it(`trial-design layers match R's trial-design-{${inputs.join(",")}}.shp/.dbf`, () => {
+        for (const inputName of inputs) {
+          const ours = {
+            shp: readShp(files[`${inputName}/${inputName}.shp`]!),
+            dbf: readDbf(files[`${inputName}/${inputName}.dbf`]!),
+          };
+          const r = {
+            shp: loadRShp(`fixtures/${caseDir}/${unit}/r-exports/trial-design-${inputName}.shp`),
+            dbf: loadRDbf(`fixtures/${caseDir}/${unit}/r-exports/trial-design-${inputName}.dbf`),
+          };
+          assertLayerParity(ours, r);
+        }
+      });
 
-  it("harvester ab-line matches R's ab-line-harvester.shp/.dbf (written once, from the first input)", () => {
-    const oursShp = readShp(files["harvester-ab-line/harvester-ab-line.shp"]!);
-    const rShp = loadRShp("fixtures/two-input/imperial/r-exports/ab-line-harvester.shp");
-    expect(oursShp.features.length).toBe(rShp.features.length);
-    oursShp.features[0]!.parts[0]!.forEach(([x, y], i) => {
-      const [rx, ry] = rShp.features[0]!.parts[0]![i]!;
-      expect(Math.abs(x - rx)).toBeLessThan(1e-7);
-      expect(Math.abs(y - ry)).toBeLessThan(1e-7);
-    });
-  });
+      it("ab-line layers match R's ab-line-*.shp/.dbf", () => {
+        for (const inputName of inputs) {
+          const oursDbf = readDbf(files[`${inputName}/ab-line.dbf`]!);
+          const rDbf = loadRDbf(`fixtures/${caseDir}/${unit}/r-exports/ab-line-${inputName}.dbf`);
+          expect(oursDbf.records).toEqual(rDbf.records);
+        }
+      });
 
-  it("every .prj is R's exact WGS84 WKT", () => {
-    const rPrj = readFileSync(join(ROOT, "fixtures/two-input/imperial/r-exports/trial-design-seed.prj"), "utf8");
-    for (const path of Object.keys(files)) {
-      if (path.endsWith(".prj")) {
-        expect(new TextDecoder().decode(files[path]!)).toBe(rPrj);
-      }
-    }
-  });
-});
+      it("harvester ab-line matches R's ab-line-harvester.shp (written once, from the first input)", () => {
+        const oursShp = readShp(files["harvester-ab-line/harvester-ab-line.shp"]!);
+        const rShp = loadRShp(`fixtures/${caseDir}/${unit}/r-exports/ab-line-harvester.shp`);
+        expect(oursShp.features.length).toBe(rShp.features.length);
+        oursShp.features[0]!.parts[0]!.forEach(([x, y], i) => {
+          const [rx, ry] = rShp.features[0]!.parts[0]![i]!;
+          expect(Math.abs(x - rx)).toBeLessThan(1e-7);
+          expect(Math.abs(y - ry)).toBeLessThan(1e-7);
+        });
+      });
 
-describe("writeGeoJson — two-input fixture parity (imperial)", () => {
-  it("seed and NH3 layers match their frozen trial-design.geojson (feature count + headland rate)", () => {
-    const td = loadTrialDesign("two-input", "imperial", ["seed", "NH3"]);
-    for (const inputName of ["seed", "NH3"]) {
-      const input = td.inputs.find((i) => i.plotInfo.input_name === inputName)!;
-      const features = [
-        ...input.plots.features.map((f) => ({
-          geometry: f.geometry as never,
-          properties: {
-            rate: (f.properties as { rate: number }).rate,
-            strip_id: (f.properties as { strip_id: number }).strip_id,
-            plot_id: (f.properties as { plot_id: number }).plot_id,
-            type: "experiment",
-          },
-        })),
-        ...input.headlands.features.map((f) => ({
-          geometry: f.geometry as never,
-          properties: {
-            rate: (f.properties as { rate: number }).rate,
-            strip_id: null,
-            plot_id: null,
-            type: "headland",
-          },
-        })),
-      ];
-      const fc = JSON.parse(new TextDecoder().decode(writeGeoJson(features))) as {
-        features: Array<{ properties: { type: string; rate: number } }>;
-      };
-      const fixture = JSON.parse(
-        readFileSync(
-          join(ROOT, `fixtures/two-input/imperial/${inputName}/trial-design.geojson`),
+      it("every .prj is R's exact WGS84 WKT", () => {
+        const rPrj = readFileSync(
+          join(ROOT, `fixtures/${caseDir}/${unit}/r-exports/trial-design-seed.prj`),
           "utf8",
-        ),
-      ) as { features: Array<{ properties: { type: string; rate: number } } >};
-      expect(fc.features.length).toBe(fixture.features.length);
-      const ourHeadland = fc.features.find((f) => f.properties.type === "headland")!;
-      const fixtureHeadland = fixture.features.find((f) => f.properties.type === "headland")!;
-      expect(ourHeadland.properties.rate).toBeCloseTo(fixtureHeadland.properties.rate, 6);
-    }
-  });
-});
+        );
+        for (const path of Object.keys(files)) {
+          if (path.endsWith(".prj")) {
+            expect(new TextDecoder().decode(files[path]!)).toBe(rPrj);
+          }
+        }
+      });
+    });
+
+    describe(`writeGeoJson — ${caseDir} fixture parity (${unit})`, () => {
+      it("layers match their frozen trial-design.geojson (feature count + headland rate)", () => {
+        const td = loadTrialDesign(caseDir, unit, [...inputs]);
+        for (const inputName of inputs) {
+          const input = td.inputs.find((i) => i.plotInfo.input_name === inputName)!;
+          const features = [
+            ...input.plots.features.map((f) => ({
+              geometry: f.geometry as never,
+              properties: {
+                rate: (f.properties as { rate: number }).rate,
+                strip_id: (f.properties as { strip_id: number }).strip_id,
+                plot_id: (f.properties as { plot_id: number }).plot_id,
+                type: "experiment",
+              },
+            })),
+            ...input.headlands.features.map((f) => ({
+              geometry: f.geometry as never,
+              properties: {
+                rate: (f.properties as { rate: number }).rate,
+                strip_id: null,
+                plot_id: null,
+                type: "headland",
+              },
+            })),
+          ];
+          const fc = JSON.parse(new TextDecoder().decode(writeGeoJson(features))) as {
+            features: Array<{ properties: { type: string; rate: number } }>;
+          };
+          const fixture = JSON.parse(
+            readFileSync(
+              join(ROOT, `fixtures/${caseDir}/${unit}/${inputName}/trial-design.geojson`),
+              "utf8",
+            ),
+          ) as { features: Array<{ properties: { type: string; rate: number } } >};
+          expect(fc.features.length).toBe(fixture.features.length);
+          const ourHeadland = fc.features.find((f) => f.properties.type === "headland")!;
+          const fixtureHeadland = fixture.features.find((f) => f.properties.type === "headland")!;
+          expect(ourHeadland.properties.rate).toBeCloseTo(fixtureHeadland.properties.rate, 6);
+        }
+      });
+    });
+  }
+}
 
 describe("writeTrialFiles(ext=isoxml) — two-input DDI mapping (imperial)", () => {
   it("picks DDI 000B for seed (count) and 0006 for NH3 (mass), per docs/isoxml-units.md", () => {
