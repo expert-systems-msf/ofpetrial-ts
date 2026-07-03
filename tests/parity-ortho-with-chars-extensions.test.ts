@@ -435,9 +435,7 @@ describe("checkOrthoWithChars mixed numeric + factor vars", () => {
 describe("SoilFragment shape validation (DX)", () => {
   it("rejects flat fragment rows with a ValidationError explaining the mapping", () => {
     const td = loadTrialDesign("simple1", "imperial", ["seed"]);
-    const flatRows = [
-      { plotKey: "1:1", rate: 34_000, clay: 25.1 },
-    ] as unknown as SoilFragment[];
+    const flatRows = [{ plotKey: "1:1", rate: 34_000, clay: 25.1 }] as unknown as SoilFragment[];
     expect(() => checkOrthoWithChars(td, flatRows, ["clay"])).toThrow(ValidationError);
     expect(() => checkOrthoWithChars(td, flatRows, ["clay"])).toThrow(/values/);
   });
