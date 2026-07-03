@@ -32,6 +32,42 @@ jobs:
       - run: bun run test
       # parity-map completeness check runs ONLY on publish tags (spec: r-parity-harness)
       - run: bun run tools/check-parity-map.ts
+      # package-quality gates: publint, attw, tarball whitelist
+      - run: bun run check:package
+      # production-dependency security audit (high+ only; dev deps excluded).
+      # bun repo has no package-lock: generate an ephemeral one for the audit.
+      # An audit-endpoint outage warns instead of blocking the release; real
+      # vulnerabilities still fail the job.
+      - run: |
+          npm install --package-lock-only --ignore-scripts >/dev/null
+          set +e
+          OUT="$(npm audit --omit=dev --audit-level=high 2>&1)"
+          CODE=$?
+          set -e
+          rm -f package-lock.json
+          echo "$OUT"
+          if [ $CODE -ne 0 ]; then
+            if echo "$OUT" | grep -q "audit endpoint returned an error"; then
+              echo "::warning::npm audit endpoint unavailable — audit skipped"
+            else
+              exit $CODE
+            fi
+          fi
+      # real-install smoke: pack the tarball, install it in a blank project,
+      # import it the way a user would
+      - run: |
+          npm pack
+          SMOKE="$(mktemp -d)"
+          TARBALL="$PWD/$(ls ofpetrial-ts-*.tgz)"
+          cd "$SMOKE"
+          npm init -y >/dev/null
+          npm install "$TARBALL" >/dev/null
+          node --input-type=module -e "
+            import { OFPETRIAL_R_VERSION, prepPlot } from 'ofpetrial-ts';
+            const pi = prepPlot({ inputName: 'seed', unitSystem: 'imperial', machineWidth: 60, sectionNum: 24, harvesterWidth: 30 });
+            if (OFPETRIAL_R_VERSION !== '0.1.3' || pi.plot_width <= 0) throw new Error('install smoke failed');
+            console.log('install smoke OK');
+          "
       - run: npm publish --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

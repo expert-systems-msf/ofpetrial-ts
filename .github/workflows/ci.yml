@@ -19,6 +19,9 @@ jobs:
       - run: bun run typecheck
       - run: bun run lint
       - run: bun run test
+      # package-quality gates: publint (exports/ESM), attw (types as consumers
+      # resolve them), tarball whitelist guard
+      - run: bun run check:package
       - uses: denoland/setup-deno@v2
         with:
           deno-version: v2.x
