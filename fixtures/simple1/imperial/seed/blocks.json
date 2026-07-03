@@ -1,0 +1,2683 @@
+[
+  {
+    "strip_id": 1,
+    "plot_id": 1,
+    "type": "experiment",
+    "block_id": 1,
+    "plot_id_within_block": 1
+  },
+  {
+    "strip_id": 1,
+    "plot_id": 2,
+    "type": "experiment",
+    "block_id": 1,
+    "plot_id_within_block": 2
+  },
+  {
+    "strip_id": 1,
+    "plot_id": 3,
+    "type": "experiment",
+    "block_id": 1,
+    "plot_id_within_block": 3
+  },
+  {
+    "strip_id": 1,
+    "plot_id": 4,
+    "type": "experiment",
+    "block_id": 1,
+    "plot_id_within_block": 4
+  },
+  {
+    "strip_id": 1,
+    "plot_id": 5,
+    "type": "experiment",
+    "block_id": 1,
+    "plot_id_within_block": 5
+  },
+  {
+    "strip_id": 1,
+    "plot_id": 6,
+    "type": "experiment",
+    "block_id": 2,
+    "plot_id_within_block": 1
+  },
+  {
+    "strip_id": 1,
+    "plot_id": 7,
+    "type": "experiment",
+    "block_id": 2,
+    "plot_id_within_block": 2
+  },
+  {
+    "strip_id": 1,
+    "plot_id": 8,
+    "type": "experiment",
+    "block_id": 2,
+    "plot_id_within_block": 3
+  },
+  {
+    "strip_id": 1,
+    "plot_id": 9,
+    "type": "experiment",
+    "block_id": 2,
+    "plot_id_within_block": 4
+  },
+  {
+    "strip_id": 1,
+    "plot_id": 10,
+    "type": "experiment",
+    "block_id": 2,
+    "plot_id_within_block": 5
+  },
+  {
+    "strip_id": 2,
+    "plot_id": 1,
+    "type": "experiment",
+    "block_id": 1,
+    "plot_id_within_block": 6
+  },
+  {
+    "strip_id": 2,
+    "plot_id": 2,
+    "type": "experiment",
+    "block_id": 1,
+    "plot_id_within_block": 7
+  },
+  {
+    "strip_id": 2,
+    "plot_id": 3,
+    "type": "experiment",
+    "block_id": 1,
+    "plot_id_within_block": 8
+  },
+  {
+    "strip_id": 2,
+    "plot_id": 4,
+    "type": "experiment",
+    "block_id": 1,
+    "plot_id_within_block": 9
+  },
+  {
+    "strip_id": 2,
+    "plot_id": 5,
+    "type": "experiment",
+    "block_id": 1,
+    "plot_id_within_block": 10
+  },
+  {
+    "strip_id": 2,
+    "plot_id": 6,
+    "type": "experiment",
+    "block_id": 2,
+    "plot_id_within_block": 6
+  },
+  {
+    "strip_id": 2,
+    "plot_id": 7,
+    "type": "experiment",
+    "block_id": 2,
+    "plot_id_within_block": 7
+  },
+  {
+    "strip_id": 2,
+    "plot_id": 8,
+    "type": "experiment",
+    "block_id": 2,
+    "plot_id_within_block": 8
+  },
+  {
+    "strip_id": 2,
+    "plot_id": 9,
+    "type": "experiment",
+    "block_id": 2,
+    "plot_id_within_block": 9
+  },
+  {
+    "strip_id": 2,
+    "plot_id": 10,
+    "type": "experiment",
+    "block_id": 2,
+    "plot_id_within_block": 10
+  },
+  {
+    "strip_id": 3,
+    "plot_id": 1,
+    "type": "experiment",
+    "block_id": 1,
+    "plot_id_within_block": 11
+  },
+  {
+    "strip_id": 3,
+    "plot_id": 2,
+    "type": "experiment",
+    "block_id": 1,
+    "plot_id_within_block": 12
+  },
+  {
+    "strip_id": 3,
+    "plot_id": 3,
+    "type": "experiment",
+    "block_id": 1,
+    "plot_id_within_block": 13
+  },
+  {
+    "strip_id": 3,
+    "plot_id": 4,
+    "type": "experiment",
+    "block_id": 1,
+    "plot_id_within_block": 14
+  },
+  {
+    "strip_id": 3,
+    "plot_id": 5,
+    "type": "experiment",
+    "block_id": 1,
+    "plot_id_within_block": 15
+  },
+  {
+    "strip_id": 3,
+    "plot_id": 6,
+    "type": "experiment",
+    "block_id": 2,
+    "plot_id_within_block": 11
+  },
+  {
+    "strip_id": 3,
+    "plot_id": 7,
+    "type": "experiment",
+    "block_id": 2,
+    "plot_id_within_block": 12
+  },
+  {
+    "strip_id": 3,
+    "plot_id": 8,
+    "type": "experiment",
+    "block_id": 2,
+    "plot_id_within_block": 13
+  },
+  {
+    "strip_id": 3,
+    "plot_id": 9,
+    "type": "experiment",
+    "block_id": 2,
+    "plot_id_within_block": 14
+  },
+  {
+    "strip_id": 3,
+    "plot_id": 10,
+    "type": "experiment",
+    "block_id": 2,
+    "plot_id_within_block": 15
+  },
+  {
+    "strip_id": 4,
+    "plot_id": 1,
+    "type": "experiment",
+    "block_id": 1,
+    "plot_id_within_block": 16
+  },
+  {
+    "strip_id": 4,
+    "plot_id": 2,
+    "type": "experiment",
+    "block_id": 1,
+    "plot_id_within_block": 17
+  },
+  {
+    "strip_id": 4,
+    "plot_id": 3,
+    "type": "experiment",
+    "block_id": 1,
+    "plot_id_within_block": 18
+  },
+  {
+    "strip_id": 4,
+    "plot_id": 4,
+    "type": "experiment",
+    "block_id": 1,
+    "plot_id_within_block": 19
+  },
+  {
+    "strip_id": 4,
+    "plot_id": 5,
+    "type": "experiment",
+    "block_id": 1,
+    "plot_id_within_block": 20
+  },
+  {
+    "strip_id": 4,
+    "plot_id": 6,
+    "type": "experiment",
+    "block_id": 2,
+    "plot_id_within_block": 16
+  },
+  {
+    "strip_id": 4,
+    "plot_id": 7,
+    "type": "experiment",
+    "block_id": 2,
+    "plot_id_within_block": 17
+  },
+  {
+    "strip_id": 4,
+    "plot_id": 8,
+    "type": "experiment",
+    "block_id": 2,
+    "plot_id_within_block": 18
+  },
+  {
+    "strip_id": 4,
+    "plot_id": 9,
+    "type": "experiment",
+    "block_id": 2,
+    "plot_id_within_block": 19
+  },
+  {
+    "strip_id": 4,
+    "plot_id": 10,
+    "type": "experiment",
+    "block_id": 2,
+    "plot_id_within_block": 20
+  },
+  {
+    "strip_id": 5,
+    "plot_id": 1,
+    "type": "experiment",
+    "block_id": 1,
+    "plot_id_within_block": 21
+  },
+  {
+    "strip_id": 5,
+    "plot_id": 2,
+    "type": "experiment",
+    "block_id": 1,
+    "plot_id_within_block": 22
+  },
+  {
+    "strip_id": 5,
+    "plot_id": 3,
+    "type": "experiment",
+    "block_id": 1,
+    "plot_id_within_block": 23
+  },
+  {
+    "strip_id": 5,
+    "plot_id": 4,
+    "type": "experiment",
+    "block_id": 1,
+    "plot_id_within_block": 24
+  },
+  {
+    "strip_id": 5,
+    "plot_id": 5,
+    "type": "experiment",
+    "block_id": 1,
+    "plot_id_within_block": 25
+  },
+  {
+    "strip_id": 5,
+    "plot_id": 6,
+    "type": "experiment",
+    "block_id": 2,
+    "plot_id_within_block": 21
+  },
+  {
+    "strip_id": 5,
+    "plot_id": 7,
+    "type": "experiment",
+    "block_id": 2,
+    "plot_id_within_block": 22
+  },
+  {
+    "strip_id": 5,
+    "plot_id": 8,
+    "type": "experiment",
+    "block_id": 2,
+    "plot_id_within_block": 23
+  },
+  {
+    "strip_id": 5,
+    "plot_id": 9,
+    "type": "experiment",
+    "block_id": 2,
+    "plot_id_within_block": 24
+  },
+  {
+    "strip_id": 5,
+    "plot_id": 10,
+    "type": "experiment",
+    "block_id": 2,
+    "plot_id_within_block": 25
+  },
+  {
+    "strip_id": 6,
+    "plot_id": 1,
+    "type": "experiment",
+    "block_id": 3,
+    "plot_id_within_block": 1
+  },
+  {
+    "strip_id": 6,
+    "plot_id": 2,
+    "type": "experiment",
+    "block_id": 3,
+    "plot_id_within_block": 2
+  },
+  {
+    "strip_id": 6,
+    "plot_id": 3,
+    "type": "experiment",
+    "block_id": 3,
+    "plot_id_within_block": 3
+  },
+  {
+    "strip_id": 6,
+    "plot_id": 4,
+    "type": "experiment",
+    "block_id": 3,
+    "plot_id_within_block": 4
+  },
+  {
+    "strip_id": 6,
+    "plot_id": 5,
+    "type": "experiment",
+    "block_id": 3,
+    "plot_id_within_block": 5
+  },
+  {
+    "strip_id": 6,
+    "plot_id": 6,
+    "type": "experiment",
+    "block_id": 4,
+    "plot_id_within_block": 1
+  },
+  {
+    "strip_id": 6,
+    "plot_id": 7,
+    "type": "experiment",
+    "block_id": 4,
+    "plot_id_within_block": 2
+  },
+  {
+    "strip_id": 6,
+    "plot_id": 8,
+    "type": "experiment",
+    "block_id": 4,
+    "plot_id_within_block": 3
+  },
+  {
+    "strip_id": 6,
+    "plot_id": 9,
+    "type": "experiment",
+    "block_id": 4,
+    "plot_id_within_block": 4
+  },
+  {
+    "strip_id": 6,
+    "plot_id": 10,
+    "type": "experiment",
+    "block_id": 4,
+    "plot_id_within_block": 5
+  },
+  {
+    "strip_id": 7,
+    "plot_id": 1,
+    "type": "experiment",
+    "block_id": 3,
+    "plot_id_within_block": 6
+  },
+  {
+    "strip_id": 7,
+    "plot_id": 2,
+    "type": "experiment",
+    "block_id": 3,
+    "plot_id_within_block": 7
+  },
+  {
+    "strip_id": 7,
+    "plot_id": 3,
+    "type": "experiment",
+    "block_id": 3,
+    "plot_id_within_block": 8
+  },
+  {
+    "strip_id": 7,
+    "plot_id": 4,
+    "type": "experiment",
+    "block_id": 3,
+    "plot_id_within_block": 9
+  },
+  {
+    "strip_id": 7,
+    "plot_id": 5,
+    "type": "experiment",
+    "block_id": 3,
+    "plot_id_within_block": 10
+  },
+  {
+    "strip_id": 7,
+    "plot_id": 6,
+    "type": "experiment",
+    "block_id": 4,
+    "plot_id_within_block": 6
+  },
+  {
+    "strip_id": 7,
+    "plot_id": 7,
+    "type": "experiment",
+    "block_id": 4,
+    "plot_id_within_block": 7
+  },
+  {
+    "strip_id": 7,
+    "plot_id": 8,
+    "type": "experiment",
+    "block_id": 4,
+    "plot_id_within_block": 8
+  },
+  {
+    "strip_id": 7,
+    "plot_id": 9,
+    "type": "experiment",
+    "block_id": 4,
+    "plot_id_within_block": 9
+  },
+  {
+    "strip_id": 7,
+    "plot_id": 10,
+    "type": "experiment",
+    "block_id": 4,
+    "plot_id_within_block": 10
+  },
+  {
+    "strip_id": 8,
+    "plot_id": 1,
+    "type": "experiment",
+    "block_id": 3,
+    "plot_id_within_block": 11
+  },
+  {
+    "strip_id": 8,
+    "plot_id": 2,
+    "type": "experiment",
+    "block_id": 3,
+    "plot_id_within_block": 12
+  },
+  {
+    "strip_id": 8,
+    "plot_id": 3,
+    "type": "experiment",
+    "block_id": 3,
+    "plot_id_within_block": 13
+  },
+  {
+    "strip_id": 8,
+    "plot_id": 4,
+    "type": "experiment",
+    "block_id": 3,
+    "plot_id_within_block": 14
+  },
+  {
+    "strip_id": 8,
+    "plot_id": 5,
+    "type": "experiment",
+    "block_id": 3,
+    "plot_id_within_block": 15
+  },
+  {
+    "strip_id": 8,
+    "plot_id": 6,
+    "type": "experiment",
+    "block_id": 4,
+    "plot_id_within_block": 11
+  },
+  {
+    "strip_id": 8,
+    "plot_id": 7,
+    "type": "experiment",
+    "block_id": 4,
+    "plot_id_within_block": 12
+  },
+  {
+    "strip_id": 8,
+    "plot_id": 8,
+    "type": "experiment",
+    "block_id": 4,
+    "plot_id_within_block": 13
+  },
+  {
+    "strip_id": 8,
+    "plot_id": 9,
+    "type": "experiment",
+    "block_id": 4,
+    "plot_id_within_block": 14
+  },
+  {
+    "strip_id": 8,
+    "plot_id": 10,
+    "type": "experiment",
+    "block_id": 4,
+    "plot_id_within_block": 15
+  },
+  {
+    "strip_id": 9,
+    "plot_id": 1,
+    "type": "experiment",
+    "block_id": 3,
+    "plot_id_within_block": 16
+  },
+  {
+    "strip_id": 9,
+    "plot_id": 2,
+    "type": "experiment",
+    "block_id": 3,
+    "plot_id_within_block": 17
+  },
+  {
+    "strip_id": 9,
+    "plot_id": 3,
+    "type": "experiment",
+    "block_id": 3,
+    "plot_id_within_block": 18
+  },
+  {
+    "strip_id": 9,
+    "plot_id": 4,
+    "type": "experiment",
+    "block_id": 3,
+    "plot_id_within_block": 19
+  },
+  {
+    "strip_id": 9,
+    "plot_id": 5,
+    "type": "experiment",
+    "block_id": 3,
+    "plot_id_within_block": 20
+  },
+  {
+    "strip_id": 9,
+    "plot_id": 6,
+    "type": "experiment",
+    "block_id": 4,
+    "plot_id_within_block": 16
+  },
+  {
+    "strip_id": 9,
+    "plot_id": 7,
+    "type": "experiment",
+    "block_id": 4,
+    "plot_id_within_block": 17
+  },
+  {
+    "strip_id": 9,
+    "plot_id": 8,
+    "type": "experiment",
+    "block_id": 4,
+    "plot_id_within_block": 18
+  },
+  {
+    "strip_id": 9,
+    "plot_id": 9,
+    "type": "experiment",
+    "block_id": 4,
+    "plot_id_within_block": 19
+  },
+  {
+    "strip_id": 9,
+    "plot_id": 10,
+    "type": "experiment",
+    "block_id": 4,
+    "plot_id_within_block": 20
+  },
+  {
+    "strip_id": 10,
+    "plot_id": 1,
+    "type": "experiment",
+    "block_id": 3,
+    "plot_id_within_block": 21
+  },
+  {
+    "strip_id": 10,
+    "plot_id": 2,
+    "type": "experiment",
+    "block_id": 3,
+    "plot_id_within_block": 22
+  },
+  {
+    "strip_id": 10,
+    "plot_id": 3,
+    "type": "experiment",
+    "block_id": 3,
+    "plot_id_within_block": 23
+  },
+  {
+    "strip_id": 10,
+    "plot_id": 4,
+    "type": "experiment",
+    "block_id": 3,
+    "plot_id_within_block": 24
+  },
+  {
+    "strip_id": 10,
+    "plot_id": 5,
+    "type": "experiment",
+    "block_id": 3,
+    "plot_id_within_block": 25
+  },
+  {
+    "strip_id": 10,
+    "plot_id": 6,
+    "type": "experiment",
+    "block_id": 4,
+    "plot_id_within_block": 21
+  },
+  {
+    "strip_id": 10,
+    "plot_id": 7,
+    "type": "experiment",
+    "block_id": 4,
+    "plot_id_within_block": 22
+  },
+  {
+    "strip_id": 10,
+    "plot_id": 8,
+    "type": "experiment",
+    "block_id": 4,
+    "plot_id_within_block": 23
+  },
+  {
+    "strip_id": 10,
+    "plot_id": 9,
+    "type": "experiment",
+    "block_id": 4,
+    "plot_id_within_block": 24
+  },
+  {
+    "strip_id": 10,
+    "plot_id": 10,
+    "type": "experiment",
+    "block_id": 4,
+    "plot_id_within_block": 25
+  },
+  {
+    "strip_id": 11,
+    "plot_id": 1,
+    "type": "experiment",
+    "block_id": 5,
+    "plot_id_within_block": 1
+  },
+  {
+    "strip_id": 11,
+    "plot_id": 2,
+    "type": "experiment",
+    "block_id": 5,
+    "plot_id_within_block": 2
+  },
+  {
+    "strip_id": 11,
+    "plot_id": 3,
+    "type": "experiment",
+    "block_id": 5,
+    "plot_id_within_block": 3
+  },
+  {
+    "strip_id": 11,
+    "plot_id": 4,
+    "type": "experiment",
+    "block_id": 5,
+    "plot_id_within_block": 4
+  },
+  {
+    "strip_id": 11,
+    "plot_id": 5,
+    "type": "experiment",
+    "block_id": 5,
+    "plot_id_within_block": 5
+  },
+  {
+    "strip_id": 11,
+    "plot_id": 6,
+    "type": "experiment",
+    "block_id": 6,
+    "plot_id_within_block": 1
+  },
+  {
+    "strip_id": 11,
+    "plot_id": 7,
+    "type": "experiment",
+    "block_id": 6,
+    "plot_id_within_block": 2
+  },
+  {
+    "strip_id": 11,
+    "plot_id": 8,
+    "type": "experiment",
+    "block_id": 6,
+    "plot_id_within_block": 3
+  },
+  {
+    "strip_id": 11,
+    "plot_id": 9,
+    "type": "experiment",
+    "block_id": 6,
+    "plot_id_within_block": 4
+  },
+  {
+    "strip_id": 11,
+    "plot_id": 10,
+    "type": "experiment",
+    "block_id": 6,
+    "plot_id_within_block": 5
+  },
+  {
+    "strip_id": 12,
+    "plot_id": 1,
+    "type": "experiment",
+    "block_id": 5,
+    "plot_id_within_block": 6
+  },
+  {
+    "strip_id": 12,
+    "plot_id": 2,
+    "type": "experiment",
+    "block_id": 5,
+    "plot_id_within_block": 7
+  },
+  {
+    "strip_id": 12,
+    "plot_id": 3,
+    "type": "experiment",
+    "block_id": 5,
+    "plot_id_within_block": 8
+  },
+  {
+    "strip_id": 12,
+    "plot_id": 4,
+    "type": "experiment",
+    "block_id": 5,
+    "plot_id_within_block": 9
+  },
+  {
+    "strip_id": 12,
+    "plot_id": 5,
+    "type": "experiment",
+    "block_id": 5,
+    "plot_id_within_block": 10
+  },
+  {
+    "strip_id": 12,
+    "plot_id": 6,
+    "type": "experiment",
+    "block_id": 6,
+    "plot_id_within_block": 6
+  },
+  {
+    "strip_id": 12,
+    "plot_id": 7,
+    "type": "experiment",
+    "block_id": 6,
+    "plot_id_within_block": 7
+  },
+  {
+    "strip_id": 12,
+    "plot_id": 8,
+    "type": "experiment",
+    "block_id": 6,
+    "plot_id_within_block": 8
+  },
+  {
+    "strip_id": 12,
+    "plot_id": 9,
+    "type": "experiment",
+    "block_id": 6,
+    "plot_id_within_block": 9
+  },
+  {
+    "strip_id": 12,
+    "plot_id": 10,
+    "type": "experiment",
+    "block_id": 6,
+    "plot_id_within_block": 10
+  },
+  {
+    "strip_id": 13,
+    "plot_id": 1,
+    "type": "experiment",
+    "block_id": 5,
+    "plot_id_within_block": 11
+  },
+  {
+    "strip_id": 13,
+    "plot_id": 2,
+    "type": "experiment",
+    "block_id": 5,
+    "plot_id_within_block": 12
+  },
+  {
+    "strip_id": 13,
+    "plot_id": 3,
+    "type": "experiment",
+    "block_id": 5,
+    "plot_id_within_block": 13
+  },
+  {
+    "strip_id": 13,
+    "plot_id": 4,
+    "type": "experiment",
+    "block_id": 5,
+    "plot_id_within_block": 14
+  },
+  {
+    "strip_id": 13,
+    "plot_id": 5,
+    "type": "experiment",
+    "block_id": 5,
+    "plot_id_within_block": 15
+  },
+  {
+    "strip_id": 13,
+    "plot_id": 6,
+    "type": "experiment",
+    "block_id": 6,
+    "plot_id_within_block": 11
+  },
+  {
+    "strip_id": 13,
+    "plot_id": 7,
+    "type": "experiment",
+    "block_id": 6,
+    "plot_id_within_block": 12
+  },
+  {
+    "strip_id": 13,
+    "plot_id": 8,
+    "type": "experiment",
+    "block_id": 6,
+    "plot_id_within_block": 13
+  },
+  {
+    "strip_id": 13,
+    "plot_id": 9,
+    "type": "experiment",
+    "block_id": 6,
+    "plot_id_within_block": 14
+  },
+  {
+    "strip_id": 13,
+    "plot_id": 10,
+    "type": "experiment",
+    "block_id": 6,
+    "plot_id_within_block": 15
+  },
+  {
+    "strip_id": 14,
+    "plot_id": 1,
+    "type": "experiment",
+    "block_id": 5,
+    "plot_id_within_block": 16
+  },
+  {
+    "strip_id": 14,
+    "plot_id": 2,
+    "type": "experiment",
+    "block_id": 5,
+    "plot_id_within_block": 17
+  },
+  {
+    "strip_id": 14,
+    "plot_id": 3,
+    "type": "experiment",
+    "block_id": 5,
+    "plot_id_within_block": 18
+  },
+  {
+    "strip_id": 14,
+    "plot_id": 4,
+    "type": "experiment",
+    "block_id": 5,
+    "plot_id_within_block": 19
+  },
+  {
+    "strip_id": 14,
+    "plot_id": 5,
+    "type": "experiment",
+    "block_id": 5,
+    "plot_id_within_block": 20
+  },
+  {
+    "strip_id": 14,
+    "plot_id": 6,
+    "type": "experiment",
+    "block_id": 6,
+    "plot_id_within_block": 16
+  },
+  {
+    "strip_id": 14,
+    "plot_id": 7,
+    "type": "experiment",
+    "block_id": 6,
+    "plot_id_within_block": 17
+  },
+  {
+    "strip_id": 14,
+    "plot_id": 8,
+    "type": "experiment",
+    "block_id": 6,
+    "plot_id_within_block": 18
+  },
+  {
+    "strip_id": 14,
+    "plot_id": 9,
+    "type": "experiment",
+    "block_id": 6,
+    "plot_id_within_block": 19
+  },
+  {
+    "strip_id": 15,
+    "plot_id": 1,
+    "type": "experiment",
+    "block_id": 5,
+    "plot_id_within_block": 21
+  },
+  {
+    "strip_id": 15,
+    "plot_id": 2,
+    "type": "experiment",
+    "block_id": 5,
+    "plot_id_within_block": 22
+  },
+  {
+    "strip_id": 15,
+    "plot_id": 3,
+    "type": "experiment",
+    "block_id": 5,
+    "plot_id_within_block": 23
+  },
+  {
+    "strip_id": 15,
+    "plot_id": 4,
+    "type": "experiment",
+    "block_id": 5,
+    "plot_id_within_block": 24
+  },
+  {
+    "strip_id": 15,
+    "plot_id": 5,
+    "type": "experiment",
+    "block_id": 5,
+    "plot_id_within_block": 25
+  },
+  {
+    "strip_id": 15,
+    "plot_id": 6,
+    "type": "experiment",
+    "block_id": 6,
+    "plot_id_within_block": 20
+  },
+  {
+    "strip_id": 15,
+    "plot_id": 7,
+    "type": "experiment",
+    "block_id": 6,
+    "plot_id_within_block": 21
+  },
+  {
+    "strip_id": 15,
+    "plot_id": 8,
+    "type": "experiment",
+    "block_id": 6,
+    "plot_id_within_block": 22
+  },
+  {
+    "strip_id": 15,
+    "plot_id": 9,
+    "type": "experiment",
+    "block_id": 6,
+    "plot_id_within_block": 23
+  },
+  {
+    "strip_id": 16,
+    "plot_id": 1,
+    "type": "experiment",
+    "block_id": 7,
+    "plot_id_within_block": 1
+  },
+  {
+    "strip_id": 16,
+    "plot_id": 2,
+    "type": "experiment",
+    "block_id": 7,
+    "plot_id_within_block": 2
+  },
+  {
+    "strip_id": 16,
+    "plot_id": 3,
+    "type": "experiment",
+    "block_id": 7,
+    "plot_id_within_block": 3
+  },
+  {
+    "strip_id": 16,
+    "plot_id": 4,
+    "type": "experiment",
+    "block_id": 7,
+    "plot_id_within_block": 4
+  },
+  {
+    "strip_id": 16,
+    "plot_id": 5,
+    "type": "experiment",
+    "block_id": 7,
+    "plot_id_within_block": 5
+  },
+  {
+    "strip_id": 16,
+    "plot_id": 6,
+    "type": "experiment",
+    "block_id": 8,
+    "plot_id_within_block": 1
+  },
+  {
+    "strip_id": 16,
+    "plot_id": 7,
+    "type": "experiment",
+    "block_id": 8,
+    "plot_id_within_block": 2
+  },
+  {
+    "strip_id": 16,
+    "plot_id": 8,
+    "type": "experiment",
+    "block_id": 8,
+    "plot_id_within_block": 3
+  },
+  {
+    "strip_id": 16,
+    "plot_id": 9,
+    "type": "experiment",
+    "block_id": 8,
+    "plot_id_within_block": 4
+  },
+  {
+    "strip_id": 17,
+    "plot_id": 1,
+    "type": "experiment",
+    "block_id": 7,
+    "plot_id_within_block": 6
+  },
+  {
+    "strip_id": 17,
+    "plot_id": 2,
+    "type": "experiment",
+    "block_id": 7,
+    "plot_id_within_block": 7
+  },
+  {
+    "strip_id": 17,
+    "plot_id": 3,
+    "type": "experiment",
+    "block_id": 7,
+    "plot_id_within_block": 8
+  },
+  {
+    "strip_id": 17,
+    "plot_id": 4,
+    "type": "experiment",
+    "block_id": 7,
+    "plot_id_within_block": 9
+  },
+  {
+    "strip_id": 17,
+    "plot_id": 5,
+    "type": "experiment",
+    "block_id": 7,
+    "plot_id_within_block": 10
+  },
+  {
+    "strip_id": 17,
+    "plot_id": 6,
+    "type": "experiment",
+    "block_id": 8,
+    "plot_id_within_block": 5
+  },
+  {
+    "strip_id": 17,
+    "plot_id": 7,
+    "type": "experiment",
+    "block_id": 8,
+    "plot_id_within_block": 6
+  },
+  {
+    "strip_id": 17,
+    "plot_id": 8,
+    "type": "experiment",
+    "block_id": 8,
+    "plot_id_within_block": 7
+  },
+  {
+    "strip_id": 17,
+    "plot_id": 9,
+    "type": "experiment",
+    "block_id": 8,
+    "plot_id_within_block": 8
+  },
+  {
+    "strip_id": 18,
+    "plot_id": 1,
+    "type": "experiment",
+    "block_id": 7,
+    "plot_id_within_block": 11
+  },
+  {
+    "strip_id": 18,
+    "plot_id": 2,
+    "type": "experiment",
+    "block_id": 7,
+    "plot_id_within_block": 12
+  },
+  {
+    "strip_id": 18,
+    "plot_id": 3,
+    "type": "experiment",
+    "block_id": 7,
+    "plot_id_within_block": 13
+  },
+  {
+    "strip_id": 18,
+    "plot_id": 4,
+    "type": "experiment",
+    "block_id": 7,
+    "plot_id_within_block": 14
+  },
+  {
+    "strip_id": 18,
+    "plot_id": 5,
+    "type": "experiment",
+    "block_id": 7,
+    "plot_id_within_block": 15
+  },
+  {
+    "strip_id": 18,
+    "plot_id": 6,
+    "type": "experiment",
+    "block_id": 8,
+    "plot_id_within_block": 9
+  },
+  {
+    "strip_id": 18,
+    "plot_id": 7,
+    "type": "experiment",
+    "block_id": 8,
+    "plot_id_within_block": 10
+  },
+  {
+    "strip_id": 18,
+    "plot_id": 8,
+    "type": "experiment",
+    "block_id": 8,
+    "plot_id_within_block": 11
+  },
+  {
+    "strip_id": 18,
+    "plot_id": 9,
+    "type": "experiment",
+    "block_id": 8,
+    "plot_id_within_block": 12
+  },
+  {
+    "strip_id": 19,
+    "plot_id": 1,
+    "type": "experiment",
+    "block_id": 7,
+    "plot_id_within_block": 16
+  },
+  {
+    "strip_id": 19,
+    "plot_id": 2,
+    "type": "experiment",
+    "block_id": 7,
+    "plot_id_within_block": 17
+  },
+  {
+    "strip_id": 19,
+    "plot_id": 3,
+    "type": "experiment",
+    "block_id": 7,
+    "plot_id_within_block": 18
+  },
+  {
+    "strip_id": 19,
+    "plot_id": 4,
+    "type": "experiment",
+    "block_id": 7,
+    "plot_id_within_block": 19
+  },
+  {
+    "strip_id": 19,
+    "plot_id": 5,
+    "type": "experiment",
+    "block_id": 7,
+    "plot_id_within_block": 20
+  },
+  {
+    "strip_id": 19,
+    "plot_id": 6,
+    "type": "experiment",
+    "block_id": 8,
+    "plot_id_within_block": 13
+  },
+  {
+    "strip_id": 19,
+    "plot_id": 7,
+    "type": "experiment",
+    "block_id": 8,
+    "plot_id_within_block": 14
+  },
+  {
+    "strip_id": 19,
+    "plot_id": 8,
+    "type": "experiment",
+    "block_id": 8,
+    "plot_id_within_block": 15
+  },
+  {
+    "strip_id": 19,
+    "plot_id": 9,
+    "type": "experiment",
+    "block_id": 8,
+    "plot_id_within_block": 16
+  },
+  {
+    "strip_id": 20,
+    "plot_id": 1,
+    "type": "experiment",
+    "block_id": 7,
+    "plot_id_within_block": 21
+  },
+  {
+    "strip_id": 20,
+    "plot_id": 2,
+    "type": "experiment",
+    "block_id": 7,
+    "plot_id_within_block": 22
+  },
+  {
+    "strip_id": 20,
+    "plot_id": 3,
+    "type": "experiment",
+    "block_id": 7,
+    "plot_id_within_block": 23
+  },
+  {
+    "strip_id": 20,
+    "plot_id": 4,
+    "type": "experiment",
+    "block_id": 7,
+    "plot_id_within_block": 24
+  },
+  {
+    "strip_id": 20,
+    "plot_id": 5,
+    "type": "experiment",
+    "block_id": 7,
+    "plot_id_within_block": 25
+  },
+  {
+    "strip_id": 20,
+    "plot_id": 6,
+    "type": "experiment",
+    "block_id": 8,
+    "plot_id_within_block": 17
+  },
+  {
+    "strip_id": 20,
+    "plot_id": 7,
+    "type": "experiment",
+    "block_id": 8,
+    "plot_id_within_block": 18
+  },
+  {
+    "strip_id": 20,
+    "plot_id": 8,
+    "type": "experiment",
+    "block_id": 8,
+    "plot_id_within_block": 19
+  },
+  {
+    "strip_id": 20,
+    "plot_id": 9,
+    "type": "experiment",
+    "block_id": 8,
+    "plot_id_within_block": 20
+  },
+  {
+    "strip_id": 21,
+    "plot_id": 1,
+    "type": "experiment",
+    "block_id": 9,
+    "plot_id_within_block": 1
+  },
+  {
+    "strip_id": 21,
+    "plot_id": 2,
+    "type": "experiment",
+    "block_id": 9,
+    "plot_id_within_block": 2
+  },
+  {
+    "strip_id": 21,
+    "plot_id": 3,
+    "type": "experiment",
+    "block_id": 9,
+    "plot_id_within_block": 3
+  },
+  {
+    "strip_id": 21,
+    "plot_id": 4,
+    "type": "experiment",
+    "block_id": 9,
+    "plot_id_within_block": 4
+  },
+  {
+    "strip_id": 21,
+    "plot_id": 5,
+    "type": "experiment",
+    "block_id": 9,
+    "plot_id_within_block": 5
+  },
+  {
+    "strip_id": 21,
+    "plot_id": 6,
+    "type": "experiment",
+    "block_id": 10,
+    "plot_id_within_block": 1
+  },
+  {
+    "strip_id": 21,
+    "plot_id": 7,
+    "type": "experiment",
+    "block_id": 10,
+    "plot_id_within_block": 2
+  },
+  {
+    "strip_id": 21,
+    "plot_id": 8,
+    "type": "experiment",
+    "block_id": 10,
+    "plot_id_within_block": 3
+  },
+  {
+    "strip_id": 21,
+    "plot_id": 9,
+    "type": "experiment",
+    "block_id": 10,
+    "plot_id_within_block": 4
+  },
+  {
+    "strip_id": 22,
+    "plot_id": 1,
+    "type": "experiment",
+    "block_id": 9,
+    "plot_id_within_block": 6
+  },
+  {
+    "strip_id": 22,
+    "plot_id": 2,
+    "type": "experiment",
+    "block_id": 9,
+    "plot_id_within_block": 7
+  },
+  {
+    "strip_id": 22,
+    "plot_id": 3,
+    "type": "experiment",
+    "block_id": 9,
+    "plot_id_within_block": 8
+  },
+  {
+    "strip_id": 22,
+    "plot_id": 4,
+    "type": "experiment",
+    "block_id": 9,
+    "plot_id_within_block": 9
+  },
+  {
+    "strip_id": 22,
+    "plot_id": 5,
+    "type": "experiment",
+    "block_id": 9,
+    "plot_id_within_block": 10
+  },
+  {
+    "strip_id": 22,
+    "plot_id": 6,
+    "type": "experiment",
+    "block_id": 10,
+    "plot_id_within_block": 5
+  },
+  {
+    "strip_id": 22,
+    "plot_id": 7,
+    "type": "experiment",
+    "block_id": 10,
+    "plot_id_within_block": 6
+  },
+  {
+    "strip_id": 22,
+    "plot_id": 8,
+    "type": "experiment",
+    "block_id": 10,
+    "plot_id_within_block": 7
+  },
+  {
+    "strip_id": 22,
+    "plot_id": 9,
+    "type": "experiment",
+    "block_id": 10,
+    "plot_id_within_block": 8
+  },
+  {
+    "strip_id": 23,
+    "plot_id": 1,
+    "type": "experiment",
+    "block_id": 9,
+    "plot_id_within_block": 11
+  },
+  {
+    "strip_id": 23,
+    "plot_id": 2,
+    "type": "experiment",
+    "block_id": 9,
+    "plot_id_within_block": 12
+  },
+  {
+    "strip_id": 23,
+    "plot_id": 3,
+    "type": "experiment",
+    "block_id": 9,
+    "plot_id_within_block": 13
+  },
+  {
+    "strip_id": 23,
+    "plot_id": 4,
+    "type": "experiment",
+    "block_id": 9,
+    "plot_id_within_block": 14
+  },
+  {
+    "strip_id": 23,
+    "plot_id": 5,
+    "type": "experiment",
+    "block_id": 9,
+    "plot_id_within_block": 15
+  },
+  {
+    "strip_id": 23,
+    "plot_id": 6,
+    "type": "experiment",
+    "block_id": 10,
+    "plot_id_within_block": 9
+  },
+  {
+    "strip_id": 23,
+    "plot_id": 7,
+    "type": "experiment",
+    "block_id": 10,
+    "plot_id_within_block": 10
+  },
+  {
+    "strip_id": 23,
+    "plot_id": 8,
+    "type": "experiment",
+    "block_id": 10,
+    "plot_id_within_block": 11
+  },
+  {
+    "strip_id": 23,
+    "plot_id": 9,
+    "type": "experiment",
+    "block_id": 10,
+    "plot_id_within_block": 12
+  },
+  {
+    "strip_id": 24,
+    "plot_id": 1,
+    "type": "experiment",
+    "block_id": 9,
+    "plot_id_within_block": 16
+  },
+  {
+    "strip_id": 24,
+    "plot_id": 2,
+    "type": "experiment",
+    "block_id": 9,
+    "plot_id_within_block": 17
+  },
+  {
+    "strip_id": 24,
+    "plot_id": 3,
+    "type": "experiment",
+    "block_id": 9,
+    "plot_id_within_block": 18
+  },
+  {
+    "strip_id": 24,
+    "plot_id": 4,
+    "type": "experiment",
+    "block_id": 9,
+    "plot_id_within_block": 19
+  },
+  {
+    "strip_id": 24,
+    "plot_id": 5,
+    "type": "experiment",
+    "block_id": 9,
+    "plot_id_within_block": 20
+  },
+  {
+    "strip_id": 24,
+    "plot_id": 6,
+    "type": "experiment",
+    "block_id": 10,
+    "plot_id_within_block": 13
+  },
+  {
+    "strip_id": 24,
+    "plot_id": 7,
+    "type": "experiment",
+    "block_id": 10,
+    "plot_id_within_block": 14
+  },
+  {
+    "strip_id": 24,
+    "plot_id": 8,
+    "type": "experiment",
+    "block_id": 10,
+    "plot_id_within_block": 15
+  },
+  {
+    "strip_id": 24,
+    "plot_id": 9,
+    "type": "experiment",
+    "block_id": 10,
+    "plot_id_within_block": 16
+  },
+  {
+    "strip_id": 25,
+    "plot_id": 1,
+    "type": "experiment",
+    "block_id": 9,
+    "plot_id_within_block": 21
+  },
+  {
+    "strip_id": 25,
+    "plot_id": 2,
+    "type": "experiment",
+    "block_id": 9,
+    "plot_id_within_block": 22
+  },
+  {
+    "strip_id": 25,
+    "plot_id": 3,
+    "type": "experiment",
+    "block_id": 9,
+    "plot_id_within_block": 23
+  },
+  {
+    "strip_id": 25,
+    "plot_id": 4,
+    "type": "experiment",
+    "block_id": 9,
+    "plot_id_within_block": 24
+  },
+  {
+    "strip_id": 25,
+    "plot_id": 5,
+    "type": "experiment",
+    "block_id": 9,
+    "plot_id_within_block": 25
+  },
+  {
+    "strip_id": 25,
+    "plot_id": 6,
+    "type": "experiment",
+    "block_id": 10,
+    "plot_id_within_block": 17
+  },
+  {
+    "strip_id": 25,
+    "plot_id": 7,
+    "type": "experiment",
+    "block_id": 10,
+    "plot_id_within_block": 18
+  },
+  {
+    "strip_id": 25,
+    "plot_id": 8,
+    "type": "experiment",
+    "block_id": 10,
+    "plot_id_within_block": 19
+  },
+  {
+    "strip_id": 25,
+    "plot_id": 9,
+    "type": "experiment",
+    "block_id": 10,
+    "plot_id_within_block": 20
+  },
+  {
+    "strip_id": 26,
+    "plot_id": 1,
+    "type": "experiment",
+    "block_id": 11,
+    "plot_id_within_block": 1
+  },
+  {
+    "strip_id": 26,
+    "plot_id": 2,
+    "type": "experiment",
+    "block_id": 11,
+    "plot_id_within_block": 2
+  },
+  {
+    "strip_id": 26,
+    "plot_id": 3,
+    "type": "experiment",
+    "block_id": 11,
+    "plot_id_within_block": 3
+  },
+  {
+    "strip_id": 26,
+    "plot_id": 4,
+    "type": "experiment",
+    "block_id": 11,
+    "plot_id_within_block": 4
+  },
+  {
+    "strip_id": 26,
+    "plot_id": 5,
+    "type": "experiment",
+    "block_id": 11,
+    "plot_id_within_block": 5
+  },
+  {
+    "strip_id": 26,
+    "plot_id": 6,
+    "type": "experiment",
+    "block_id": 12,
+    "plot_id_within_block": 1
+  },
+  {
+    "strip_id": 26,
+    "plot_id": 7,
+    "type": "experiment",
+    "block_id": 12,
+    "plot_id_within_block": 2
+  },
+  {
+    "strip_id": 26,
+    "plot_id": 8,
+    "type": "experiment",
+    "block_id": 12,
+    "plot_id_within_block": 3
+  },
+  {
+    "strip_id": 26,
+    "plot_id": 9,
+    "type": "experiment",
+    "block_id": 12,
+    "plot_id_within_block": 4
+  },
+  {
+    "strip_id": 27,
+    "plot_id": 1,
+    "type": "experiment",
+    "block_id": 11,
+    "plot_id_within_block": 6
+  },
+  {
+    "strip_id": 27,
+    "plot_id": 2,
+    "type": "experiment",
+    "block_id": 11,
+    "plot_id_within_block": 7
+  },
+  {
+    "strip_id": 27,
+    "plot_id": 3,
+    "type": "experiment",
+    "block_id": 11,
+    "plot_id_within_block": 8
+  },
+  {
+    "strip_id": 27,
+    "plot_id": 4,
+    "type": "experiment",
+    "block_id": 11,
+    "plot_id_within_block": 9
+  },
+  {
+    "strip_id": 27,
+    "plot_id": 5,
+    "type": "experiment",
+    "block_id": 11,
+    "plot_id_within_block": 10
+  },
+  {
+    "strip_id": 27,
+    "plot_id": 6,
+    "type": "experiment",
+    "block_id": 12,
+    "plot_id_within_block": 5
+  },
+  {
+    "strip_id": 27,
+    "plot_id": 7,
+    "type": "experiment",
+    "block_id": 12,
+    "plot_id_within_block": 6
+  },
+  {
+    "strip_id": 27,
+    "plot_id": 8,
+    "type": "experiment",
+    "block_id": 12,
+    "plot_id_within_block": 7
+  },
+  {
+    "strip_id": 27,
+    "plot_id": 9,
+    "type": "experiment",
+    "block_id": 12,
+    "plot_id_within_block": 8
+  },
+  {
+    "strip_id": 28,
+    "plot_id": 1,
+    "type": "experiment",
+    "block_id": 11,
+    "plot_id_within_block": 11
+  },
+  {
+    "strip_id": 28,
+    "plot_id": 2,
+    "type": "experiment",
+    "block_id": 11,
+    "plot_id_within_block": 12
+  },
+  {
+    "strip_id": 28,
+    "plot_id": 3,
+    "type": "experiment",
+    "block_id": 11,
+    "plot_id_within_block": 13
+  },
+  {
+    "strip_id": 28,
+    "plot_id": 4,
+    "type": "experiment",
+    "block_id": 11,
+    "plot_id_within_block": 14
+  },
+  {
+    "strip_id": 28,
+    "plot_id": 5,
+    "type": "experiment",
+    "block_id": 11,
+    "plot_id_within_block": 15
+  },
+  {
+    "strip_id": 28,
+    "plot_id": 6,
+    "type": "experiment",
+    "block_id": 12,
+    "plot_id_within_block": 9
+  },
+  {
+    "strip_id": 28,
+    "plot_id": 7,
+    "type": "experiment",
+    "block_id": 12,
+    "plot_id_within_block": 10
+  },
+  {
+    "strip_id": 28,
+    "plot_id": 8,
+    "type": "experiment",
+    "block_id": 12,
+    "plot_id_within_block": 11
+  },
+  {
+    "strip_id": 28,
+    "plot_id": 9,
+    "type": "experiment",
+    "block_id": 12,
+    "plot_id_within_block": 12
+  },
+  {
+    "strip_id": 29,
+    "plot_id": 1,
+    "type": "experiment",
+    "block_id": 11,
+    "plot_id_within_block": 16
+  },
+  {
+    "strip_id": 29,
+    "plot_id": 2,
+    "type": "experiment",
+    "block_id": 11,
+    "plot_id_within_block": 17
+  },
+  {
+    "strip_id": 29,
+    "plot_id": 3,
+    "type": "experiment",
+    "block_id": 11,
+    "plot_id_within_block": 18
+  },
+  {
+    "strip_id": 29,
+    "plot_id": 4,
+    "type": "experiment",
+    "block_id": 11,
+    "plot_id_within_block": 19
+  },
+  {
+    "strip_id": 29,
+    "plot_id": 5,
+    "type": "experiment",
+    "block_id": 11,
+    "plot_id_within_block": 20
+  },
+  {
+    "strip_id": 29,
+    "plot_id": 6,
+    "type": "experiment",
+    "block_id": 12,
+    "plot_id_within_block": 13
+  },
+  {
+    "strip_id": 29,
+    "plot_id": 7,
+    "type": "experiment",
+    "block_id": 12,
+    "plot_id_within_block": 14
+  },
+  {
+    "strip_id": 29,
+    "plot_id": 8,
+    "type": "experiment",
+    "block_id": 12,
+    "plot_id_within_block": 15
+  },
+  {
+    "strip_id": 29,
+    "plot_id": 9,
+    "type": "experiment",
+    "block_id": 12,
+    "plot_id_within_block": 16
+  },
+  {
+    "strip_id": 30,
+    "plot_id": 1,
+    "type": "experiment",
+    "block_id": 11,
+    "plot_id_within_block": 21
+  },
+  {
+    "strip_id": 30,
+    "plot_id": 2,
+    "type": "experiment",
+    "block_id": 11,
+    "plot_id_within_block": 22
+  },
+  {
+    "strip_id": 30,
+    "plot_id": 3,
+    "type": "experiment",
+    "block_id": 11,
+    "plot_id_within_block": 23
+  },
+  {
+    "strip_id": 30,
+    "plot_id": 4,
+    "type": "experiment",
+    "block_id": 11,
+    "plot_id_within_block": 24
+  },
+  {
+    "strip_id": 30,
+    "plot_id": 5,
+    "type": "experiment",
+    "block_id": 11,
+    "plot_id_within_block": 25
+  },
+  {
+    "strip_id": 30,
+    "plot_id": 6,
+    "type": "experiment",
+    "block_id": 12,
+    "plot_id_within_block": 17
+  },
+  {
+    "strip_id": 30,
+    "plot_id": 7,
+    "type": "experiment",
+    "block_id": 12,
+    "plot_id_within_block": 18
+  },
+  {
+    "strip_id": 30,
+    "plot_id": 8,
+    "type": "experiment",
+    "block_id": 12,
+    "plot_id_within_block": 19
+  },
+  {
+    "strip_id": 30,
+    "plot_id": 9,
+    "type": "experiment",
+    "block_id": 12,
+    "plot_id_within_block": 20
+  },
+  {
+    "strip_id": 31,
+    "plot_id": 1,
+    "type": "experiment",
+    "block_id": 13,
+    "plot_id_within_block": 1
+  },
+  {
+    "strip_id": 31,
+    "plot_id": 2,
+    "type": "experiment",
+    "block_id": 13,
+    "plot_id_within_block": 2
+  },
+  {
+    "strip_id": 31,
+    "plot_id": 3,
+    "type": "experiment",
+    "block_id": 13,
+    "plot_id_within_block": 3
+  },
+  {
+    "strip_id": 31,
+    "plot_id": 4,
+    "type": "experiment",
+    "block_id": 13,
+    "plot_id_within_block": 4
+  },
+  {
+    "strip_id": 31,
+    "plot_id": 5,
+    "type": "experiment",
+    "block_id": 13,
+    "plot_id_within_block": 5
+  },
+  {
+    "strip_id": 31,
+    "plot_id": 6,
+    "type": "experiment",
+    "block_id": 14,
+    "plot_id_within_block": 1
+  },
+  {
+    "strip_id": 31,
+    "plot_id": 7,
+    "type": "experiment",
+    "block_id": 14,
+    "plot_id_within_block": 2
+  },
+  {
+    "strip_id": 31,
+    "plot_id": 8,
+    "type": "experiment",
+    "block_id": 14,
+    "plot_id_within_block": 3
+  },
+  {
+    "strip_id": 31,
+    "plot_id": 9,
+    "type": "experiment",
+    "block_id": 14,
+    "plot_id_within_block": 4
+  },
+  {
+    "strip_id": 32,
+    "plot_id": 1,
+    "type": "experiment",
+    "block_id": 13,
+    "plot_id_within_block": 6
+  },
+  {
+    "strip_id": 32,
+    "plot_id": 2,
+    "type": "experiment",
+    "block_id": 13,
+    "plot_id_within_block": 7
+  },
+  {
+    "strip_id": 32,
+    "plot_id": 3,
+    "type": "experiment",
+    "block_id": 13,
+    "plot_id_within_block": 8
+  },
+  {
+    "strip_id": 32,
+    "plot_id": 4,
+    "type": "experiment",
+    "block_id": 13,
+    "plot_id_within_block": 9
+  },
+  {
+    "strip_id": 32,
+    "plot_id": 5,
+    "type": "experiment",
+    "block_id": 13,
+    "plot_id_within_block": 10
+  },
+  {
+    "strip_id": 32,
+    "plot_id": 6,
+    "type": "experiment",
+    "block_id": 14,
+    "plot_id_within_block": 5
+  },
+  {
+    "strip_id": 32,
+    "plot_id": 7,
+    "type": "experiment",
+    "block_id": 14,
+    "plot_id_within_block": 6
+  },
+  {
+    "strip_id": 32,
+    "plot_id": 8,
+    "type": "experiment",
+    "block_id": 14,
+    "plot_id_within_block": 7
+  },
+  {
+    "strip_id": 32,
+    "plot_id": 9,
+    "type": "experiment",
+    "block_id": 14,
+    "plot_id_within_block": 8
+  },
+  {
+    "strip_id": 33,
+    "plot_id": 1,
+    "type": "experiment",
+    "block_id": 13,
+    "plot_id_within_block": 11
+  },
+  {
+    "strip_id": 33,
+    "plot_id": 2,
+    "type": "experiment",
+    "block_id": 13,
+    "plot_id_within_block": 12
+  },
+  {
+    "strip_id": 33,
+    "plot_id": 3,
+    "type": "experiment",
+    "block_id": 13,
+    "plot_id_within_block": 13
+  },
+  {
+    "strip_id": 33,
+    "plot_id": 4,
+    "type": "experiment",
+    "block_id": 13,
+    "plot_id_within_block": 14
+  },
+  {
+    "strip_id": 33,
+    "plot_id": 5,
+    "type": "experiment",
+    "block_id": 13,
+    "plot_id_within_block": 15
+  },
+  {
+    "strip_id": 33,
+    "plot_id": 6,
+    "type": "experiment",
+    "block_id": 14,
+    "plot_id_within_block": 9
+  },
+  {
+    "strip_id": 33,
+    "plot_id": 7,
+    "type": "experiment",
+    "block_id": 14,
+    "plot_id_within_block": 10
+  },
+  {
+    "strip_id": 33,
+    "plot_id": 8,
+    "type": "experiment",
+    "block_id": 14,
+    "plot_id_within_block": 11
+  },
+  {
+    "strip_id": 33,
+    "plot_id": 9,
+    "type": "experiment",
+    "block_id": 14,
+    "plot_id_within_block": 12
+  },
+  {
+    "strip_id": 34,
+    "plot_id": 1,
+    "type": "experiment",
+    "block_id": 13,
+    "plot_id_within_block": 16
+  },
+  {
+    "strip_id": 34,
+    "plot_id": 2,
+    "type": "experiment",
+    "block_id": 13,
+    "plot_id_within_block": 17
+  },
+  {
+    "strip_id": 34,
+    "plot_id": 3,
+    "type": "experiment",
+    "block_id": 13,
+    "plot_id_within_block": 18
+  },
+  {
+    "strip_id": 34,
+    "plot_id": 4,
+    "type": "experiment",
+    "block_id": 13,
+    "plot_id_within_block": 19
+  },
+  {
+    "strip_id": 34,
+    "plot_id": 5,
+    "type": "experiment",
+    "block_id": 13,
+    "plot_id_within_block": 20
+  },
+  {
+    "strip_id": 34,
+    "plot_id": 6,
+    "type": "experiment",
+    "block_id": 14,
+    "plot_id_within_block": 13
+  },
+  {
+    "strip_id": 34,
+    "plot_id": 7,
+    "type": "experiment",
+    "block_id": 14,
+    "plot_id_within_block": 14
+  },
+  {
+    "strip_id": 34,
+    "plot_id": 8,
+    "type": "experiment",
+    "block_id": 14,
+    "plot_id_within_block": 15
+  },
+  {
+    "strip_id": 34,
+    "plot_id": 9,
+    "type": "experiment",
+    "block_id": 14,
+    "plot_id_within_block": 16
+  },
+  {
+    "strip_id": 35,
+    "plot_id": 1,
+    "type": "experiment",
+    "block_id": 13,
+    "plot_id_within_block": 21
+  },
+  {
+    "strip_id": 35,
+    "plot_id": 2,
+    "type": "experiment",
+    "block_id": 13,
+    "plot_id_within_block": 22
+  },
+  {
+    "strip_id": 35,
+    "plot_id": 3,
+    "type": "experiment",
+    "block_id": 13,
+    "plot_id_within_block": 23
+  },
+  {
+    "strip_id": 35,
+    "plot_id": 4,
+    "type": "experiment",
+    "block_id": 13,
+    "plot_id_within_block": 24
+  },
+  {
+    "strip_id": 35,
+    "plot_id": 5,
+    "type": "experiment",
+    "block_id": 13,
+    "plot_id_within_block": 25
+  },
+  {
+    "strip_id": 35,
+    "plot_id": 6,
+    "type": "experiment",
+    "block_id": 14,
+    "plot_id_within_block": 17
+  },
+  {
+    "strip_id": 35,
+    "plot_id": 7,
+    "type": "experiment",
+    "block_id": 14,
+    "plot_id_within_block": 18
+  },
+  {
+    "strip_id": 35,
+    "plot_id": 8,
+    "type": "experiment",
+    "block_id": 14,
+    "plot_id_within_block": 19
+  },
+  {
+    "strip_id": 35,
+    "plot_id": 9,
+    "type": "experiment",
+    "block_id": 14,
+    "plot_id_within_block": 20
+  },
+  {
+    "strip_id": 36,
+    "plot_id": 1,
+    "type": "experiment",
+    "block_id": 15,
+    "plot_id_within_block": 1
+  },
+  {
+    "strip_id": 36,
+    "plot_id": 2,
+    "type": "experiment",
+    "block_id": 15,
+    "plot_id_within_block": 2
+  },
+  {
+    "strip_id": 36,
+    "plot_id": 3,
+    "type": "experiment",
+    "block_id": 15,
+    "plot_id_within_block": 3
+  },
+  {
+    "strip_id": 36,
+    "plot_id": 4,
+    "type": "experiment",
+    "block_id": 15,
+    "plot_id_within_block": 4
+  },
+  {
+    "strip_id": 36,
+    "plot_id": 5,
+    "type": "experiment",
+    "block_id": 15,
+    "plot_id_within_block": 5
+  },
+  {
+    "strip_id": 36,
+    "plot_id": 6,
+    "type": "experiment",
+    "block_id": 16,
+    "plot_id_within_block": 1
+  },
+  {
+    "strip_id": 36,
+    "plot_id": 7,
+    "type": "experiment",
+    "block_id": 16,
+    "plot_id_within_block": 2
+  },
+  {
+    "strip_id": 36,
+    "plot_id": 8,
+    "type": "experiment",
+    "block_id": 16,
+    "plot_id_within_block": 3
+  },
+  {
+    "strip_id": 36,
+    "plot_id": 9,
+    "type": "experiment",
+    "block_id": 16,
+    "plot_id_within_block": 4
+  },
+  {
+    "strip_id": 37,
+    "plot_id": 1,
+    "type": "experiment",
+    "block_id": 15,
+    "plot_id_within_block": 6
+  },
+  {
+    "strip_id": 37,
+    "plot_id": 2,
+    "type": "experiment",
+    "block_id": 15,
+    "plot_id_within_block": 7
+  },
+  {
+    "strip_id": 37,
+    "plot_id": 3,
+    "type": "experiment",
+    "block_id": 15,
+    "plot_id_within_block": 8
+  },
+  {
+    "strip_id": 37,
+    "plot_id": 4,
+    "type": "experiment",
+    "block_id": 15,
+    "plot_id_within_block": 9
+  },
+  {
+    "strip_id": 37,
+    "plot_id": 5,
+    "type": "experiment",
+    "block_id": 15,
+    "plot_id_within_block": 10
+  },
+  {
+    "strip_id": 37,
+    "plot_id": 6,
+    "type": "experiment",
+    "block_id": 16,
+    "plot_id_within_block": 5
+  },
+  {
+    "strip_id": 37,
+    "plot_id": 7,
+    "type": "experiment",
+    "block_id": 16,
+    "plot_id_within_block": 6
+  },
+  {
+    "strip_id": 37,
+    "plot_id": 8,
+    "type": "experiment",
+    "block_id": 16,
+    "plot_id_within_block": 7
+  },
+  {
+    "strip_id": 37,
+    "plot_id": 9,
+    "type": "experiment",
+    "block_id": 16,
+    "plot_id_within_block": 8
+  },
+  {
+    "strip_id": 38,
+    "plot_id": 1,
+    "type": "experiment",
+    "block_id": 15,
+    "plot_id_within_block": 11
+  },
+  {
+    "strip_id": 38,
+    "plot_id": 2,
+    "type": "experiment",
+    "block_id": 15,
+    "plot_id_within_block": 12
+  },
+  {
+    "strip_id": 38,
+    "plot_id": 3,
+    "type": "experiment",
+    "block_id": 15,
+    "plot_id_within_block": 13
+  },
+  {
+    "strip_id": 38,
+    "plot_id": 4,
+    "type": "experiment",
+    "block_id": 15,
+    "plot_id_within_block": 14
+  },
+  {
+    "strip_id": 38,
+    "plot_id": 5,
+    "type": "experiment",
+    "block_id": 15,
+    "plot_id_within_block": 15
+  },
+  {
+    "strip_id": 38,
+    "plot_id": 6,
+    "type": "experiment",
+    "block_id": 16,
+    "plot_id_within_block": 9
+  },
+  {
+    "strip_id": 38,
+    "plot_id": 7,
+    "type": "experiment",
+    "block_id": 16,
+    "plot_id_within_block": 10
+  },
+  {
+    "strip_id": 38,
+    "plot_id": 8,
+    "type": "experiment",
+    "block_id": 16,
+    "plot_id_within_block": 11
+  },
+  {
+    "strip_id": 38,
+    "plot_id": 9,
+    "type": "experiment",
+    "block_id": 16,
+    "plot_id_within_block": 12
+  },
+  {
+    "strip_id": 39,
+    "plot_id": 1,
+    "type": "experiment",
+    "block_id": 15,
+    "plot_id_within_block": 16
+  },
+  {
+    "strip_id": 39,
+    "plot_id": 2,
+    "type": "experiment",
+    "block_id": 15,
+    "plot_id_within_block": 17
+  },
+  {
+    "strip_id": 39,
+    "plot_id": 3,
+    "type": "experiment",
+    "block_id": 15,
+    "plot_id_within_block": 18
+  },
+  {
+    "strip_id": 39,
+    "plot_id": 4,
+    "type": "experiment",
+    "block_id": 15,
+    "plot_id_within_block": 19
+  },
+  {
+    "strip_id": 39,
+    "plot_id": 5,
+    "type": "experiment",
+    "block_id": 15,
+    "plot_id_within_block": 20
+  },
+  {
+    "strip_id": 39,
+    "plot_id": 6,
+    "type": "experiment",
+    "block_id": 16,
+    "plot_id_within_block": 13
+  },
+  {
+    "strip_id": 39,
+    "plot_id": 7,
+    "type": "experiment",
+    "block_id": 16,
+    "plot_id_within_block": 14
+  },
+  {
+    "strip_id": 39,
+    "plot_id": 8,
+    "type": "experiment",
+    "block_id": 16,
+    "plot_id_within_block": 15
+  },
+  {
+    "strip_id": 39,
+    "plot_id": 9,
+    "type": "experiment",
+    "block_id": 16,
+    "plot_id_within_block": 16
+  },
+  {
+    "strip_id": 40,
+    "plot_id": 1,
+    "type": "experiment",
+    "block_id": 15,
+    "plot_id_within_block": 21
+  },
+  {
+    "strip_id": 40,
+    "plot_id": 2,
+    "type": "experiment",
+    "block_id": 15,
+    "plot_id_within_block": 22
+  },
+  {
+    "strip_id": 40,
+    "plot_id": 3,
+    "type": "experiment",
+    "block_id": 15,
+    "plot_id_within_block": 23
+  },
+  {
+    "strip_id": 40,
+    "plot_id": 4,
+    "type": "experiment",
+    "block_id": 15,
+    "plot_id_within_block": 24
+  },
+  {
+    "strip_id": 40,
+    "plot_id": 5,
+    "type": "experiment",
+    "block_id": 15,
+    "plot_id_within_block": 25
+  },
+  {
+    "strip_id": 40,
+    "plot_id": 6,
+    "type": "experiment",
+    "block_id": 16,
+    "plot_id_within_block": 17
+  },
+  {
+    "strip_id": 40,
+    "plot_id": 7,
+    "type": "experiment",
+    "block_id": 16,
+    "plot_id_within_block": 18
+  },
+  {
+    "strip_id": 40,
+    "plot_id": 8,
+    "type": "experiment",
+    "block_id": 16,
+    "plot_id_within_block": 19
+  },
+  {
+    "strip_id": 40,
+    "plot_id": 9,
+    "type": "experiment",
+    "block_id": 16,
+    "plot_id_within_block": 20
+  },
+  {
+    "strip_id": 41,
+    "plot_id": 1,
+    "type": "experiment",
+    "block_id": 17,
+    "plot_id_within_block": 1
+  },
+  {
+    "strip_id": 41,
+    "plot_id": 2,
+    "type": "experiment",
+    "block_id": 17,
+    "plot_id_within_block": 2
+  },
+  {
+    "strip_id": 41,
+    "plot_id": 3,
+    "type": "experiment",
+    "block_id": 17,
+    "plot_id_within_block": 3
+  },
+  {
+    "strip_id": 41,
+    "plot_id": 4,
+    "type": "experiment",
+    "block_id": 17,
+    "plot_id_within_block": 4
+  },
+  {
+    "strip_id": 41,
+    "plot_id": 5,
+    "type": "experiment",
+    "block_id": 17,
+    "plot_id_within_block": 5
+  },
+  {
+    "strip_id": 41,
+    "plot_id": 6,
+    "type": "experiment",
+    "block_id": 18,
+    "plot_id_within_block": 1
+  },
+  {
+    "strip_id": 41,
+    "plot_id": 7,
+    "type": "experiment",
+    "block_id": 18,
+    "plot_id_within_block": 2
+  },
+  {
+    "strip_id": 41,
+    "plot_id": 8,
+    "type": "experiment",
+    "block_id": 18,
+    "plot_id_within_block": 3
+  },
+  {
+    "strip_id": 41,
+    "plot_id": 9,
+    "type": "experiment",
+    "block_id": 18,
+    "plot_id_within_block": 4
+  },
+  {
+    "strip_id": null,
+    "plot_id": null,
+    "type": "headland",
+    "block_id": null,
+    "plot_id_within_block": null
+  }
+]

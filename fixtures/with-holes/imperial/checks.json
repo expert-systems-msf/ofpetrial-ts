@@ -1,0 +1,766 @@
+{
+  "alignment": [
+    {
+      "inputName": "seed",
+      "overlapData": [
+        {
+          "ha_strip_id": 3,
+          "strip_id": 1,
+          "area": 5772.79434754022,
+          "ha_area": 6465.93236865903,
+          "total_intersecting_ha_area": 5773.12863734376,
+          "intersecting_pct": 0.892853235726166,
+          "dominant_pct": 0.999942095556059
+        },
+        {
+          "ha_strip_id": 4,
+          "strip_id": 2,
+          "area": 5811.79110139704,
+          "ha_area": 6482.83660361419,
+          "total_intersecting_ha_area": 5812.98775854682,
+          "intersecting_pct": 0.896673495566134,
+          "dominant_pct": 0.999794140775882
+        },
+        {
+          "ha_strip_id": 5,
+          "strip_id": 3,
+          "area": 5817.84563296508,
+          "ha_area": 6487.81875866316,
+          "total_intersecting_ha_area": 5819.01507811429,
+          "intersecting_pct": 0.896913938963566,
+          "dominant_pct": 0.999799030397154
+        },
+        {
+          "ha_strip_id": 6,
+          "strip_id": 4,
+          "area": 5818.93463270381,
+          "ha_area": 6488.86492592339,
+          "total_intersecting_ha_area": 5820.18503883788,
+          "intersecting_pct": 0.896949636844173,
+          "dominant_pct": 0.999785160415738
+        },
+        {
+          "ha_strip_id": 7,
+          "strip_id": 5,
+          "area": 5819.89072002278,
+          "ha_area": 6489.911093109,
+          "total_intersecting_ha_area": 5821.01230164572,
+          "intersecting_pct": 0.896932518509612,
+          "dominant_pct": 0.999807321894402
+        },
+        {
+          "ha_strip_id": 8,
+          "strip_id": 6,
+          "area": 5821.04711006443,
+          "ha_area": 6490.95726037613,
+          "total_intersecting_ha_area": 5822.3452487954,
+          "intersecting_pct": 0.89699331165493,
+          "dominant_pct": 0.999777041952084
+        },
+        {
+          "ha_strip_id": 9,
+          "strip_id": 7,
+          "area": 5821.93858261658,
+          "ha_area": 6492.00342763356,
+          "total_intersecting_ha_area": 5823.12067803325,
+          "intersecting_pct": 0.896968207571613,
+          "dominant_pct": 0.999796999670447
+        },
+        {
+          "ha_strip_id": 10,
+          "strip_id": 8,
+          "area": 5823.10641840668,
+          "ha_area": 6493.04959491746,
+          "total_intersecting_ha_area": 5824.11404796022,
+          "intersecting_pct": 0.896976676802091,
+          "dominant_pct": 0.999826990071752
+        },
+        {
+          "ha_strip_id": 11,
+          "strip_id": 9,
+          "area": 4959.88639204062,
+          "ha_area": 6494.09576212217,
+          "total_intersecting_ha_area": 4960.90747895921,
+          "intersecting_pct": 0.763910428899814,
+          "dominant_pct": 0.999794173359829
+        },
+        {
+          "ha_strip_id": 12,
+          "strip_id": 10,
+          "area": 4866.08389946977,
+          "ha_area": 6464.61552609636,
+          "total_intersecting_ha_area": 4866.71907124742,
+          "intersecting_pct": 0.752824209204931,
+          "dominant_pct": 0.999869486656544
+        },
+        {
+          "ha_strip_id": 13,
+          "strip_id": 11,
+          "area": 4000.66414219731,
+          "ha_area": 6309.53794242609,
+          "total_intersecting_ha_area": 4001.28677038471,
+          "intersecting_pct": 0.634164784631784,
+          "dominant_pct": 0.999844393010765
+        },
+        {
+          "ha_strip_id": 14,
+          "strip_id": 12,
+          "area": 3987.70178395017,
+          "ha_area": 6028.14886732873,
+          "total_intersecting_ha_area": 3988.47677562084,
+          "intersecting_pct": 0.661642050221674,
+          "dominant_pct": 0.999805692319582
+        },
+        {
+          "ha_strip_id": 15,
+          "strip_id": 13,
+          "area": 3979.67886497784,
+          "ha_area": 5879.69961892256,
+          "total_intersecting_ha_area": 3980.41534874807,
+          "intersecting_pct": 0.676975969305974,
+          "dominant_pct": 0.999814973135791
+        },
+        {
+          "ha_strip_id": 16,
+          "strip_id": 14,
+          "area": 3977.78724763798,
+          "ha_area": 5898.24978284619,
+          "total_intersecting_ha_area": 3978.65088623172,
+          "intersecting_pct": 0.674547710373811,
+          "dominant_pct": 0.999782931798128
+        },
+        {
+          "ha_strip_id": 17,
+          "strip_id": 15,
+          "area": 3981.98818699732,
+          "ha_area": 5971.13496128226,
+          "total_intersecting_ha_area": 3982.42867339395,
+          "intersecting_pct": 0.66694668588411,
+          "dominant_pct": 0.999889392520807
+        },
+        {
+          "ha_strip_id": 18,
+          "strip_id": 16,
+          "area": 4675.95776071129,
+          "ha_area": 6064.57873324715,
+          "total_intersecting_ha_area": 4676.74504426285,
+          "intersecting_pct": 0.771157445549196,
+          "dominant_pct": 0.999831659937819
+        },
+        {
+          "ha_strip_id": 19,
+          "strip_id": 17,
+          "area": 4771.24819874962,
+          "ha_area": 6162.62729458637,
+          "total_intersecting_ha_area": 4771.91925232552,
+          "intersecting_pct": 0.774331956845332,
+          "dominant_pct": 0.999859374490553
+        },
+        {
+          "ha_strip_id": 20,
+          "strip_id": 18,
+          "area": 4865.20070093879,
+          "ha_area": 6464.25938227998,
+          "total_intersecting_ha_area": 4866.07942142398,
+          "intersecting_pct": 0.752766733767371,
+          "dominant_pct": 0.99981941920608
+        },
+        {
+          "ha_strip_id": 21,
+          "strip_id": 19,
+          "area": 4969.55774371051,
+          "ha_area": 6503.752245524,
+          "total_intersecting_ha_area": 4970.79295695821,
+          "intersecting_pct": 0.764296173855517,
+          "dominant_pct": 0.999751505794267
+        },
+        {
+          "ha_strip_id": 22,
+          "strip_id": 20,
+          "area": 5834.80187261197,
+          "ha_area": 6504.64986353347,
+          "total_intersecting_ha_area": 5835.17418690153,
+          "intersecting_pct": 0.897077369162456,
+          "dominant_pct": 0.999936194828528
+        },
+        {
+          "ha_strip_id": 23,
+          "strip_id": 21,
+          "area": 5834.28393275448,
+          "ha_area": 6505.56690226769,
+          "total_intersecting_ha_area": 5836.26795774742,
+          "intersecting_pct": 0.897119043647531,
+          "dominant_pct": 0.999660052450076
+        },
+        {
+          "ha_strip_id": 24,
+          "strip_id": 22,
+          "area": 5837.56759471674,
+          "ha_area": 6506.47315535702,
+          "total_intersecting_ha_area": 5837.56759471674,
+          "intersecting_pct": 0.897193833791576,
+          "dominant_pct": 1
+        },
+        {
+          "ha_strip_id": 25,
+          "strip_id": 23,
+          "area": 5836.12448820779,
+          "ha_area": 6507.35486472821,
+          "total_intersecting_ha_area": 5838.09428510262,
+          "intersecting_pct": 0.897153206865483,
+          "dominant_pct": 0.999662595909104
+        },
+        {
+          "ha_strip_id": 26,
+          "strip_id": 24,
+          "area": 5839.33105727235,
+          "ha_area": 6508.2356946217,
+          "total_intersecting_ha_area": 5839.38517789693,
+          "intersecting_pct": 0.897230133002483,
+          "dominant_pct": 0.999990731794028
+        },
+        {
+          "ha_strip_id": 27,
+          "strip_id": 25,
+          "area": 5837.97146005445,
+          "ha_area": 6509.11652446985,
+          "total_intersecting_ha_area": 5840.26406182504,
+          "intersecting_pct": 0.89724374112364,
+          "dominant_pct": 0.999607448953281
+        },
+        {
+          "ha_strip_id": 28,
+          "strip_id": 26,
+          "area": 5838.76656461373,
+          "ha_area": 6509.99735441111,
+          "total_intersecting_ha_area": 5840.7340286452,
+          "intersecting_pct": 0.897194531836112,
+          "dominant_pct": 0.999663147812961
+        },
+        {
+          "ha_strip_id": 29,
+          "strip_id": 27,
+          "area": 5841.98508832666,
+          "ha_area": 6510.87818427665,
+          "total_intersecting_ha_area": 5841.98508832666,
+          "intersecting_pct": 0.897265303232777,
+          "dominant_pct": 1
+        },
+        {
+          "ha_strip_id": 30,
+          "strip_id": 28,
+          "area": 5840.44018197078,
+          "ha_area": 6511.6730359961,
+          "total_intersecting_ha_area": 5842.46010213724,
+          "intersecting_pct": 0.897228725988007,
+          "dominant_pct": 0.99965426889852
+        },
+        {
+          "ha_strip_id": 31,
+          "strip_id": 29,
+          "area": 5843.35602999876,
+          "ha_area": 6512.22123751505,
+          "total_intersecting_ha_area": 5843.35602999876,
+          "intersecting_pct": 0.897290773282832,
+          "dominant_pct": 1
+        },
+        {
+          "ha_strip_id": 32,
+          "strip_id": 30,
+          "area": 5841.48024376587,
+          "ha_area": 6512.75406659703,
+          "total_intersecting_ha_area": 5843.56283928324,
+          "intersecting_pct": 0.897249117582072,
+          "dominant_pct": 0.999643608604092
+        },
+        {
+          "ha_strip_id": 33,
+          "strip_id": 31,
+          "area": 5843.76824622066,
+          "ha_area": 6513.28687667273,
+          "total_intersecting_ha_area": 5844.33200479072,
+          "intersecting_pct": 0.897293811166547,
+          "dominant_pct": 0.99990353755235
+        },
+        {
+          "ha_strip_id": 34,
+          "strip_id": 32,
+          "area": 5843.16949752056,
+          "ha_area": 6513.81968681956,
+          "total_intersecting_ha_area": 5844.69635025364,
+          "intersecting_pct": 0.89727634955572,
+          "dominant_pct": 0.99973876269329
+        },
+        {
+          "ha_strip_id": 35,
+          "strip_id": 33,
+          "area": 5843.93757238388,
+          "ha_area": 6514.35249692591,
+          "total_intersecting_ha_area": 5845.25451426222,
+          "intersecting_pct": 0.897288643348754,
+          "dominant_pct": 0.999774698967321
+        },
+        {
+          "ha_strip_id": 36,
+          "strip_id": 34,
+          "area": 5845.2223568117,
+          "ha_area": 6514.88530700075,
+          "total_intersecting_ha_area": 5845.9122854909,
+          "intersecting_pct": 0.897316224310045,
+          "dominant_pct": 0.999881981007325
+        },
+        {
+          "ha_strip_id": 37,
+          "strip_id": 35,
+          "area": 5844.60137640064,
+          "ha_area": 6515.41811712969,
+          "total_intersecting_ha_area": 5846.50213615691,
+          "intersecting_pct": 0.897333376162899,
+          "dominant_pct": 0.999674889410454
+        },
+        {
+          "ha_strip_id": 38,
+          "strip_id": 36,
+          "area": 5846.59414872865,
+          "ha_area": 6515.95092720538,
+          "total_intersecting_ha_area": 5847.33256068144,
+          "intersecting_pct": 0.897387445977789,
+          "dominant_pct": 0.999873718153513
+        },
+        {
+          "ha_strip_id": 39,
+          "strip_id": 37,
+          "area": 5845.83166574581,
+          "ha_area": 6516.48373730916,
+          "total_intersecting_ha_area": 5847.54509323625,
+          "intersecting_pct": 0.8973466871032,
+          "dominant_pct": 0.999706983449786
+        },
+        {
+          "ha_strip_id": 40,
+          "strip_id": 38,
+          "area": 5847.24407084098,
+          "ha_area": 6517.01654736968,
+          "total_intersecting_ha_area": 5848.15557343862,
+          "intersecting_pct": 0.897366997755895,
+          "dominant_pct": 0.999844138449091
+        },
+        {
+          "ha_strip_id": 41,
+          "strip_id": 39,
+          "area": 5847.29042479168,
+          "ha_area": 6517.54940161155,
+          "total_intersecting_ha_area": 5848.54324286562,
+          "intersecting_pct": 0.897353112723548,
+          "dominant_pct": 0.999785789722002
+        },
+        {
+          "ha_strip_id": 42,
+          "strip_id": 40,
+          "area": 5848.2140290213,
+          "ha_area": 6518.08489356406,
+          "total_intersecting_ha_area": 5849.31906716188,
+          "intersecting_pct": 0.897398417277056,
+          "dominant_pct": 0.9998110826016
+        },
+        {
+          "ha_strip_id": 43,
+          "strip_id": 41,
+          "area": 5848.3603868197,
+          "ha_area": 6518.62193368781,
+          "total_intersecting_ha_area": 5849.58389207826,
+          "intersecting_pct": 0.897365110537856,
+          "dominant_pct": 0.99979083892442
+        },
+        {
+          "ha_strip_id": 44,
+          "strip_id": 42,
+          "area": 5849.2247694765,
+          "ha_area": 6519.15897380242,
+          "total_intersecting_ha_area": 5850.14062512597,
+          "intersecting_pct": 0.897376586249096,
+          "dominant_pct": 0.999843447242014
+        },
+        {
+          "ha_strip_id": 45,
+          "strip_id": 43,
+          "area": 5849.4180437519,
+          "ha_area": 6519.69601388024,
+          "total_intersecting_ha_area": 5850.60886182411,
+          "intersecting_pct": 0.897374486382239,
+          "dominant_pct": 0.999796462539141
+        },
+        {
+          "ha_strip_id": 46,
+          "strip_id": 44,
+          "area": 5850.16326013663,
+          "ha_area": 6520.23305398662,
+          "total_intersecting_ha_area": 5851.18026318338,
+          "intersecting_pct": 0.897388209092592,
+          "dominant_pct": 0.999826188392596
+        },
+        {
+          "ha_strip_id": 47,
+          "strip_id": 45,
+          "area": 5850.73779338473,
+          "ha_area": 6520.77009412536,
+          "total_intersecting_ha_area": 5851.69617416014,
+          "intersecting_pct": 0.897393419748383,
+          "dominant_pct": 0.999836221713007
+        },
+        {
+          "ha_strip_id": 48,
+          "strip_id": 46,
+          "area": 5851.24684679594,
+          "ha_area": 6521.30713422359,
+          "total_intersecting_ha_area": 5852.24708542071,
+          "intersecting_pct": 0.897403996617231,
+          "dominant_pct": 0.999829084690005
+        },
+        {
+          "ha_strip_id": 49,
+          "strip_id": 47,
+          "area": 5851.78508416291,
+          "ha_area": 6521.84763229682,
+          "total_intersecting_ha_area": 5852.81182930189,
+          "intersecting_pct": 0.897416216888938,
+          "dominant_pct": 0.999824572330543
+        },
+        {
+          "ha_strip_id": 50,
+          "strip_id": 48,
+          "area": 5852.05992945272,
+          "ha_area": 6522.37650401875,
+          "total_intersecting_ha_area": 5853.26533220345,
+          "intersecting_pct": 0.897412979547711,
+          "dominant_pct": 0.999794063196812
+        },
+        {
+          "ha_strip_id": 51,
+          "strip_id": 49,
+          "area": 5852.97302013401,
+          "ha_area": 6522.73382104871,
+          "total_intersecting_ha_area": 5853.72312851509,
+          "intersecting_pct": 0.897434003764689,
+          "dominant_pct": 0.999871857898878
+        },
+        {
+          "ha_strip_id": 52,
+          "strip_id": 50,
+          "area": 5852.97039974682,
+          "ha_area": 6523.04804254148,
+          "total_intersecting_ha_area": 5853.96684669841,
+          "intersecting_pct": 0.897428136129075,
+          "dominant_pct": 0.999829782611059
+        },
+        {
+          "ha_strip_id": 53,
+          "strip_id": 51,
+          "area": 5853.58777305696,
+          "ha_area": 6523.36225201279,
+          "total_intersecting_ha_area": 5854.32679085355,
+          "intersecting_pct": 0.897440087593969,
+          "dominant_pct": 0.999873765537356
+        },
+        {
+          "ha_strip_id": 54,
+          "strip_id": 52,
+          "area": 5853.74264461049,
+          "ha_area": 6523.67253103958,
+          "total_intersecting_ha_area": 5854.73301544376,
+          "intersecting_pct": 0.897459672843324,
+          "dominant_pct": 0.999830842699291
+        },
+        {
+          "ha_strip_id": 55,
+          "strip_id": 53,
+          "area": 5853.63592051262,
+          "ha_area": 6523.97967059447,
+          "total_intersecting_ha_area": 5855.01096931444,
+          "intersecting_pct": 0.897460026692715,
+          "dominant_pct": 0.99976515008955
+        },
+        {
+          "ha_strip_id": 56,
+          "strip_id": 54,
+          "area": 5854.50315641955,
+          "ha_area": 6524.21816161225,
+          "total_intersecting_ha_area": 5855.28038469448,
+          "intersecting_pct": 0.897468514947321,
+          "dominant_pct": 0.999867260280658
+        },
+        {
+          "ha_strip_id": 57,
+          "strip_id": 55,
+          "area": 5853.91260512428,
+          "ha_area": 6523.77823601636,
+          "total_intersecting_ha_area": 5854.77945374689,
+          "intersecting_pct": 0.897452249591184,
+          "dominant_pct": 0.999851941711989
+        },
+        {
+          "ha_strip_id": 58,
+          "strip_id": 56,
+          "area": 5853.22514672198,
+          "ha_area": 6523.16493132188,
+          "total_intersecting_ha_area": 5854.22249508461,
+          "intersecting_pct": 0.897451245939644,
+          "dominant_pct": 0.999829636068074
+        },
+        {
+          "ha_strip_id": 59,
+          "strip_id": 57,
+          "area": 5852.52816381892,
+          "ha_area": 6522.55162667541,
+          "total_intersecting_ha_area": 5853.62613207057,
+          "intersecting_pct": 0.897444200844787,
+          "dominant_pct": 0.999812429385328
+        },
+        {
+          "ha_strip_id": 60,
+          "strip_id": 58,
+          "area": 5852.50722272697,
+          "ha_area": 6521.93832207363,
+          "total_intersecting_ha_area": 5853.29913746423,
+          "intersecting_pct": 0.897478456313153,
+          "dominant_pct": 0.99986470625904
+        },
+        {
+          "ha_strip_id": 61,
+          "strip_id": 59,
+          "area": 5851.52623724287,
+          "ha_area": 6521.32502603468,
+          "total_intersecting_ha_area": 5852.7257482356,
+          "intersecting_pct": 0.897474934138404,
+          "dominant_pct": 0.999795050879824
+        },
+        {
+          "ha_strip_id": 62,
+          "strip_id": 60,
+          "area": 5850.68297607635,
+          "ha_area": 6520.71585418048,
+          "total_intersecting_ha_area": 5851.79140621883,
+          "intersecting_pct": 0.897415488894092,
+          "dominant_pct": 0.999810582765936
+        },
+        {
+          "ha_strip_id": 63,
+          "strip_id": 61,
+          "area": 5850.38696017341,
+          "ha_area": 6520.10995412873,
+          "total_intersecting_ha_area": 5851.13123574909,
+          "intersecting_pct": 0.897397632388696,
+          "dominant_pct": 0.999872798003379
+        },
+        {
+          "ha_strip_id": 64,
+          "strip_id": 62,
+          "area": 5849.69434762168,
+          "ha_area": 6519.50245206532,
+          "total_intersecting_ha_area": 5850.58867533083,
+          "intersecting_pct": 0.897398032801938,
+          "dominant_pct": 0.999847138850673
+        },
+        {
+          "ha_strip_id": 65,
+          "strip_id": 63,
+          "area": 5849.09157849127,
+          "ha_area": 6518.89452808958,
+          "total_intersecting_ha_area": 5849.9683282859,
+          "intersecting_pct": 0.897386558883365,
+          "dominant_pct": 0.999850127428829
+        },
+        {
+          "ha_strip_id": 66,
+          "strip_id": 64,
+          "area": 5848.41123445316,
+          "ha_area": 6518.28660426721,
+          "total_intersecting_ha_area": 5849.30679840155,
+          "intersecting_pct": 0.897368764756721,
+          "dominant_pct": 0.999846894003125
+        },
+        {
+          "ha_strip_id": 67,
+          "strip_id": 65,
+          "area": 5847.757421166,
+          "ha_area": 6517.67868025911,
+          "total_intersecting_ha_area": 5848.73484358848,
+          "intersecting_pct": 0.897364710737162,
+          "dominant_pct": 0.999832883102308
+        },
+        {
+          "ha_strip_id": 68,
+          "strip_id": 66,
+          "area": 5847.5478022096,
+          "ha_area": 6517.07075641247,
+          "total_intersecting_ha_area": 5848.10222453296,
+          "intersecting_pct": 0.897351347425332,
+          "dominant_pct": 0.999905196198345
+        },
+        {
+          "ha_strip_id": 69,
+          "strip_id": 67,
+          "area": 5847.00353560491,
+          "ha_area": 6516.46302774715,
+          "total_intersecting_ha_area": 5847.53938549053,
+          "intersecting_pct": 0.897348663008086,
+          "dominant_pct": 0.999908363184872
+        },
+        {
+          "ha_strip_id": 70,
+          "strip_id": 68,
+          "area": 5846.32485295031,
+          "ha_area": 6515.85577663456,
+          "total_intersecting_ha_area": 5846.92862324132,
+          "intersecting_pct": 0.897338557462864,
+          "dominant_pct": 0.999896737188031
+        },
+        {
+          "ha_strip_id": 71,
+          "strip_id": 69,
+          "area": 5845.56183963855,
+          "ha_area": 6515.24854732982,
+          "total_intersecting_ha_area": 5846.60027209272,
+          "intersecting_pct": 0.897371793204859,
+          "dominant_pct": 0.999822386958944
+        },
+        {
+          "ha_strip_id": 72,
+          "strip_id": 70,
+          "area": 5844.77690463514,
+          "ha_area": 6514.64131792734,
+          "total_intersecting_ha_area": 5846.04243862664,
+          "intersecting_pct": 0.897369809530293,
+          "dominant_pct": 0.999783522955096
+        },
+        {
+          "ha_strip_id": 73,
+          "strip_id": 71,
+          "area": 5844.2184205533,
+          "ha_area": 6514.03408856123,
+          "total_intersecting_ha_area": 5845.10094780519,
+          "intersecting_pct": 0.89730892843642,
+          "dominant_pct": 0.999849014198425
+        },
+        {
+          "ha_strip_id": 74,
+          "strip_id": 72,
+          "area": 5843.64278504588,
+          "ha_area": 6513.42438200931,
+          "total_intersecting_ha_area": 5844.26196454641,
+          "intersecting_pct": 0.897264115123346,
+          "dominant_pct": 0.999894053431504
+        },
+        {
+          "ha_strip_id": 75,
+          "strip_id": 73,
+          "area": 5843.45497986026,
+          "ha_area": 6513.3621801947,
+          "total_intersecting_ha_area": 5844.13139044601,
+          "intersecting_pct": 0.897252636774347,
+          "dominant_pct": 0.999884258148806
+        },
+        {
+          "ha_strip_id": 76,
+          "strip_id": 74,
+          "area": 5844.43125699238,
+          "ha_area": 6514.22893647332,
+          "total_intersecting_ha_area": 5845.54103120504,
+          "intersecting_pct": 0.897349646168515,
+          "dominant_pct": 0.999810150299736
+        },
+        {
+          "ha_strip_id": 77,
+          "strip_id": 75,
+          "area": 5845.43708672079,
+          "ha_area": 6515.1069694359,
+          "total_intersecting_ha_area": 5846.22055423275,
+          "intersecting_pct": 0.897333011055526,
+          "dominant_pct": 0.999865987349486
+        },
+        {
+          "ha_strip_id": 78,
+          "strip_id": 76,
+          "area": 5846.10819152671,
+          "ha_area": 6515.98500244116,
+          "total_intersecting_ha_area": 5847.0900253237,
+          "intersecting_pct": 0.897345531509532,
+          "dominant_pct": 0.999832081635012
+        },
+        {
+          "ha_strip_id": 79,
+          "strip_id": 77,
+          "area": 5847.146727352,
+          "ha_area": 6516.86303137639,
+          "total_intersecting_ha_area": 5848.12654132264,
+          "intersecting_pct": 0.897383681867484,
+          "dominant_pct": 0.999832456776762
+        },
+        {
+          "ha_strip_id": 80,
+          "strip_id": 78,
+          "area": 5847.72889596108,
+          "ha_area": 6517.73950827086,
+          "total_intersecting_ha_area": 5848.72372015514,
+          "intersecting_pct": 0.897354629274958,
+          "dominant_pct": 0.999829907473552
+        },
+        {
+          "ha_strip_id": 81,
+          "strip_id": 79,
+          "area": 5848.98951717939,
+          "ha_area": 6518.61472121371,
+          "total_intersecting_ha_area": 5849.53705113143,
+          "intersecting_pct": 0.89735891769997,
+          "dominant_pct": 0.999906397045228
+        },
+        {
+          "ha_strip_id": 82,
+          "strip_id": 80,
+          "area": 5849.24543104115,
+          "ha_area": 6519.48993410283,
+          "total_intersecting_ha_area": 5850.64820008166,
+          "intersecting_pct": 0.897408886158022,
+          "dominant_pct": 0.999760236986991
+        },
+        {
+          "ha_strip_id": 83,
+          "strip_id": 81,
+          "area": 5852.58759196314,
+          "ha_area": 6522.12135154767,
+          "total_intersecting_ha_area": 5853.15653365664,
+          "intersecting_pct": 0.897431405851979,
+          "dominant_pct": 0.99990279745805
+        },
+        {
+          "ha_strip_id": 84,
+          "strip_id": 82,
+          "area": 5856.95344419242,
+          "ha_area": 6526.85010499541,
+          "total_intersecting_ha_area": 5858.07377783071,
+          "intersecting_pct": 0.89753459687195,
+          "dominant_pct": 0.999808753921377
+        },
+        {
+          "ha_strip_id": 85,
+          "strip_id": 83,
+          "area": 5861.44368078258,
+          "ha_area": 6531.58290234667,
+          "total_intersecting_ha_area": 5862.59632777288,
+          "intersecting_pct": 0.897576654147123,
+          "dominant_pct": 0.999803389671426
+        },
+        {
+          "ha_strip_id": 86,
+          "strip_id": 84,
+          "area": 4011.36609397244,
+          "ha_area": 6535.59495765377,
+          "total_intersecting_ha_area": 4011.75588213917,
+          "intersecting_pct": 0.613831779376266,
+          "dominant_pct": 0.999902838513064
+        }
+      ]
+    }
+  ],
+  "orthoInputs": null
+}

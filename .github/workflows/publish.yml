@@ -1,0 +1,37 @@
+name: Publish
+
+on:
+  push:
+    tags: ["v*"]
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          registry-url: https://registry.npmjs.org
+      - run: bun install --frozen-lockfile
+      # the tag must match package.json's version (guards against publishing a stale version)
+      - run: |
+          TAG="${GITHUB_REF_NAME#v}"
+          PKG="$(node -p "require('./package.json').version")"
+          if [ "$TAG" != "$PKG" ]; then
+            echo "Tag v$TAG does not match package.json version $PKG" >&2
+            exit 1
+          fi
+      # build first: the browser smoke test imports (and typechecks against) the built bundle
+      - run: bun run build
+      - run: bun run typecheck
+      - run: bun run lint
+      - run: bun run test
+      # parity-map completeness check runs ONLY on publish tags (spec: r-parity-harness)
+      - run: bun run tools/check-parity-map.ts
+      - run: npm publish --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

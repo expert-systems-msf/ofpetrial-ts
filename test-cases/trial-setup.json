@@ -1,0 +1,69 @@
+{
+  "suite": "trial-setup",
+  "cases": [
+    {
+      "name": "getRates asymmetric split, more room above gc, odd temp count",
+      "function": "getRates",
+      "input": { "minRate": 100, "maxRate": 260, "gcRate": 120, "numLevels": 4 },
+      "expected": [100, 120, 190, 260],
+      "tolerance": 1e-6,
+      "rParity": true
+    },
+    {
+      "name": "getRates asymmetric split, more room above gc, even temp count ratio > 1.5",
+      "function": "getRates",
+      "input": { "minRate": 100, "maxRate": 260, "gcRate": 120, "numLevels": 5 },
+      "expected": [100, 120, 167, 213, 260],
+      "tolerance": 1e-6,
+      "rParity": true
+    },
+    {
+      "name": "getRates near-symmetric split, even temp count ratio <= 1.5",
+      "function": "getRates",
+      "input": { "minRate": 100, "maxRate": 260, "gcRate": 170, "numLevels": 5 },
+      "expected": [100, 135, 170, 215, 260],
+      "tolerance": 1e-6,
+      "rParity": true
+    },
+    {
+      "name": "getRates more room below gc, even temp count ratio > 1.5",
+      "function": "getRates",
+      "input": { "minRate": 100, "maxRate": 260, "gcRate": 240, "numLevels": 5 },
+      "expected": [100, 147, 193, 240, 260],
+      "tolerance": 1e-6,
+      "rParity": true
+    },
+    {
+      "name": "getRates plain ladder when gc sits on the max boundary",
+      "function": "getRates",
+      "input": { "minRate": 100, "maxRate": 260, "gcRate": 260, "numLevels": 4 },
+      "expected": [100, 153.333333333333, 206.666666666667, 260],
+      "tolerance": 1e-6,
+      "rParity": true
+    },
+    {
+      "name": "getRates more room below gc, even temp count ratio <= 1.5",
+      "function": "getRates",
+      "input": { "minRate": 100, "maxRate": 260, "gcRate": 190, "numLevels": 5 },
+      "expected": [100, 145, 190, 225, 260],
+      "tolerance": 1e-6,
+      "rParity": true
+    },
+    {
+      "name": "findPlotWidth returns the LCM when one fits (2.5ft sections, 30ft harvester)",
+      "function": "findPlotWidth",
+      "input": { "sectionWidth": 0.762, "harvesterWidth": 9.144, "maxPlotWidth": 36.576 },
+      "expected": 9.144,
+      "tolerance": 1e-6,
+      "rParity": true
+    },
+    {
+      "name": "findPlotWidth falls back to twice the section width (1 < ratio < 2)",
+      "function": "findPlotWidth",
+      "input": { "sectionWidth": 15.24, "harvesterWidth": 9.144, "maxPlotWidth": 18.288 },
+      "expected": 30.48,
+      "tolerance": 1e-6,
+      "rParity": true
+    }
+  ]
+}

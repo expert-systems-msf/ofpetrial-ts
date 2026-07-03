@@ -1,0 +1,8 @@
+{
+"type": "FeatureCollection",
+"name": "ab-line-simple1",
+"crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:OGC:1.3:CRS84" } },
+"features": [
+{"type":"Feature","properties":{"AB_Line":"AB Heading=359.95 deg"},"geometry":{"type":"LineString","coordinates":[[-16.700314810825784,39.12152545900976],[-16.700318810825788,39.125115099009761]]}}
+]
+}

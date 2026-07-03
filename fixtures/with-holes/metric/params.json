@@ -1,0 +1,11 @@
+[
+  {
+    "input_name": "seed",
+    "machine_width": 18,
+    "section_num": 24,
+    "harvester_width": 9,
+    "gc_rate": 34000,
+    "unit": "seeds",
+    "rates": [20000, 26000, 32000, 38000, 44000]
+  }
+]

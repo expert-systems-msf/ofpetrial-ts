@@ -1,0 +1,8 @@
+{
+"type": "FeatureCollection",
+"name": "harvester-ab-line",
+"xy_coordinate_resolution": 1e-09,
+"features": [
+{"type":"Feature","properties":{"ab_id":1},"geometry":{"type":"LineString","coordinates":[[-98.983029002,43.571746116],[-98.982988409,43.578327939]]}}
+]
+}

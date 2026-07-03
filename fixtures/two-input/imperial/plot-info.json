@@ -1,0 +1,32 @@
+[
+  [
+    {
+      "input_name": "seed",
+      "unit_system": "imperial",
+      "machine_width": 18.288,
+      "section_num": 24,
+      "section_width": 0.762,
+      "harvester_width": 9.144,
+      "plot_width": 9.144,
+      "headland_length": 36.576,
+      "side_length": 9.144,
+      "min_plot_length": 73.152,
+      "max_plot_length": 91.44
+    }
+  ],
+  [
+    {
+      "input_name": "NH3",
+      "unit_system": "imperial",
+      "machine_width": 9.144,
+      "section_num": 1,
+      "section_width": 9.144,
+      "harvester_width": 9.144,
+      "plot_width": 9.144,
+      "headland_length": 18.288,
+      "side_length": 9.144,
+      "min_plot_length": 73.152,
+      "max_plot_length": 91.44
+    }
+  ]
+]

@@ -1,0 +1,22 @@
+[
+  {
+    "var": "mukey",
+    "corWithRate": 0.000900017698530435
+  },
+  {
+    "var": "clay",
+    "corWithRate": 0.00172568118742708
+  },
+  {
+    "var": "sand",
+    "corWithRate": -0.0131984197572814
+  },
+  {
+    "var": "silt",
+    "corWithRate": 0.0120783239420527
+  },
+  {
+    "var": "wtr_str",
+    "corWithRate": -0.00594052983945976
+  }
+]
