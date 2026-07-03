@@ -14,10 +14,10 @@ jobs:
         with:
           bun-version: latest
       - run: bun install --frozen-lockfile
+      # build first: the browser smoke test imports (and typechecks against) the built bundle
+      - run: bun run build
       - run: bun run typecheck
       - run: bun run lint
-      # build before test: the browser smoke test imports the built bundle
-      - run: bun run build
       - run: bun run test
       - uses: denoland/setup-deno@v2
         with:

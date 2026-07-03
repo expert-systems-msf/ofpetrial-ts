@@ -25,10 +25,10 @@ jobs:
             echo "Tag v$TAG does not match package.json version $PKG" >&2
             exit 1
           fi
+      # build first: the browser smoke test imports (and typechecks against) the built bundle
+      - run: bun run build
       - run: bun run typecheck
       - run: bun run lint
-      # build before test: the browser smoke test imports the built bundle
-      - run: bun run build
       - run: bun run test
       # parity-map completeness check runs ONLY on publish tags (spec: r-parity-harness)
       - run: bun run tools/check-parity-map.ts
