@@ -80,11 +80,14 @@ public sources (2026-07-02):
 2. `dev4Agriculture/isoxml-js` (actively maintained, MIT-licensed TypeScript
    ISOXML library) — its per-entity `ATTRIBUTES` tables
    (`src/baseEntities/{Partfield,Task,TreatmentZone,ProcessDataVariable,
-   Polygon,LineString,Point}.ts`) agree letter-for-letter with the XSD fetch,
-   **and** independently confirm `TZN` (TreatmentZone)'s own attributes —
-   the one element the XSD fetch didn't return — as `TZN.A` =
-   `TreatmentZoneCode` (`xs:unsignedByte`, 0–254, required) and `TZN.B` =
-   `TreatmentZoneDesignator` (string, optional).
+   Polygon,LineString,Point,GuidanceGroup,GuidancePattern}.ts`) agree
+   letter-for-letter with the XSD fetch, **and** independently confirm two
+   things the XSD fetch didn't return on its own: `TZN` (TreatmentZone)'s own
+   attributes — `TZN.A` = `TreatmentZoneCode` (`xs:unsignedByte`, 0–254,
+   required) and `TZN.B` = `TreatmentZoneDesignator` (string, optional) — and
+   the `GGP`/`GPN` guidance-pattern attribute letters used below (`Partfield`
+   CHILD_TAGS registers `GGP` as `PFD`'s guidance-group child, distinct from
+   its `PLN` boundary child).
 
 A third source, `Open-Agriculture/AgIsoStack-plus-plus` (a reviewer
 suggestion), was checked but turned out to implement ISO 11783-13 (the live
@@ -114,15 +117,39 @@ nested under its rate's zone instead of getting a dedicated zone. Code `0` is
 reserved here as a conservative "undefined zone" convention (not a hard XSD
 requirement), leaving 254 usable codes, assigned starting at `1`.
 
-### Known beta simplifications
+### Field boundary and guidance lines
 
-- No `PFD` boundary geometry (`PLN` child of `PFD`) is emitted, only the
-  required `PartfieldArea` (`PFD.D`, sum of plot + headland polygon areas via
-  `@turf/area`) — computing an accurate field-level union is deferred past
-  the beta scope.
-- Guidance lines (applicator/harvester ab-lines) are not exported to ISOXML
-  (ISOXML guidance patterns, `GPN`/`GST`/`LSG` guidance sets, are out of the
-  beta scope per spec.md).
+`PFD` now carries two more element groups beyond `TZN`/`PLN` (per-plot
+treatment zones):
+
+- **Field boundary** — one `PLN` of `PolygonType` `1` ("Partfield Boundary",
+  per the `Polygon` `PolygonType` enumeration) as a **direct child of `PFD`**,
+  distinct from the `PLN` (`PolygonType` `2`, "TreatmentZone") nested under
+  each `TZN`. `writeIsoxml`'s `IsoxmlOptions.boundary` (and
+  `writeTrialFiles`'s `WriteTrialFilesOptions.boundary`) accept the exact
+  original field boundary as a `Feature<Polygon | MultiPolygon>`; when
+  omitted, the boundary is derived instead as the `@turf/union` of every
+  geometry passed in (plots + headlands — the TrialDesign itself carries no
+  raw field-boundary geometry), dissolved to a single `Polygon` or
+  `MultiPolygon`. A `MultiPolygon` boundary emits one `PLN` per disjoint
+  component, all `PolygonType` `1`. `PartfieldArea` (`PFD.D`) is unchanged:
+  still the sum of plot + headland polygon areas, independent of the
+  boundary polygon's own area.
+- **Guidance lines** — one `GGP` (`GuidanceGroup`) as a direct child of `PFD`
+  (per `Partfield`'s `CHILD_TAGS`, `GGP` is a V4-only sibling of the boundary
+  `PLN`), holding one `GPN` (`GuidancePattern`, `GuidancePatternType` `1` =
+  "AB Line") per guidance line: one for the input's applicator `abLine`
+  (designator `"ab-line"`) and one per feature in `guidanceLines` (the
+  harvester ab-lines; designators `"harvester-1"`, `"harvester-2"`, ...).
+  Each `GPN` holds one `LSG` (`LineString`, `LineStringType` `5` = "Guidance
+  Pattern") whose `PNT` children carry the line's own coordinates (same
+  `PointNorth`/`PointEast` encoding as plot/boundary vertices). The `GGP`
+  element (and its `GPN` children) is omitted entirely when neither
+  `abLine` nor `guidanceLines` is supplied.
+
+Both are opt-in through the same `IsoxmlOptions`/`WriteTrialFilesOptions`
+surface `writeIsoxml`/`writeTrialFiles` already exposed for rates — no new
+entry point.
 
 ## Terminal import
 
@@ -141,6 +168,8 @@ ISO 11783-10 terminals scan the storage medium root for
 Validated with the reference JS implementation
 ([dev4Agriculture `isoxml`](https://github.com/dev4Agriculture/isoxml-js),
 the parser behind isoxml.online): both layouts import with zero parser
-warnings and correct partfield/task/treatment-zone structure
-(`tests/exports-isoxml-terminal.test.ts`). The export stays **beta** until a
+warnings and correct partfield/task/treatment-zone structure, including the
+`PFD` boundary `PLN` and the `GGP`/`GPN` guidance patterns (point-for-point
+against the fixture ab-line coordinates, see
+`tests/exports-isoxml-terminal.test.ts`). The export stays **beta** until a
 run on physical terminal hardware confirms it end-to-end.

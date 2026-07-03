@@ -71,9 +71,15 @@ describe("writeIsoxml — round-trip structure (simple1, imperial, seed)", () =>
     expect(countTag(tags, "PDV")).toBe(distinctRates.size);
   });
 
-  it("emits one PLN per plot (nested under its rate's TZN)", () => {
+  it("emits one treatment-zone PLN per plot (nested under its rate's TZN)", () => {
     // Every plot is a simple Polygon (1 ring) in this fixture, so 1 PLN per plot.
-    expect(countTag(tags, "PLN")).toBe(plots.length);
+    // PolygonType 2 = TreatmentZone; distinct from the PFD boundary PLN (type 1).
+    expect(tags.filter((t) => t.name === "PLN" && t.attrs.A === "2")).toHaveLength(plots.length);
+  });
+
+  it("emits a field-boundary PLN (PolygonType 1) directly under PFD", () => {
+    const boundaryPlns = tags.filter((t) => t.name === "PLN" && t.attrs.A === "1");
+    expect(boundaryPlns.length).toBeGreaterThanOrEqual(1);
   });
 
   it("PDV carries the documented DDI for the headland's gc_rate (34000 seeds/ac)", () => {
