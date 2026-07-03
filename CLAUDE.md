@@ -35,7 +35,7 @@ tag-must-equal-package.json-version guard and the parity-map gate).
   values through R's actual internals.
 - **Tolerances** (design.md D9): 1e-6 relative on R-precomputed data
   (machine precision in practice), 1e-3 only for live Turf.js spatial joins,
-  >= 99% overlap / <= 10 cm centroids for geometry.
+  > = 99% overlap / <= 10 cm centroids for geometry.
 - **npm tarball is whitelisted** (`files: [dist, LICENSE, README.md]`) — repo
   docs/fixtures/tools never ship. Keep it that way.
 - **Dependencies**: fflate (never jszip/file-saver), Turf 7, proj4, geotiff.
