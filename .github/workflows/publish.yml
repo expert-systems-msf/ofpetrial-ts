@@ -7,6 +7,10 @@ on:
 jobs:
   publish:
     runs-on: ubuntu-latest
+    # OIDC trusted publishing: npm trusts this repo+workflow directly, no token
+    permissions:
+      contents: read
+      id-token: write
     steps:
       - uses: actions/checkout@v4
       - uses: oven-sh/setup-bun@v2
@@ -68,6 +72,6 @@ jobs:
             if (OFPETRIAL_R_VERSION !== '0.1.3' || pi.plot_width <= 0) throw new Error('install smoke failed');
             console.log('install smoke OK');
           "
+      # npm >= 11.5 required for OIDC trusted publishing (runner ships 10.x)
+      - run: npm install -g npm@latest
       - run: npm publish --access public
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
