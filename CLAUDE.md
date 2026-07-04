@@ -1,7 +1,7 @@
 # CLAUDE.md — ofpetrial-ts
 
 TypeScript port of the ofpetrial R package (0.1.3) for on-farm precision
-experiments. GPL-3.0-or-later. Runs in Node >= 20, Deno, browsers.
+experiments. GPL-3.0-or-later. Runs in Node >= 22, Deno, browsers.
 
 ## Commands
 

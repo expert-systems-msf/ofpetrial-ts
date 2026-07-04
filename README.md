@@ -1,6 +1,9 @@
 # ofpetrial-ts
 
-TypeScript port of the [ofpetrial](https://github.com/DIFM-Brain/ofpetrial) R package (v0.1.3) for designing and diagnosing **on-farm precision agriculture experiments**: lay out randomized-rate trial plots inside a field boundary along an ab-line, assign input rates with several randomized-design strategies, run alignment/orthogonality diagnostics, and export machine-ready files (Shapefile, GeoJSON, ISOXML). Runs unmodified in Node ≥ 20, Deno, and the browser (no native dependencies). Licensed GPL-3.0-or-later.
+[![npm](https://img.shields.io/npm/v/ofpetrial-ts)](https://www.npmjs.com/package/ofpetrial-ts)
+[![license](https://img.shields.io/npm/l/ofpetrial-ts)](LICENSE)
+
+TypeScript port of the [ofpetrial](https://github.com/DIFM-Brain/ofpetrial) R package (v0.1.3) for designing and diagnosing **on-farm precision agriculture experiments**: lay out randomized-rate trial plots inside a field boundary along an ab-line, assign input rates with several randomized-design strategies, run alignment/orthogonality diagnostics, and export machine-ready files (Shapefile, GeoJSON, ISOXML). Runs unmodified in Node ≥ 22, Deno, and the browser (no native dependencies). Licensed GPL-3.0-or-later.
 
 > **Pre-1.0.** The public API is stable in shape (11/11 ported functions, see Status below) but has not yet had a tagged release.
 
