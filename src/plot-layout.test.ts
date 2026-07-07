@@ -91,9 +91,7 @@ describe("mergeIntervals", () => {
         [1, 3],
         [2, 5],
       ])
-    ).toEqual([
-      [1, 7],
-    ]);
+    ).toEqual([[1, 7]]);
   });
 
   it("merges intervals that only touch at an endpoint", () => {

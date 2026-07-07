@@ -29,9 +29,7 @@ describe("utmEpsg", () => {
 
 describe("utmProjString", () => {
   it("appends +south only for southern-hemisphere zones", () => {
-    expect(utmProjString(32_721)).toBe(
-      "+proj=utm +zone=21 +datum=WGS84 +units=m +no_defs +south"
-    );
+    expect(utmProjString(32_721)).toBe("+proj=utm +zone=21 +datum=WGS84 +units=m +no_defs +south");
     expect(utmProjString(32_616)).toBe("+proj=utm +zone=16 +datum=WGS84 +units=m +no_defs");
     expect(utmProjString(32_616)).not.toContain("+south");
   });

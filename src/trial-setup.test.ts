@@ -1,5 +1,12 @@
 import { describe, expect, it } from "vitest";
-import { findPlotWidth, getLcm, getRates, prepPlot, prepRate, roundHalfEven } from "./trial-setup.js";
+import {
+  findPlotWidth,
+  getLcm,
+  getRates,
+  prepPlot,
+  prepRate,
+  roundHalfEven,
+} from "./trial-setup.js";
 import { ValidationError } from "./types.js";
 
 describe("getLcm / findPlotWidth", () => {
@@ -115,7 +122,9 @@ describe("prepPlot", () => {
       harvesterWidth: 30,
     };
     expect(() => prepPlot({ ...base, machineWidth: 0 })).toThrow(ValidationError);
-    expect(() => prepPlot({ ...base, machineWidth: 0 })).toThrow(/must be a positive finite number/);
+    expect(() => prepPlot({ ...base, machineWidth: 0 })).toThrow(
+      /must be a positive finite number/
+    );
     expect(() => prepPlot({ ...base, machineWidth: -60 })).toThrow(ValidationError);
     expect(() => prepPlot({ ...base, machineWidth: NaN })).toThrow(ValidationError);
     expect(() => prepPlot({ ...base, sectionNum: 0 })).toThrow(ValidationError);
