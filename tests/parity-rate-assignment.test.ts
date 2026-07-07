@@ -213,4 +213,47 @@ describe("changeRates (task 5.5)", () => {
       /same length as stripIds/
     );
   });
+
+  it('rateBy "all": rejects a non-scalar newRates', () => {
+    const td = trialDesignFromFixture();
+    expect(() => changeRates(td, { stripIds: [2], newRates: [1, 2], rateBy: "all" })).toThrow(
+      /rateBy "all", newRates must be a single number/
+    );
+  });
+
+  it('rateBy "plot": requires plotIds', () => {
+    const td = trialDesignFromFixture();
+    expect(() => changeRates(td, { stripIds: [2], newRates: [[1]], rateBy: "plot" })).toThrow(
+      /rateBy "plot", plotIds is required/
+    );
+  });
+
+  it('rateBy "plot": rejects non-increasing plotIds', () => {
+    const td = trialDesignFromFixture();
+    expect(() =>
+      changeRates(td, { stripIds: [2], plotIds: [3, 2], newRates: [[1], [2]], rateBy: "plot" })
+    ).toThrow(/plotIds must be strictly increasing/);
+  });
+
+  it('rateBy "plot": rejects a mis-shaped matrix', () => {
+    const td = trialDesignFromFixture();
+    expect(() =>
+      changeRates(td, { stripIds: [2], plotIds: [1, 2], newRates: [[1]], rateBy: "plot" })
+    ).toThrow(/newRates must be a 2 x 1 matrix/);
+  });
+
+  it('rateBy "plot": rejects a plot position that does not exist', () => {
+    const td = trialDesignFromFixture();
+    expect(() =>
+      changeRates(td, { stripIds: [2], plotIds: [9999], newRates: [[1]], rateBy: "plot" })
+    ).toThrow(/Plot position\(s\) not found/);
+  });
+
+  it("throws on an unknown inputName for a multi-input design", () => {
+    const td = trialDesignFromFixture();
+    const twoInput: TrialDesign = { inputs: [td.inputs[0]!, td.inputs[0]!], seed: td.seed };
+    expect(() =>
+      changeRates(twoInput, { inputName: "ghost", stripIds: [1], newRates: 100 })
+    ).toThrow(/No input named "ghost"/);
+  });
 });
