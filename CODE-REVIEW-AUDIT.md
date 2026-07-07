@@ -22,44 +22,45 @@ reproduite bout-en-bout via l'API publique.
 
 ## Tableau de synthèse
 
-| # | Sévérité | Fichier:ligne | Catégorie | Titre court |
-|---|----------|---------------|-----------|-------------|
-| H1 | 🔴 HIGH | `src/rate-assignment.ts:758` | correctness | Plantage du design conjoint quand le 2ᵉ intrant a 2 doses |
-| H2 | 🔴 HIGH | `src/rate-assignment.ts:1167` | correctness | `assignRatesConditional` aligne dosé/non-dosé par index sans vérifier les géométries |
-| M1 | 🟠 MEDIUM | `src/plot-layout.ts:371` | correctness | Aire utile enclavée par un trou en C silencieusement perdue |
-| M2 | 🟠 MEDIUM | `src/plot-layout.ts:912` | parity | Ab-line / guidage tronqués à la plus longue pièce |
-| M3 | 🟠 MEDIUM | `src/plot-layout.ts:954` | data-corruption | Deux intrants de largeur égale partagent les mêmes objets mutables |
-| M4 | 🟠 MEDIUM | `src/rate-assignment.ts:420` | silent-misbehavior | `assignLs` duplique les séquences si `rankSeqAs` trop court |
-| M5 | 🟠 MEDIUM | `src/diagnostics.ts:874` | correctness | Type-classification d'après la 1ʳᵉ feature seulement |
-| M6 | 🟠 MEDIUM | `src/raster.ts:66` | correctness | Signe de `yres` non fiable pour rasters ModelTransformation |
-| M7 | 🟠 MEDIUM | `src/raster.ts:74` | data-corruption | Masquage nodata Float32 par égalité stricte |
-| M8 | 🟠 MEDIUM | `src/units.ts:152` | numerical | Équivalent-N métrique gonflé ~2.471× |
-| L1 | 🟡 LOW | `src/diagnostics.ts:454` | correctness | `checkOrthoInputs` renvoie NaN silencieux |
-| L2 | 🟡 LOW | `src/diagnostics.ts:496` | parity | Gestion NA facteur incohérente live/précalculé |
-| L3 | 🟡 LOW | `src/diagnostics.ts:530` | crash | `spatialJoin` plante (TypeError) sur couche non homogène |
-| L4 | 🟡 LOW | `src/diagnostics.ts:883` | parity | Mode fragments applique l'intrant #1 à tous les intrants |
-| L5 | 🟡 LOW | `src/exports/shapefile.ts:289` | correctness | Non-finis sérialisés en texte `NaN`/`Infinity`/`1e+21` en DBF |
-| L6 | 🟡 LOW | `src/exports/shapefile.ts:344` | data-corruption | Caractères DBF en octets UTF-16 tronqués, pas de LDID/.cpg |
-| L7 | 🟡 LOW | `src/exports/write-trial-files.ts:154` | data-corruption | Collision de basenames réservés écrase la couche design |
-| L8 | 🟡 LOW | `src/exports/write-trial-files.ts:200` | correctness | `guidanceLines` vide : geojson/shp jettent, isoxml réussit |
-| L9 | 🟡 LOW | `src/exports/write-trial-files.ts:217` | non-determinism | Zip non déterministe (fflate `Date.now()`) |
-| L10 | 🟡 LOW | `src/plot-layout.ts:625` | parity | `poly_line` et ordre des features dévient de R sur strips à trous |
-| L11 | 🟡 LOW | `src/rate-assignment.ts:1310` | parity | `changeRates` rejette un scalaire en mode `strip` (message contradictoire) |
-| L12 | 🟡 LOW | `tools/check-parity-map.ts:30` | parity-gate | Le gate ne valide jamais `map.internals` |
-| L13 | 🟡 LOW | `tools/check-parity-map.ts:40` | parity-gate | Le gate ne vérifie jamais la ré-export publique dans `src/index.ts` |
-| L14 | 🟡 LOW | `parity-map.json:10` | test-coverage | `trial-setup.json` listé pour prep_plot/prep_rate n'a aucun cas |
-| L15 | 🟡 LOW | `parity-map.json:151` | parity-doc | Déviation write_trial_files référence une valeur ab-line inexistante |
-| L16 | 🟡 LOW | `tests/browser-smoke.test.ts:1` | test-coverage | Le smoke test n'impose pas l'invariant bundle-propre |
-| L17 | 🟡 LOW | `tests/exports-shp-reader.ts:130` | test-coverage | Lecteur DBF de test trop permissif (`Number()`) |
-| L18 | 🟡 LOW | `tests/parity-diagnostics.test.ts:539` | test-coverage | Cross-validation passe à vide si `correlations` vide |
-| L19 | 🟡 LOW | `tests/parity-exports.test.ts:42` | test-coverage | La parité d'export ne vérifie jamais strip_id/plot_id |
-| L20 | 🟡 LOW | `tests/parity-exports.test.ts:48` | test-coverage | Pas de comparaison du nombre de points par anneau |
+| #   | Sévérité  | Fichier:ligne                          | Catégorie          | Titre court                                                                          |
+| --- | --------- | -------------------------------------- | ------------------ | ------------------------------------------------------------------------------------ |
+| H1  | 🔴 HIGH   | `src/rate-assignment.ts:758`           | correctness        | Plantage du design conjoint quand le 2ᵉ intrant a 2 doses                            |
+| H2  | 🔴 HIGH   | `src/rate-assignment.ts:1167`          | correctness        | `assignRatesConditional` aligne dosé/non-dosé par index sans vérifier les géométries |
+| M1  | 🟠 MEDIUM | `src/plot-layout.ts:371`               | correctness        | Aire utile enclavée par un trou en C silencieusement perdue                          |
+| M2  | 🟠 MEDIUM | `src/plot-layout.ts:912`               | parity             | Ab-line / guidage tronqués à la plus longue pièce                                    |
+| M3  | 🟠 MEDIUM | `src/plot-layout.ts:954`               | data-corruption    | Deux intrants de largeur égale partagent les mêmes objets mutables                   |
+| M4  | 🟠 MEDIUM | `src/rate-assignment.ts:420`           | silent-misbehavior | `assignLs` duplique les séquences si `rankSeqAs` trop court                          |
+| M5  | 🟠 MEDIUM | `src/diagnostics.ts:874`               | correctness        | Type-classification d'après la 1ʳᵉ feature seulement                                 |
+| M6  | 🟠 MEDIUM | `src/raster.ts:66`                     | correctness        | Signe de `yres` non fiable pour rasters ModelTransformation                          |
+| M7  | 🟠 MEDIUM | `src/raster.ts:74`                     | data-corruption    | Masquage nodata Float32 par égalité stricte                                          |
+| M8  | 🟠 MEDIUM | `src/units.ts:152`                     | numerical          | Équivalent-N métrique gonflé ~2.471×                                                 |
+| L1  | 🟡 LOW    | `src/diagnostics.ts:454`               | correctness        | `checkOrthoInputs` renvoie NaN silencieux                                            |
+| L2  | 🟡 LOW    | `src/diagnostics.ts:496`               | parity             | Gestion NA facteur incohérente live/précalculé                                       |
+| L3  | 🟡 LOW    | `src/diagnostics.ts:530`               | crash              | `spatialJoin` plante (TypeError) sur couche non homogène                             |
+| L4  | 🟡 LOW    | `src/diagnostics.ts:883`               | parity             | Mode fragments applique l'intrant #1 à tous les intrants                             |
+| L5  | 🟡 LOW    | `src/exports/shapefile.ts:289`         | correctness        | Non-finis sérialisés en texte `NaN`/`Infinity`/`1e+21` en DBF                        |
+| L6  | 🟡 LOW    | `src/exports/shapefile.ts:344`         | data-corruption    | Caractères DBF en octets UTF-16 tronqués, pas de LDID/.cpg                           |
+| L7  | 🟡 LOW    | `src/exports/write-trial-files.ts:154` | data-corruption    | Collision de basenames réservés écrase la couche design                              |
+| L8  | 🟡 LOW    | `src/exports/write-trial-files.ts:200` | correctness        | `guidanceLines` vide : geojson/shp jettent, isoxml réussit                           |
+| L9  | 🟡 LOW    | `src/exports/write-trial-files.ts:217` | non-determinism    | Zip non déterministe (fflate `Date.now()`)                                           |
+| L10 | 🟡 LOW    | `src/plot-layout.ts:625`               | parity             | `poly_line` et ordre des features dévient de R sur strips à trous                    |
+| L11 | 🟡 LOW    | `src/rate-assignment.ts:1310`          | parity             | `changeRates` rejette un scalaire en mode `strip` (message contradictoire)           |
+| L12 | 🟡 LOW    | `tools/check-parity-map.ts:30`         | parity-gate        | Le gate ne valide jamais `map.internals`                                             |
+| L13 | 🟡 LOW    | `tools/check-parity-map.ts:40`         | parity-gate        | Le gate ne vérifie jamais la ré-export publique dans `src/index.ts`                  |
+| L14 | 🟡 LOW    | `parity-map.json:10`                   | test-coverage      | `trial-setup.json` listé pour prep_plot/prep_rate n'a aucun cas                      |
+| L15 | 🟡 LOW    | `parity-map.json:151`                  | parity-doc         | Déviation write_trial_files référence une valeur ab-line inexistante                 |
+| L16 | 🟡 LOW    | `tests/browser-smoke.test.ts:1`        | test-coverage      | Le smoke test n'impose pas l'invariant bundle-propre                                 |
+| L17 | 🟡 LOW    | `tests/exports-shp-reader.ts:130`      | test-coverage      | Lecteur DBF de test trop permissif (`Number()`)                                      |
+| L18 | 🟡 LOW    | `tests/parity-diagnostics.test.ts:539` | test-coverage      | Cross-validation passe à vide si `correlations` vide                                 |
+| L19 | 🟡 LOW    | `tests/parity-exports.test.ts:42`      | test-coverage      | La parité d'export ne vérifie jamais strip_id/plot_id                                |
+| L20 | 🟡 LOW    | `tests/parity-exports.test.ts:48`      | test-coverage      | Pas de comparaison du nombre de points par anneau                                    |
 
 ---
 
 ## 🔴 HIGH
 
 ### H1 — Plantage systématique du design conjoint quand le 2ᵉ intrant a exactement 2 doses
+
 **`src/rate-assignment.ts:758`** · correctness · confiance : certaine · reproduit 25/25 et 15/15 seeds
 
 `findRate()` construit ses candidats (l.725-730) en excluant **à la fois** la dose du plot
@@ -81,6 +82,7 @@ via `assignRatesConditional` quand un intrant à 2 doses est conditionné sur un
 (ignorer l'exclusion prev/nb).
 
 ### H2 — `assignRatesConditional` aligne dosé/non-dosé par index sans vérifier que les géométries correspondent
+
 **`src/rate-assignment.ts:1167`** · correctness · confiance : certaine · reproduit (crash ET corruption silencieuse)
 
 `getDesignForSecond` documente une précondition (l.770) : `firstDesignRates` doit être
@@ -92,6 +94,7 @@ longueur et en ordre spatial. `firstDesignRates` (l.1154) est bâti depuis `dose
 puis consommé positionnellement contre `matchingLayout.plots.features` (l.1167-1173).
 
 **Deux modes de défaillance, tous deux reproduits (fixtures boundary-simple1, échelles à 5 doses) :**
+
 - **dosé plus gros** (333 vs 108 plots) → renvoie **sans erreur**, mais l'équilibrage conjoint
   et la minimisation de corrélation ont été calculés en appariant les 108 plots non-dosés
   contre les **108 premiers** du design dosé (un coin du champ) — la propriété même que la
@@ -108,13 +111,14 @@ de planter de façon opaque.
 ## 🟠 MEDIUM
 
 ### M1 — Aire utile enclavée par un trou en C/fer-à-cheval silencieusement perdue
+
 **`src/plot-layout.ts:371`** · correctness · certaine · reproduit
 
 `erodeField`/`growRing` ne garde que la pièce dominante de l'offset ; pour un trou concave
 dont la bouche est plus étroite que `2·inner`, l'offset s'auto-intersecte et la pièce
 dominante recouvre la poche intérieure du trou. De plus le modèle `RingRegion` (l.342) ne
 représente les trous que comme des anneaux positifs soustraits, donc un îlot d'aire utile
-*dans* un trou est irreprésentable. `GEOS st_buffer` (R 0.1.3) calcule l'érosion de Minkowski
+_dans_ un trou est irreprésentable. `GEOS st_buffer` (R 0.1.3) calcule l'érosion de Minkowski
 exacte et garde ces poches.
 
 **Scénario :** champ 800×800 m, trou en C (murs 20 m) avec poche intérieure 220×220 m, bouche
@@ -124,6 +128,7 @@ design.md D2 (« mathématiquement équivalent au `st_intersection` de R ») ; n
 dans parity-map.
 
 ### M2 — Ab-line libre et guidage moissonneuse tronqués à la plus longue pièce
+
 **`src/plot-layout.ts:912`** · parity · certaine · reproduit
 
 `clipFreeLine` intersecte la ligne générée avec le champ dilaté (+20 m) puis garde
@@ -140,6 +145,7 @@ seulement, non enregistrée dans parity-map ; le test asserte exactement 2 endpo
 donc le cas multi-parties n'est pas testable.
 
 ### M3 — Deux intrants de largeur égale partagent les mêmes objets Feature mutables
+
 **`src/plot-layout.ts:954`** · data-corruption · confiance : moyenne (2/3) · reproduit
 
 Quand `pi2.plot_width === pi1.plot_width`, `perInput.push` (l.954) réutilise `strips1`, et les
@@ -154,6 +160,7 @@ objets. Latent dans la suite (assignRates/addBlocks/changeRates copient avant d'
 exposé via l'API publique `ExpData`.
 
 ### M4 — `assignLs` duplique les séquences de rang quand `rankSeqAs` est plus court que `numRates`
+
 **`src/rate-assignment.ts:420`** · silent-misbehavior · certaine · reproduit
 
 `fullStartSeqLong` (l.402) répète `rankSeqAs` `ceil(maxStripId/numberRates)+5` fois, ce qui ne
@@ -170,6 +177,7 @@ comme demandé ; strips 29-41 démarrent **toutes** au rang 5 (jamais listé) �
 identiques consécutives, sans erreur. R plante bruyamment dans le cas analogue.
 
 ### M5 — `checkOrthoWithChars` type-classe chaque variable d'après la 1ʳᵉ feature seulement
+
 **`src/diagnostics.ts:874`** · correctness · certaine · reproduit
 
 En mode FeatureCollection, `sampleValues = soilData.features[0].properties` et le garde
@@ -185,6 +193,7 @@ mode `SoilFragment[]` a le même défaut via `Object.hasOwn(first.values, v)` (l
 jette au lieu de renvoyer une corrélation valide sur les fragments non-NA.
 
 ### M6 — Le signe de `yres` est un indicateur north-up non fiable pour les rasters ModelTransformation
+
 **`src/raster.ts:66`** · correctness · confiance : possible · reproduit
 
 `RasterGrid` documente `yres < 0` = north-up, et `extractRasterMeans` s'y fie. Ça tient pour un
@@ -199,6 +208,7 @@ classé south-up. Confirmé : ModelPixelScale north-up → `yres=-5`, ModelTrans
 échantillonne la mauvaise bande → moyennes sol / corrélations fausses, sans erreur.
 
 ### M7 — Masquage nodata Float32 par égalité stricte rate les sentinelles imprécises
+
 **`src/raster.ts:74`** · data-corruption · confiance : possible · reproduit
 
 `value === nodata` en float64 : `getGDALNoData()` parse la chaîne du tag en float64, mais une
@@ -212,6 +222,7 @@ chaque cellule nodata reste à ~-3.4028e38 au lieu de NaN et est incluse dans la
 plot → moyenne aberrante et corrélation rate/sol dénuée de sens, silencieusement.
 
 ### M8 — Équivalent-N métrique gonflé de ~2.471×
+
 **`src/units.ts:152`** · numerical · confiance : probable · reproduit
 
 La branche métrique convertit la dose entrante comme une **masse nue** (kg→lb ×2.2046, ou
@@ -354,7 +365,7 @@ enregistrement DBF. L'encodeur pourrait écrire les mauvais identifiants strip/p
 décalage) et tous les tests d'export (simple1, deux-intrants, with-holes) passeraient.
 
 **L20 — `tests/parity-exports.test.ts:48` · Pas de comparaison du nombre de points par
-anneau.** `assertLayerParity` itère sur *notre* anneau seulement et n'asserte jamais
+anneau.** `assertLayerParity` itère sur _notre_ anneau seulement et n'asserte jamais
 `ring.length === rRing.length`. Une troncature d'anneau de trou (moins de points) passe
 inaperçue sur les seuls fixtures multipart / à trous.
 
@@ -362,10 +373,10 @@ inaperçue sur les seuls fixtures multipart / à trous.
 
 ## Findings rejetés (par la vérification adverse)
 
-| Fichier:ligne | Titre | Verdict |
-|---------------|-------|---------|
+| Fichier:ligne                 | Titre                                                              | Verdict    |
+| ----------------------------- | ------------------------------------------------------------------ | ---------- |
 | `src/rate-assignment.ts:1205` | addBlocks dimensionne la grille sur les doses distinctes observées | Réfuté 0/3 |
-| `src/trial-setup.ts:51` | Tolérance getLcm dépendante de l'unité | Réfuté 0/3 |
+| `src/trial-setup.ts:51`       | Tolérance getLcm dépendante de l'unité                             | Réfuté 0/3 |
 
 ---
 
