@@ -305,6 +305,101 @@ describe("assignRatesConditional (task 5.3)", () => {
   });
 });
 
+describe("assignRates: two-input joint designing — regression (audit H1)", () => {
+  // A(4 rates) × B(2 rates), equal machine width so the joint branch runs and
+  // B is the "second" input (getDesignForSecond). findRate excludes both the
+  // previous plot's rank and the strip-neighbour's rank; with exactly two
+  // second-input rates the candidate set can empty out, which previously threw
+  // "sample requires 0 <= n <= arr.length (0), got 1" on essentially every seed.
+  function asymJointInputs(): { expData: ExpData; riA: RateInfo; riB: RateInfo } {
+    const plotInfoA = prepPlot({
+      inputName: "A",
+      unitSystem: "imperial",
+      machineWidth: 60,
+      sectionNum: 24,
+      harvesterWidth: 30,
+    });
+    const plotInfoB = prepPlot({
+      inputName: "B",
+      unitSystem: "imperial",
+      machineWidth: 60,
+      sectionNum: 24,
+      harvesterWidth: 30,
+    });
+    const expData = makeExpPlots({ inputPlotInfo: [plotInfoA, plotInfoB], boundary, abLine });
+    const riA = prepRate(plotInfoA, { gcRate: 100, unit: "lb", rates: [100, 110, 120, 130] });
+    const riB = prepRate(plotInfoB, { gcRate: 200, unit: "lb", rates: [200, 260] });
+    return { expData, riA, riB };
+  }
+
+  it("does not crash when the second input has exactly two rates (all seeds 1..25)", () => {
+    const { expData, riA, riB } = asymJointInputs();
+    for (let seed = 1; seed <= 25; seed++) {
+      const td = assignRates(expData, [riA, riB], { seed });
+      const inputB = td.inputs.find((index) => index.plotInfo.input_name === "B")!;
+      expect(inputB.plots.features.length).toBeGreaterThan(0);
+      for (const f of inputB.plots.features) {
+        expect([200, 260]).toContain(expProperties(f).rate);
+      }
+    }
+  });
+});
+
+describe("assignRatesConditional — regression (audit H2)", () => {
+  // Different machine widths => different plot geometries and plot counts. The
+  // joint path indexed the dosed design's ranks positionally against the
+  // undosed input's plots — crashing when the dosed input has fewer plots, or
+  // silently mis-pairing when it has more. The geometry gate must route to
+  // independent per-input design (matching R) instead.
+  // Wide applicator (NH3, 120 ft) yields far fewer plots than the seeder
+  // (60 ft), so the two inputs have different plot geometries and counts. We
+  // dose the smaller-count input (NH3) and condition the larger one (seed):
+  // the pre-fix joint path indexes NH3's shorter rank list positionally over
+  // seed's longer plot list, whose tail is undefined — crashing with
+  // "sample requires 0 <= n <= arr.length (0), got 1".
+  function twoDiffWidthInputs(): { expData: ExpData; seedRi: RateInfo; nh3Ri: RateInfo } {
+    const seedInfo = prepPlot({
+      inputName: "seed",
+      unitSystem: "imperial",
+      machineWidth: 60,
+      sectionNum: 24,
+      harvesterWidth: 30,
+    });
+    const nh3Info = prepPlot({
+      inputName: "NH3",
+      unitSystem: "imperial",
+      machineWidth: 160,
+      sectionNum: 8,
+      harvesterWidth: 30,
+    });
+    const expData = makeExpPlots({ inputPlotInfo: [seedInfo, nh3Info], boundary, abLine });
+    const seedRi = prepRate(seedInfo, {
+      gcRate: 20_000,
+      unit: "seeds",
+      rates: [20_000, 26_000, 32_000, 38_000, 44_000],
+    });
+    const nh3Ri = prepRate(nh3Info, {
+      gcRate: 100,
+      unit: "lb",
+      rates: [100, 130, 160, 190, 220],
+    });
+    return { expData, seedRi, nh3Ri };
+  }
+
+  it("doses the conditioned input without crashing when geometries differ", () => {
+    const { expData, seedRi, nh3Ri } = twoDiffWidthInputs();
+    // dose NH3 (fewer plots), then condition seed (more plots)
+    const partial = assignRates(expData, nh3Ri, { seed: 1 });
+    const conditioned = assignRatesConditional(expData, seedRi, partial, { seed: 1 });
+    const seedInput = conditioned.inputs.find((index) => index.plotInfo.input_name === "seed")!;
+    expect(seedInput.rateInfo).not.toBeNull();
+    expect(seedInput.plots.features.length).toBeGreaterThan(0);
+    for (const f of seedInput.plots.features) {
+      expect(seedRi.tgt_rate_original).toContain(expProperties(f).rate);
+    }
+  });
+});
+
 describe("assignRates: str / rstr / rb / ejca designs (task 5.1)", () => {
   const plotInfo = seedPlotInfo();
   const expData = makeSingleInputExpData(plotInfo);

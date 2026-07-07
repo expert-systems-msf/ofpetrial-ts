@@ -752,10 +752,21 @@ function findRate(
       finalOptions = jumpCompliant.filter((o) => o.cases === minJump || o.cases === minJump + 1);
     }
   }
-  // Last resort (TS-only, documented deviation): if even the jump-filtered
-  // set is empty (R would error on the empty sample), relax the jump
-  // constraint entirely so a rank is always assigned.
-  if (finalOptions.length === 0) finalOptions = options;
+  // Last resort (TS-only, documented deviation). Even `options` itself can be
+  // empty: with a 2-rate second input, excluding BOTH the previous plot's rank
+  // (rateRank2ndPrev) and the strip-neighbour's rank (rateRank2ndNb) at
+  // l.725-730 can eliminate every candidate. R samples from that empty set and
+  // silently yields NA; instead, rebuild from all combos of the current
+  // rateRank1st (dropping the prev/nb exclusion) so a rank is always assignable
+  // — guaranteed non-empty since numberRates >= 1.
+  if (finalOptions.length === 0) {
+    finalOptions = combEntries
+      .filter((c) => c.rateRank1 === info.rateRank1st)
+      .map((c) => ({
+        ...c,
+        variabilityScore: variabilityScore(rowIndex, plotId, c.rateRank2, rateTable, W),
+      }));
+  }
 
   const maxScore = Math.max(...finalOptions.map((o) => o.variabilityScore));
   const tied = finalOptions.filter((o) => o.variabilityScore === maxScore);
@@ -1157,7 +1168,16 @@ export function assignRatesConditional(
     rateInfo.rates_data.length,
     new Set(firstDesignRates).size,
   ];
+  // Joint designing indexes the dosed design's ranks positionally against the
+  // undosed input's plots (getDesignForSecond precondition, l.769-770). That
+  // only holds when the two inputs share the same plot geometry; with
+  // different machine widths the plot lists differ in length and spatial
+  // order, so the joint path would silently mis-pair plots (or crash on the
+  // undefined tail). R (assign_rates.R:311-329) ANDs geometry_identical into
+  // require_joint_designing for exactly this reason — when geometries differ it
+  // designs each input independently instead of throwing.
   const isRequireJoint =
+    geometryIdentical(dosedInput.plots, matchingLayout.plots) &&
     (rateInfo.design_type === "ls" || rateInfo.design_type === null) &&
     multipleOfTheOther(numberRatesLs[0], numberRatesLs[1]) &&
     rateInfo.rank_seq_ws === null &&
