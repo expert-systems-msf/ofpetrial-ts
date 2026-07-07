@@ -9,6 +9,8 @@ name: Mutation testing
 # the old 60-min job timeout. Instead a `plan` job splits the mutated scope into
 # N balanced shards and a matrix runs them in parallel — each shard only mutates
 # its own files, so its runtime (and its share of static mutants) scales down.
+# A final `report` job merges the shards' JSON into one global score and a
+# `surviving-mutants.md` digest (the mutants the tests failed to catch).
 on:
   workflow_dispatch:
     inputs:
@@ -90,5 +92,37 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: stryker-report-shard-${{ matrix.shard.name }}
+          path: reports/mutation/
+          if-no-files-found: warn
+
+  # Merge the shards' JSON reports into one global mutation score plus a
+  # digest of the surviving/uncovered mutants. `always()` so a partial run
+  # (some shard failed) still aggregates whatever completed.
+  report:
+    needs: mutation
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Download shard reports
+        uses: actions/download-artifact@v4
+        with:
+          pattern: stryker-report-shard-*
+          path: shard-reports
+
+      - name: Merge into global report
+        run: node tools/merge-mutation-reports.mjs shard-reports reports/mutation >> "$GITHUB_STEP_SUMMARY"
+
+      # Single artifact with the merged mutation.json and the Claude-facing
+      # surviving-mutants.md digest.
+      - name: Upload combined report
+        uses: actions/upload-artifact@v4
+        with:
+          name: mutation-combined
           path: reports/mutation/
           if-no-files-found: warn

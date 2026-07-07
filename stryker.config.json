@@ -5,7 +5,7 @@
     "configFile": "vitest.config.ts"
   },
   "coverageAnalysis": "perTest",
-  "reporters": ["html", "clear-text", "progress"],
+  "reporters": ["html", "json", "clear-text", "progress"],
   "mutate": ["src/**/*.ts", "!src/**/*.test.ts", "!src/**/*.d.ts"],
   "thresholds": {
     "high": 80,
