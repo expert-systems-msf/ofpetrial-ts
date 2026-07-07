@@ -4,13 +4,22 @@ name: Mutation testing
 # and re-runs the vitest suite to measure how many mutants the tests kill (the
 # mutation score). It is deliberately NOT wired into CI: it is slow, and its
 # dependencies are installed ephemerally so normal dev/CI installs stay lean.
+#
+# The whole src/ serially takes ~8 h (mostly "static" mutants), which blew past
+# the old 60-min job timeout. Instead a `plan` job splits the mutated scope into
+# N balanced shards and a matrix runs them in parallel — each shard only mutates
+# its own files, so its runtime (and its share of static mutants) scales down.
 on:
   workflow_dispatch:
     inputs:
       mutate:
-        description: "Files to mutate (glob), e.g. src/projection.ts. Blank = whole src/ per stryker.config.json."
+        description: "Files to mutate (glob/comma-list), e.g. src/projection.ts. Blank = whole src/."
         required: false
         default: ""
+      shards:
+        description: "Number of parallel shards to split the mutants across."
+        required: false
+        default: "4"
 
 permissions:
   contents: read
@@ -20,9 +29,38 @@ env:
   STRYKER_VERSION: "9.6.1"
 
 jobs:
-  mutation:
+  # Compute the balanced shard file lists once, so every matrix job agrees on
+  # the split and the whole scope is covered even as src/ gains files.
+  plan:
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    outputs:
+      shards: ${{ steps.plan.outputs.shards }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Compute shard file lists
+        id: plan
+        env:
+          SHARDS: ${{ inputs.shards }}
+          MUTATE: ${{ inputs.mutate }}
+        run: node tools/shard-mutants.mjs >> "$GITHUB_OUTPUT"
+
+  mutation:
+    needs: plan
+    runs-on: ubuntu-latest
+    # Each shard is ~1/N of the work; 180 min leaves ample headroom under the
+    # 6 h hosted-runner cap. Bump `shards` if a shard still approaches this.
+    timeout-minutes: 180
+    strategy:
+      # One slow shard must not cancel the others' reports.
+      fail-fast: false
+      matrix:
+        shard: ${{ fromJSON(needs.plan.outputs.shards) }}
+    name: mutation (shard ${{ matrix.shard.name }})
     steps:
       - uses: actions/checkout@v4
 
@@ -43,20 +81,14 @@ jobs:
         run: bun add --no-save "@stryker-mutator/core@${STRYKER_VERSION}" "@stryker-mutator/vitest-runner@${STRYKER_VERSION}"
 
       - name: Run Stryker
-        env:
-          MUTATE: ${{ inputs.mutate }}
-        # Invoke the Node-shebang bin so Stryker runs under Node, not Bun.
-        run: |
-          if [ -n "$MUTATE" ]; then
-            ./node_modules/.bin/stryker run --mutate "$MUTATE"
-          else
-            ./node_modules/.bin/stryker run
-          fi
+        # Invoke the Node-shebang bin so Stryker runs under Node, not Bun. The
+        # shard's comma-separated file list overrides stryker.config.json's mutate.
+        run: ./node_modules/.bin/stryker run --mutate "${{ matrix.shard.mutate }}"
 
       - name: Upload HTML report
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: stryker-report
+          name: stryker-report-shard-${{ matrix.shard.name }}
           path: reports/mutation/
           if-no-files-found: warn
