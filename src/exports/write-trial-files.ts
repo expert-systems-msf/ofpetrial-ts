@@ -12,7 +12,14 @@
 //   guidance patterns inside that XML instead of a separate shapefile/geojson
 //   dir (see src/exports/isoxml.ts).
 import { zipSync } from "fflate";
-import type { Feature, FeatureCollection, LineString, MultiPolygon, Polygon } from "geojson";
+import type {
+  Feature,
+  FeatureCollection,
+  LineString,
+  MultiLineString,
+  MultiPolygon,
+  Polygon,
+} from "geojson";
 import type { InputDesign, TrialDesign } from "../types.js";
 import { ExportError } from "../types.js";
 import { writeGeoJson } from "./geojson.js";
@@ -89,13 +96,13 @@ function trialDesignFeatures(input: InputDesign): ShapefileFeatureInput[] {
   return features;
 }
 
-function abLineFeatures(abLine: Feature<LineString>): ShapefileFeatureInput[] {
+function abLineFeatures(abLine: Feature<LineString | MultiLineString>): ShapefileFeatureInput[] {
   return [{ geometry: abLine.geometry, properties: { ab_id: 1 } }];
 }
 
 function guidanceLineFeatures(guidanceLines: FeatureCollection): ShapefileFeatureInput[] {
   return guidanceLines.features.map((f, i) => ({
-    geometry: f.geometry as LineString,
+    geometry: f.geometry as LineString | MultiLineString,
     properties: { ab_id: i + 1 },
   }));
 }

@@ -10,7 +10,14 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
-import type { Feature, FeatureCollection, LineString, MultiPolygon, Polygon } from "geojson";
+import type {
+  Feature,
+  FeatureCollection,
+  LineString,
+  MultiLineString,
+  MultiPolygon,
+  Polygon,
+} from "geojson";
 import { makeExpPlots } from "../src/plot-layout.js";
 import { prepPlot } from "../src/trial-setup.js";
 import { GeometryError, ValidationError } from "../src/types.js";
@@ -79,10 +86,11 @@ function groupByKey(features: PolyFeature[]): Map<string, PolyFeature[]> {
 
 /** Both line endpoints within `tolMeters`, allowing a reversed vertex order. */
 function lineEndpointsClose(
-  ts: Feature<LineString>,
+  ts: Feature<LineString | MultiLineString>,
   r: Feature<LineString>,
   tolMeters: number
 ): boolean {
+  if (ts.geometry.type !== "LineString") return false; // multi-part: not an endpoint match
   const rc = r.geometry.coordinates;
   const tc = ts.geometry.coordinates;
   if (rc.length !== 2 || tc.length !== 2) return false;

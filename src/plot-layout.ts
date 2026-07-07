@@ -24,6 +24,7 @@ import type {
   FeatureCollection,
   Geometry,
   LineString,
+  MultiLineString,
   MultiPolygon,
   Polygon,
   Position,
@@ -899,7 +900,7 @@ export function makeExpPlots(options: MakeExpPlotsOptions): ExpData {
   });
 
   /** Clips a free ab-line candidate to the +20 m dilated field (R make_ablines tail). */
-  const clipFreeLine = (geom: AblineGeometry): Feature<LineString> => {
+  const clipFreeLine = (geom: AblineGeometry): Feature<LineString | MultiLineString> => {
     const lineRange: Interval = [geom.u - throughHalfLength, geom.u + throughHalfLength];
     const pieces = regionIntervalsAt(dilated, geom.v)
       .map(([a, b]): Interval => [Math.max(a, lineRange[0]), Math.min(b, lineRange[1])])
@@ -907,12 +908,25 @@ export function makeExpPlots(options: MakeExpPlotsOptions): ExpData {
     if (pieces.length === 0) {
       throw new GeometryError("The generated ab-line does not intersect the field.");
     }
-    // R keeps the whole (possibly multi-part) intersection; a single part is
-    // the practical case — with several parts we keep the longest.
-    const best = pieces.reduce((accumulator, p) =>
-      p[1] - p[0] > accumulator[1] - accumulator[0] ? p : accumulator
-    );
-    return lineFeature([fromFrame([best[0], geom.v]), fromFrame([best[1], geom.v])]);
+    // R keeps the WHOLE intersection (make_ablines returns the st_intersection
+    // MULTILINESTRING verbatim). A hole or concavity crossing the line's v
+    // splits it into several parts; emit them all rather than truncating to the
+    // longest (M2). A single part stays a plain LineString for compatibility.
+    if (pieces.length === 1) {
+      const [a, b] = pieces[0]!;
+      return lineFeature([fromFrame([a, geom.v]), fromFrame([b, geom.v])]);
+    }
+    return {
+      type: "Feature",
+      properties: { ab_id: 1 },
+      geometry: {
+        type: "MultiLineString",
+        coordinates: pieces.map(([a, b]) => [
+          toWgs(fromFrame([a, geom.v]), epsg),
+          toWgs(fromFrame([b, geom.v]), epsg),
+        ]),
+      },
+    };
   };
 
   const lockLine = (): Feature<LineString> => lineFeature([abA, abB]);
@@ -938,8 +952,8 @@ export function makeExpPlots(options: MakeExpPlotsOptions): ExpData {
   const perInput: Array<{
     plotInfo: PlotInfo;
     strips: StripPlots[];
-    abLine: Feature<LineString>;
-    guidance: Feature<LineString>;
+    abLine: Feature<LineString | MultiLineString>;
+    guidance: Feature<LineString | MultiLineString>;
   }> = [{ plotInfo: pi1, strips: strips1, abLine: abLine1, guidance: harvest1 }];
 
   // ! Second input (R lines 250-356)

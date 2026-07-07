@@ -17,7 +17,14 @@
 // convention but has no PFD/TZN content to cross-check against. Actual
 // conformance gate is task 7.5 (manual import on a real terminal/simulator);
 // until then this format stays "beta" in the docs.
-import type { Feature, FeatureCollection, LineString, MultiPolygon, Polygon } from "geojson";
+import type {
+  Feature,
+  FeatureCollection,
+  LineString,
+  MultiLineString,
+  MultiPolygon,
+  Polygon,
+} from "geojson";
 import { featureCollection } from "@turf/helpers";
 import union from "@turf/union";
 import { ExportError } from "../types.js";
@@ -42,7 +49,7 @@ export interface IsoxmlOptions {
    */
   boundary?: Feature<Polygon | MultiPolygon>;
   /** Applicator AB line. When provided, emitted as a GPN (AB-line guidance pattern) under PFD's GGP. */
-  abLine?: Feature<LineString>;
+  abLine?: Feature<LineString | MultiLineString>;
   /** Harvester guidance lines. Each feature becomes its own GPN under the same GGP. */
   guidanceLines?: FeatureCollection;
 }
@@ -161,33 +168,43 @@ function lineToLsg(coordinates: ReadonlyArray<readonly [number, number]>): strin
   return `<LSG A="5">${ringToPnt(coordinates)}</LSG>`;
 }
 
-/** GPN (GuidancePattern) element: type 1 = AB Line, per GuidancePatternType enumeration. */
-function guidanceLineToGpn(id: string, designator: string, line: LineString): string {
-  return (
-    `<GPN A="${id}" B="${escapeXml(designator)}" C="1">` +
-    `${lineToLsg(line.coordinates as Array<[number, number]>)}</GPN>`
-  );
+/** Line parts of a (possibly multi-part) guidance geometry. */
+function guidanceLineParts(
+  geometry: LineString | MultiLineString
+): Array<Array<[number, number]>> {
+  return geometry.type === "LineString"
+    ? [geometry.coordinates as Array<[number, number]>]
+    : (geometry.coordinates as Array<Array<[number, number]>>);
 }
 
 /**
  * Guidance section: PFD > GGP (one group) > GPN (one for the applicator
  * ab-line, designated "ab-line", plus one per harvester guidanceLines
- * feature, designated "harvester-1", "harvester-2", ...). Omitted entirely
- * when neither abLine nor guidanceLines is supplied.
+ * feature, designated "harvester-1", "harvester-2", ...). A multi-part
+ * guidance geometry (an ab-line split by a hole/concavity, M2) becomes one
+ * GPN per part, suffixed "-2", "-3", ... Omitted entirely when neither abLine
+ * nor guidanceLines is supplied.
  */
 function guidanceSectionXml(
-  abLine: Feature<LineString> | undefined,
+  abLine: Feature<LineString | MultiLineString> | undefined,
   guidanceLines: FeatureCollection | undefined
 ): string {
   const gpns: string[] = [];
-  if (abLine) {
-    gpns.push(guidanceLineToGpn(`GPN${gpns.length + 1}`, "ab-line", abLine.geometry));
-  }
+  // GPN (GuidancePattern) C="1" = AB Line, per GuidancePatternType enumeration.
+  const pushGpns = (geometry: LineString | MultiLineString, baseDesignator: string): void => {
+    const parts = guidanceLineParts(geometry);
+    for (const [index, coordinates] of parts.entries()) {
+      const designator = parts.length === 1 ? baseDesignator : `${baseDesignator}-${index + 1}`;
+      gpns.push(
+        `<GPN A="GPN${gpns.length + 1}" B="${escapeXml(designator)}" C="1">` +
+          `${lineToLsg(coordinates)}</GPN>`
+      );
+    }
+  };
+  if (abLine) pushGpns(abLine.geometry, "ab-line");
   const harvesterFeatures = guidanceLines?.features ?? [];
   for (const [index, f] of harvesterFeatures.entries()) {
-    gpns.push(
-      guidanceLineToGpn(`GPN${gpns.length + 1}`, `harvester-${index + 1}`, f.geometry as LineString)
-    );
+    pushGpns(f.geometry as LineString | MultiLineString, `harvester-${index + 1}`);
   }
   if (gpns.length === 0) return "";
   return `<GGP A="GGP1">${gpns.join("")}</GGP>`;
