@@ -1,0 +1,62 @@
+name: Mutation testing
+
+# On-demand only — launch manually from the Actions tab. Stryker mutates src/
+# and re-runs the vitest suite to measure how many mutants the tests kill (the
+# mutation score). It is deliberately NOT wired into CI: it is slow, and its
+# dependencies are installed ephemerally so normal dev/CI installs stay lean.
+on:
+  workflow_dispatch:
+    inputs:
+      mutate:
+        description: "Files to mutate (glob), e.g. src/projection.ts. Blank = whole src/ per stryker.config.json."
+        required: false
+        default: ""
+
+permissions:
+  contents: read
+
+# Pinned so the on-demand run is reproducible without committing Stryker to package.json.
+env:
+  STRYKER_VERSION: "9.6.1"
+
+jobs:
+  mutation:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      # Stryker and the vitest runner execute on Node; the project targets Node 22.
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - run: bun install --frozen-lockfile
+
+      # --no-save: installed into node_modules for this job only, never written to
+      # package.json or bun.lock, so normal dev/CI installs are unaffected.
+      - name: Install Stryker (ephemeral)
+        run: bun add --no-save "@stryker-mutator/core@${STRYKER_VERSION}" "@stryker-mutator/vitest-runner@${STRYKER_VERSION}"
+
+      - name: Run Stryker
+        env:
+          MUTATE: ${{ inputs.mutate }}
+        # Invoke the Node-shebang bin so Stryker runs under Node, not Bun.
+        run: |
+          if [ -n "$MUTATE" ]; then
+            ./node_modules/.bin/stryker run --mutate "$MUTATE"
+          else
+            ./node_modules/.bin/stryker run
+          fi
+
+      - name: Upload HTML report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: stryker-report
+          path: reports/mutation/
+          if-no-files-found: warn
