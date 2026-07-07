@@ -127,6 +127,10 @@ describe("writeShapefile — trial-design layer (simple1, imperial)", () => {
     ]);
   });
 
+  it("L6: DBF header declares the cp1252 language driver (LDID 0x57), matching R's sf output", () => {
+    expect(dbf[29]).toBe(0x57);
+  });
+
   it("encodes headland NA strip_id/plot_id as null (dBase '*' NA marker), matching R's convention", () => {
     const dbfResult = readDbf(dbf);
     const headlandRecords = dbfResult.records.filter((r) => r.type === "headland");

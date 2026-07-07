@@ -71,7 +71,27 @@ function assertSafeInputName(inputName: string): void {
       String.raw`writeTrialFiles: unsafe input_name ${JSON.stringify(inputName)} — must not be empty, contain "/", "\", "..", control characters, or start with "."`
     );
   }
+  // An input named after a layer basename the export writes alongside it would
+  // collide in the (last-write-wins) entries map and silently overwrite the
+  // design layer (L7).
+  if (RESERVED_INPUT_NAMES.has(inputName.toLowerCase())) {
+    throw new ExportError(
+      `writeTrialFiles: reserved input_name ${JSON.stringify(inputName)} — it collides with the ab-line/harvester layer filename and would overwrite the design layer. Rename the input.`
+    );
+  }
 }
+
+/** Layer basenames written alongside each input's design layer (see L7). */
+const RESERVED_INPUT_NAMES = new Set(["ab-line", "harvester-ab-line"]);
+
+/**
+ * Fixed zip entry timestamp (ms) for byte-deterministic archives (L9):
+ * 2000-01-01. fflate converts it to the DOS local time, so the exact bytes
+ * depend on the runner's timezone, but repeated exports on one machine are
+ * byte-identical (which the Date.now() default is not). Kept comfortably
+ * inside the DOS 1980-2099 range in every timezone.
+ */
+const DETERMINISTIC_ZIP_MTIME = 946_684_800_000;
 
 /** Merges plots + headlands into the R `trial_design` layer's feature set (rate/strip_id/plot_id/type). */
 function trialDesignFeatures(input: InputDesign): ShapefileFeatureInput[] {
@@ -205,23 +225,33 @@ export function writeTrialFiles(td: TrialDesign, opts: WriteTrialFilesOptions): 
   if (opts.ext !== "isoxml") {
     const harvester = td.inputs[0]!.guidanceLines;
     const harvesterFeatures = guidanceLineFeatures(harvester);
-    if (opts.ext === "shp") {
-      Object.assign(
-        entries,
-        shapefileZipEntries(
-          "harvester-ab-line",
-          "harvester-ab-line",
-          harvesterFeatures,
-          "polyline",
-          AB_LINE_FIELDS
-        )
-      );
-    } else {
-      entries["harvester-ab-line/harvester-ab-line.geojson"] = writeGeoJson(harvesterFeatures);
+    // Skip the harvester layer when there are no guidance features (L8): the
+    // geojson/shp writers throw on a zero-feature layer, so an empty
+    // guidanceLines would fail the whole export in these formats while ISOXML
+    // tolerates it. Mirror that tolerance for a consistent cross-format result.
+    if (harvesterFeatures.length > 0) {
+      if (opts.ext === "shp") {
+        Object.assign(
+          entries,
+          shapefileZipEntries(
+            "harvester-ab-line",
+            "harvester-ab-line",
+            harvesterFeatures,
+            "polyline",
+            AB_LINE_FIELDS
+          )
+        );
+      } else {
+        entries["harvester-ab-line/harvester-ab-line.geojson"] = writeGeoJson(harvesterFeatures);
+      }
     }
   }
 
-  return zipSync(entries, { level: 9 });
+  // Fixed mtime so the archive is byte-deterministic (L9): fflate otherwise
+  // stamps each entry with Date.now(), so two identical exports differ in the
+  // DOS mod-time fields, breaking reproducible builds / provenance hashing.
+  // 1980-01-01 is the earliest date the DOS time format (and fflate) accepts.
+  return zipSync(entries, { level: 9, mtime: DETERMINISTIC_ZIP_MTIME });
 }
 
 /** Node/Deno helper: writes the zip produced by writeTrialFiles to disk (unzipped) under folderPath. */

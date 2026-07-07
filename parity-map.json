@@ -7,7 +7,6 @@
       "tsFile": "src/trial-setup.ts",
       "tsSymbol": "prepPlot",
       "testCases": [
-        "test-cases/trial-setup.json",
         "tests/parity-trial-setup.test.ts"
       ],
       "status": "ported"
@@ -17,7 +16,6 @@
       "tsFile": "src/trial-setup.ts",
       "tsSymbol": "prepRate",
       "testCases": [
-        "test-cases/trial-setup.json",
         "tests/parity-trial-setup.test.ts"
       ],
       "status": "ported",
@@ -148,8 +146,7 @@
       "deviations": [
         "zip layout uses one subdirectory per input (collision-free across formats); R writes flat prefixed filenames — content parity verified against R exports",
         "isoxml (beta) has no R counterpart: no field-boundary geometry under PFD, no guidance lines; DDI by unit family documented in docs/isoxml-units.md",
-        "input names are validated against path traversal (ExportError); R writes any name verbatim",
-        "abline_type \"none\" excluded (crashes upstream R 0.1.3)"
+        "input names are validated against path traversal (ExportError); R writes any name verbatim, plus the reserved names ab-line/harvester-ab-line are rejected to avoid overwriting the design layer"
       ]
     }
   ],

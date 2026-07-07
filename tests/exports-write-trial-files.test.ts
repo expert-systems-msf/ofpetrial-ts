@@ -98,3 +98,32 @@ describe("writeTrialFilesToDisk", () => {
     }
   });
 });
+
+describe("writeTrialFiles — LOW regressions (L7/L8/L9)", () => {
+  it("L7: rejects an input named after a reserved layer basename (would overwrite the design)", () => {
+    const td = loadTrialDesign("simple1", "imperial", ["seed"]);
+    td.inputs[0]!.plotInfo = { ...td.inputs[0]!.plotInfo, input_name: "ab-line" };
+    expect(() => writeTrialFiles(td, { ext: "geojson" })).toThrow(ExportError);
+    expect(() => writeTrialFiles(td, { ext: "shp" })).toThrow(ExportError);
+  });
+
+  it("L8: an empty guidanceLines does not fail the geojson/shp export (isoxml tolerance)", () => {
+    const td = loadTrialDesign("simple1", "imperial", ["seed"]);
+    td.inputs[0]!.guidanceLines = { type: "FeatureCollection", features: [] };
+    for (const ext of ["geojson", "shp"] as const) {
+      expect(() => writeTrialFiles(td, { ext })).not.toThrow();
+      const paths = Object.keys(unzipSync(writeTrialFiles(td, { ext })));
+      // design + ab-line still written, harvester layer simply omitted
+      expect(paths.some((p) => p.startsWith("harvester-ab-line/"))).toBe(false);
+      expect(paths.some((p) => p.startsWith("seed/"))).toBe(true);
+    }
+  });
+
+  it("L9: two identical exports are byte-for-byte identical (deterministic zip mtime)", () => {
+    const td = loadTrialDesign("two-input", "imperial", ["seed", "NH3"]);
+    const a = writeTrialFiles(td, { ext: "shp" });
+    const b = writeTrialFiles(td, { ext: "shp" });
+    expect(a.length).toBe(b.length);
+    expect(Buffer.from(a).equals(Buffer.from(b))).toBe(true);
+  });
+});
