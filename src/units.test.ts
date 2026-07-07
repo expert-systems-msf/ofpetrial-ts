@@ -61,11 +61,15 @@ describe("convertRates", () => {
     expect(convertRates("urea", "gallons", 55)).toBe(55);
   });
 
-  it("re-expresses metric kg rates per hectare in kg N (deviation: R yields numeric(0))", () => {
-    // kg -> pounds, then (fallback factor 1) x lb->kg x ha->acres
-    const rate = 100;
-    const expected = rate * (1 / 0.45359237) * 1 * 0.45359237 * (1 / 0.40468564224);
-    expect(convertRates("chicken_manure", "kg", rate)).toBeCloseTo(expected, 10);
+  it("re-expresses a metric kg rate in agronomically correct kg N (M8: deliberate divergence from R)", () => {
+    // M8: R inflates the metric N-equivalent by ~2.471x (an areal double-count).
+    // TS drops the hectares->acres factor, so a metric kg rate maps to a real
+    // kg-N-per-hectare value. urea is 46% N -> 100 kg urea/ha = 46 kg N/ha,
+    // matching the imperial `convertRates("urea", "lb", 100)` case exactly.
+    expect(convertRates("urea", "kg", 100)).toBeCloseTo(46, 10);
+    // chicken_manure has no `_lb` table row -> factor 1, so its kg rate passes
+    // through unchanged (was 100 x 2.471 under R's areal double-count).
+    expect(convertRates("chicken_manure", "kg", 100)).toBeCloseTo(100, 10);
   });
 
   it("inverts with from_n_equiv", () => {

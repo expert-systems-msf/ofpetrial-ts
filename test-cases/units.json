@@ -82,10 +82,10 @@
       "rParity": false
     },
     {
-      "name": "convertRates metric kg re-expressed per hectare (R: numeric(0), kg->lb lookup miss)",
+      "name": "convertRates metric kg, no _lb row -> factor 1, agronomically correct kg N (M8 divergence from R)",
       "function": "convertRates",
       "input": { "inputName": "chicken_manure", "unit": "kg", "rate": 100 },
-      "expected": 247.10538146716535,
+      "expected": 100,
       "tolerance": 1e-6,
       "rParity": false
     }

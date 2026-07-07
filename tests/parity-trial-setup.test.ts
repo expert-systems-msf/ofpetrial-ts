@@ -120,10 +120,14 @@ describe("prepPlot / prepRate parity with R fixtures", () => {
           });
 
           const rEquiv = r.tgt_rate_equiv as number[];
-          // Deviation: R's convert_rates returns numeric(0) (serialized [])
-          // on metric kg/liters paths; TS returns real values. Compare only
-          // when R produced values.
-          if (rEquiv.length > 0) {
+          // Deviations (parity-map convert_rates): R's convert_rates returns
+          // numeric(0) (serialized []) on some metric paths, and on the metric
+          // kg/liters paths where R DOES produce a value it inflates the
+          // N-equivalent ~2.471x (M8). TS reports the agronomically correct
+          // value, so it intentionally diverges there. Only compare on
+          // non-metric-reporting units where R and TS agree.
+          const metricReportingUnit = r.unit === "kg" || r.unit === "liters";
+          if (rEquiv.length > 0 && !metricReportingUnit) {
             expect(ts.tgt_rate_equiv).toHaveLength(rEquiv.length);
             ts.tgt_rate_equiv.forEach((v, index) => {
               expect(relClose(v, rEquiv[index]!, 1e-6), `tgt_rate_equiv[${index}]`).toBe(true);
