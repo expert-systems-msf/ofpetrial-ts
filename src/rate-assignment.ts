@@ -1341,13 +1341,23 @@ export function changeRates(td: TrialDesign, options: ChangeRatesOptions): Trial
     }
     scalarRate = array[0] as number;
   } else if (rateBy === "strip") {
-    if (!Array.isArray(options.newRates) || options.newRates.length !== options.stripIds.length) {
+    // Accept a scalar when there is a single strip (R accepts the scalar form;
+    // the old check required an array and rejected it with a self-contradictory
+    // "length (1), got 1" message) — L11.
+    const stripArray =
+      typeof options.newRates === "number"
+        ? [options.newRates]
+        : Array.isArray(options.newRates) && !Array.isArray(options.newRates[0])
+          ? (options.newRates as number[])
+          : null;
+    if (!stripArray || stripArray.length !== options.stripIds.length) {
       const got = Array.isArray(options.newRates) ? options.newRates.length : 1;
       throw new ValidationError(
-        `For rateBy "strip", newRates must have the same length as stripIds (${options.stripIds.length}), got ${got}.`
+        `For rateBy "strip", newRates must be a number (single strip) or an array with the same ` +
+          `length as stripIds (${options.stripIds.length}), got ${got}.`
       );
     }
-    stripRates = options.newRates as number[];
+    stripRates = stripArray;
   } else {
     if (!options.plotIds || options.plotIds.length === 0) {
       throw new ValidationError('For rateBy "plot", plotIds is required.');

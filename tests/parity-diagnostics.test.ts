@@ -584,6 +584,13 @@ describe("cross-validation: assignRates designs stay within R's reference range 
 
       const result = checkOrthoWithChars(td, soilLayer, SOIL_VARS);
       const correlations = result[0]!.correlations;
+      // L18: without this guard an empty `correlations` (e.g. a proj4/turf
+      // regression, or every variable mis-classified as a factor) would run
+      // zero assertions below and the test would pass vacuously.
+      expect(
+        correlations.length,
+        `seed ${seed}: expected ${Object.keys(reference.perVar).length} correlations, got ${correlations.length}`
+      ).toBe(Object.keys(reference.perVar).length);
       for (const c of correlations) {
         const range = reference.perVar[c.var];
         expect(range, `var ${c.var} missing from crossval-reference.json`).toBeDefined();

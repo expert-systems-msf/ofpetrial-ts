@@ -41,11 +41,18 @@ function assertLayerParity(
     const rRec = r.dbf.records[index]!;
     expect(rec.type).toBe(rRec.type);
     expect(rec.rate).toBeCloseTo(rRec.rate as number, 6);
+    // L19: the encoder must write the SAME strip_id/plot_id as R, else a wrong
+    // id (or an off-by-one) would pass a type+rate-only check unnoticed.
+    expect(rec.strip_id).toBe(rRec.strip_id);
+    expect(rec.plot_id).toBe(rRec.plot_id);
     const oursGeom = ours.shp.features[index]!;
     const rGeom = r.shp.features[index]!;
     expect(oursGeom.parts.length).toBe(rGeom.parts.length);
     oursGeom.parts.forEach((ring, ringIndex) => {
       const rRing = rGeom.parts[ringIndex]!;
+      // L20: a truncated hole ring (fewer points) would otherwise slip through
+      // the per-point prefix compare below.
+      expect(ring.length).toBe(rRing.length);
       ring.forEach(([x, y], ptIndex) => {
         const [rx, ry] = rRing[ptIndex]!;
         expect(Math.abs(x - rx)).toBeLessThan(1e-7);
@@ -61,6 +68,10 @@ function assertLayerParity(
 const CASES = [
   { caseDir: "simple1", inputs: ["seed"] },
   { caseDir: "two-input", inputs: ["seed", "NH3"] },
+  // with-holes exercises hole-split strips: multipart rings and repeated
+  // (strip_id, plot_id) keys — the case the strip_id/plot_id and ring-length
+  // assertions (L19/L20) most need to guard.
+  { caseDir: "with-holes", inputs: ["seed"] },
 ] as const;
 const UNITS = ["imperial", "metric"] as const;
 

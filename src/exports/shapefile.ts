@@ -287,6 +287,15 @@ function formatField(value: number | string | null, field: ShapefileFieldSpec): 
   }
   const text =
     decimals > 0 ? (value as number).toFixed(decimals) : String(Math.trunc(value as number));
+  // L5: NaN/Infinity render as "NaN"/"Infinity", and very large finite numbers
+  // as scientific notation ("1e+21") — all invalid in a DBF numeric field, yet
+  // they pass the width check and would be written verbatim. Reject anything
+  // that is not a plain decimal.
+  if (!/^-?\d+(?:\.\d+)?$/.test(text)) {
+    throw new ExportError(
+      `DBF field "${field.name}": value ${JSON.stringify(value)} does not render as a plain decimal ("${text}")`
+    );
+  }
   if (text.length > length) {
     throw new ExportError(
       `DBF field "${field.name}" value "${text}" (${text.length} chars) exceeds width ${length}`

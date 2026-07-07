@@ -341,4 +341,24 @@ describe("writeShapefile — error cases", () => {
       })
     ).toThrow(ExportError);
   });
+
+  it("L5: throws ExportError on a non-finite numeric field instead of writing NaN/Infinity", () => {
+    for (const bad of [NaN, Infinity, -Infinity]) {
+      expect(() =>
+        writeShapefile([{ geometry: squareGeom, properties: { rate: bad } }], {
+          geometryType: "polygon",
+          fields: [{ name: "rate", type: "N", length: 24, decimals: 15 }],
+        })
+      ).toThrow(ExportError);
+    }
+  });
+
+  it("L5: throws ExportError on a value that renders in scientific notation (1e+21)", () => {
+    expect(() =>
+      writeShapefile([{ geometry: squareGeom, properties: { rate: 1e21 } }], {
+        geometryType: "polygon",
+        fields: [{ name: "rate", type: "N", length: 30 }],
+      })
+    ).toThrow(ExportError);
+  });
 });
