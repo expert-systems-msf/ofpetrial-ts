@@ -169,9 +169,7 @@ function lineToLsg(coordinates: ReadonlyArray<readonly [number, number]>): strin
 }
 
 /** Line parts of a (possibly multi-part) guidance geometry. */
-function guidanceLineParts(
-  geometry: LineString | MultiLineString
-): Array<Array<[number, number]>> {
+function guidanceLineParts(geometry: LineString | MultiLineString): Array<Array<[number, number]>> {
   return geometry.type === "LineString"
     ? [geometry.coordinates as Array<[number, number]>]
     : (geometry.coordinates as Array<Array<[number, number]>>);
