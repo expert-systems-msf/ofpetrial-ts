@@ -279,8 +279,10 @@ describe("extractRasterMeans orientation and CRS guards", () => {
 
   it("throws ValidationError on a non-WGS84, non-UTM raster CRS", () => {
     const grid = { ...syntheticGrid("north-up"), epsg: 3857 };
-    expect(() => extractRasterMeans(rectDesign(0, 0, 2, 2), grid)).toThrow(ValidationError);
-    expect(() => extractRasterMeans(rectDesign(0, 0, 2, 2), grid)).toThrow(/3857/);
+    const act = () => extractRasterMeans(rectDesign(0, 0, 2, 2), grid);
+    expect(act).toThrow(ValidationError);
+    expect(act).toThrow(/unsupported raster CRS/);
+    expect(act).toThrow(/3857/);
   });
 });
 

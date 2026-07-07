@@ -12,8 +12,11 @@ import type { Feature, FeatureCollection, LineString } from "geojson";
 import { makeExpPlots } from "./plot-layout.js";
 import {
   addBlocks,
+  assignEjca,
   assignRates,
   assignRatesConditional,
+  circShift,
+  defaultRateJumpThreshold,
   genBasicRankWs,
   genBasicRankWsSparse,
   getRankForRb,
@@ -21,7 +24,16 @@ import {
   getRankWsForStripSparse,
   getStartingRankAs,
   getStartingRankAsLs,
+  matSub,
+  maxOverColumns,
+  meanAbs,
+  meanAbsSum,
+  median,
+  multipleOfTheOther,
+  rangeStep,
+  variabilityScore,
 } from "./rate-assignment.js";
+import type { RateData } from "./types.js";
 import { createRng } from "./rng.js";
 import { prepPlot, prepRate } from "./trial-setup.js";
 import { ValidationError } from "./types.js";
@@ -145,7 +157,9 @@ describe("assignRates: single input (ls design, task 5.2)", () => {
 
   it("rejects a RateInfo whose input_name has no match in expData", () => {
     const badRateInfo: RateInfo = { ...rateInfo, input_name: "nope" };
-    expect(() => assignRates(expData, badRateInfo)).toThrow(ValidationError);
+    const act = () => assignRates(expData, badRateInfo);
+    expect(act).toThrow(ValidationError);
+    expect(act).toThrow(/has no matching input in expData/);
   });
 });
 
@@ -289,19 +303,25 @@ describe("assignRatesConditional (task 5.3)", () => {
   it("rejects an array of RateInfo", () => {
     const { expData, riA, riB } = twoJointInputs(5);
     const partial = assignRates(expData, riA, { seed: 1 });
-    expect(() => assignRatesConditional(expData, [riB], partial)).toThrow(ValidationError);
+    const act = () => assignRatesConditional(expData, [riB], partial);
+    expect(act).toThrow(ValidationError);
+    expect(act).toThrow(/accepts a single RateInfo/);
   });
 
   it("rejects a mono-input existingDesign", () => {
     const { expData, riA, riB } = twoJointInputs(5);
     const monoInput = assignRates({ inputs: [expData.inputs[0]!] }, riA, { seed: 1 });
-    expect(() => assignRatesConditional(expData, riB, monoInput)).toThrow(ValidationError);
+    const act = () => assignRatesConditional(expData, riB, monoInput);
+    expect(act).toThrow(ValidationError);
+    expect(act).toThrow(/two-input TrialDesign/);
   });
 
   it("rejects an existingDesign whose second input is already dosed", () => {
     const { expData, riA, riB } = twoJointInputs(5);
     const fullyDosed = assignRates(expData, [riA, riB], { seed: 1 });
-    expect(() => assignRatesConditional(expData, riB, fullyDosed)).toThrow(ValidationError);
+    const act = () => assignRatesConditional(expData, riB, fullyDosed);
+    expect(act).toThrow(ValidationError);
+    expect(act).toThrow(/two-input TrialDesign/);
   });
 });
 
@@ -653,6 +673,134 @@ describe("addBlocks + assignRates integration (task 5.4)", () => {
       const p = f.properties as { block_id: number; plot_id_within_block: number };
       expect(p.block_id).toBeGreaterThanOrEqual(1);
       expect(p.plot_id_within_block).toBeGreaterThanOrEqual(1);
+    }
+  });
+});
+
+// Internal scorers / matrix helpers, pinned to exact values so arithmetic and
+// boundary mutants (which the property-level assignRates tests let survive)
+// fail. These are the RNG-free building blocks of the ls/ejca optimizers.
+describe("rate-assignment internal scorers (exact)", () => {
+  it("defaultRateJumpThreshold: n-1 up to 4, n-2 beyond", () => {
+    expect(defaultRateJumpThreshold(1)).toBe(0);
+    expect(defaultRateJumpThreshold(4)).toBe(3);
+    expect(defaultRateJumpThreshold(5)).toBe(3);
+    expect(defaultRateJumpThreshold(6)).toBe(4);
+  });
+
+  it("multipleOfTheOther: order-independent divisibility", () => {
+    expect(multipleOfTheOther(6, 3)).toBe(true);
+    expect(multipleOfTheOther(3, 6)).toBe(true);
+    expect(multipleOfTheOther(4, 4)).toBe(true);
+    expect(multipleOfTheOther(5, 3)).toBe(false);
+  });
+
+  it("median: odd and even lengths", () => {
+    expect(median([3, 1, 2])).toBe(2);
+    expect(median([4, 1, 3, 2])).toBe(2.5);
+    expect(median([5])).toBe(5);
+  });
+
+  it("rangeStep: ascending, descending and stepped", () => {
+    expect(rangeStep(1, 5, 1)).toEqual([1, 2, 3, 4, 5]);
+    expect(rangeStep(5, 1, -2)).toEqual([5, 3, 1]);
+    expect(rangeStep(1, 5, 2)).toEqual([1, 3, 5]);
+  });
+
+  it("matSub: element-wise subtraction", () => {
+    expect(
+      matSub(
+        [
+          [3, 5],
+          [7, 9],
+        ],
+        [
+          [1, 2],
+          [3, 4],
+        ]
+      )
+    ).toEqual([
+      [2, 3],
+      [4, 5],
+    ]);
+  });
+
+  it("circShift: independent row and column rotation", () => {
+    const mat = [
+      [1, 2, 3],
+      [4, 5, 6],
+      [7, 8, 9],
+    ];
+    expect(circShift(mat, 1, 0)).toEqual([
+      [4, 5, 6],
+      [7, 8, 9],
+      [1, 2, 3],
+    ]);
+    expect(circShift(mat, 0, 1)).toEqual([
+      [2, 3, 1],
+      [5, 6, 4],
+      [8, 9, 7],
+    ]);
+  });
+
+  it("maxOverColumns: largest column sum under a predicate", () => {
+    expect(
+      maxOverColumns(
+        [
+          [1, 2],
+          [3, 4],
+        ],
+        (v) => v
+      )
+    ).toBe(6);
+  });
+
+  it("meanAbs / meanAbsSum: mean of absolute values", () => {
+    expect(
+      meanAbs([
+        [-1, 2],
+        [3, -4],
+      ])
+    ).toBe(2.5);
+    expect(meanAbsSum([[1, -2]], [[3, 4]])).toBe(5);
+  });
+
+  it("variabilityScore: first-plot and subsequent-plot branches", () => {
+    // plotId 1: sum over k<rowIndex of (rateTable[k]-cand)^2 * W, / rowIndex.
+    expect(variabilityScore(2, 1, 2, [1, 3], [[], [], [1, 1]])).toBe(1);
+    // plotId != 1: adds the -1/2 previous-plot term at rowIndex-1.
+    expect(variabilityScore(2, 2, 1, [3, 5], [[], [], [2, 4]])).toBe(-12);
+  });
+});
+
+describe("assignEjca (exact tier-by-strip-parity)", () => {
+  it("puts the low rate tier on odd strips and the high tier on even strips", () => {
+    const feature = (stripId: number, plotId: number): Feature => ({
+      type: "Feature",
+      properties: { strip_id: stripId, plot_id: plotId },
+      geometry: { type: "Point", coordinates: [0, 0] },
+    });
+    // 4 strips x 2 plots.
+    const features: Feature[] = [];
+    for (let strip = 1; strip <= 4; strip++)
+      for (let plot = 1; plot <= 2; plot++) features.push(feature(strip, plot));
+    const plots: FeatureCollection = { type: "FeatureCollection", features };
+    const ratesData: RateData[] = [
+      { rate: 10, rate_rank: 1 },
+      { rate: 20, rate_rank: 2 },
+      { rate: 30, rate_rank: 3 },
+      { rate: 40, rate_rank: 4 },
+    ];
+    const assigned = assignEjca(plots, ratesData, null);
+
+    // median rank 2.5 -> low tier {10,20} on odd strips, high tier {30,40} on
+    // even strips. Every plot must be assigned from the tier of its strip.
+    expect(assigned.size).toBe(8);
+    for (const f of features) {
+      const { strip_id: strip } = f.properties as { strip_id: number };
+      const rate = assigned.get(f)!.rate;
+      if (strip % 2 === 1) expect([10, 20]).toContain(rate);
+      else expect([30, 40]).toContain(rate);
     }
   });
 });

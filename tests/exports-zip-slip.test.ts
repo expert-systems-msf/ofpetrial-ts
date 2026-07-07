@@ -9,6 +9,7 @@
 import { access, mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import { unzipSync } from "fflate";
 import { describe, expect, it, vi } from "vitest";
 import { ExportError } from "../src/types.js";
 import { writeTrialFiles, writeTrialFilesToDisk } from "../src/exports/write-trial-files.js";
@@ -49,12 +50,21 @@ describe("writeTrialFiles — input_name validation (Zip-Slip source guard)", ()
 
   for (const name of badNames) {
     it(`rejects input_name ${JSON.stringify(name)}`, () => {
-      expect(() => writeTrialFiles(maliciousTd(name), { ext: "geojson" })).toThrow(ExportError);
+      const act = () => writeTrialFiles(maliciousTd(name), { ext: "geojson" });
+      expect(act).toThrow(ExportError);
+      expect(act).toThrow(/unsafe input_name/);
     });
   }
 
   it("accepts ordinary names (letters, digits, dash, underscore, inner dot)", () => {
-    expect(() => writeTrialFiles(maliciousTd("NH3_v2.final"), { ext: "geojson" })).not.toThrow();
+    let zip: Uint8Array | undefined;
+    expect(() => {
+      zip = writeTrialFiles(maliciousTd("NH3_v2.final"), { ext: "geojson" });
+    }).not.toThrow();
+    const paths = Object.keys(unzipSync(zip!));
+    // The safe name is used verbatim as the layer folder + design filename.
+    expect(paths).toContain("NH3_v2.final/NH3_v2.final.geojson");
+    expect(paths).toContain("NH3_v2.final/ab-line.geojson");
   });
 });
 

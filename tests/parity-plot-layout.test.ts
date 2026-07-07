@@ -217,9 +217,10 @@ describe("makeExpPlots error cases (task 4.5)", () => {
   const emptyFc: FeatureCollection = { type: "FeatureCollection", features: [] };
 
   it("throws ValidationError when the ab-line is missing with ablineType lock", () => {
-    expect(() =>
-      makeExpPlots({ inputPlotInfo: plotInfo, boundary, abLine: emptyFc, ablineType: "lock" })
-    ).toThrow(ValidationError);
+    const act = () =>
+      makeExpPlots({ inputPlotInfo: plotInfo, boundary, abLine: emptyFc, ablineType: "lock" });
+    expect(act).toThrow(ValidationError);
+    expect(act).toThrow(/requires an ab-line, but none was provided/);
   });
 
   it("throws ValidationError when the ab-line is missing (free)", () => {
@@ -247,9 +248,9 @@ describe("makeExpPlots error cases (task 4.5)", () => {
         ],
       },
     };
-    expect(() => makeExpPlots({ inputPlotInfo: plotInfo, boundary: degenerate, abLine })).toThrow(
-      GeometryError
-    );
+    const act = () => makeExpPlots({ inputPlotInfo: plotInfo, boundary: degenerate, abLine });
+    expect(act).toThrow(GeometryError);
+    expect(act).toThrow(/empty or degenerate after repair/);
   });
 
   it("repairs a self-intersecting (bowtie) boundary instead of failing", () => {
@@ -308,9 +309,9 @@ describe("makeExpPlots error cases (task 4.5)", () => {
       sectionNum: 1,
       harvesterWidth: 60, // differs from the first input's 30
     });
-    expect(() => makeExpPlots({ inputPlotInfo: [plotInfo, other], boundary, abLine })).toThrow(
-      ValidationError
-    );
+    const act = () => makeExpPlots({ inputPlotInfo: [plotInfo, other], boundary, abLine });
+    expect(act).toThrow(ValidationError);
+    expect(act).toThrow(/across inputs\. Please make sure they are the same/);
   });
 
   it('accepts ablineType "non" (design.md D3) and still produces plots', () => {
@@ -324,14 +325,15 @@ describe("makeExpPlots error cases (task 4.5)", () => {
   });
 
   it("throws ValidationError for an unsupported ablineType", () => {
-    expect(() =>
+    const act = () =>
       makeExpPlots({
         inputPlotInfo: plotInfo,
         boundary,
         abLine,
         ablineType: "bogus" as unknown as "free",
-      })
-    ).toThrow(ValidationError);
+      });
+    expect(act).toThrow(ValidationError);
+    expect(act).toThrow(/ablineType must be "free", "lock", or "non"/);
   });
 
   it('returns the extended input ab-line unchanged for ablineType "lock"', () => {

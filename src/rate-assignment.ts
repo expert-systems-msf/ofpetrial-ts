@@ -29,7 +29,7 @@ import type {
 // ! Small generic utilities
 // !===========================================================
 
-function rangeStep(from: number, to: number, step: number): number[] {
+export function rangeStep(from: number, to: number, step: number): number[] {
   const out: number[] = [];
   if (step > 0) {
     for (let v = from; v <= to; v += step) out.push(v);
@@ -54,7 +54,7 @@ function mean(values: number[]): number {
   return values.length === 0 ? 0 : values.reduce((a, b) => a + b, 0) / values.length;
 }
 
-function median(values: number[]): number {
+export function median(values: number[]): number {
   const sorted = values.toSorted((a, b) => a - b);
   const mid = Math.floor(sorted.length / 2);
   return sorted.length % 2 === 0 ? (sorted[mid - 1]! + sorted[mid]!) / 2 : sorted[mid]!;
@@ -250,7 +250,7 @@ export function getStartingRankAs(numberLevels: number, rng: Rng): number[] {
   return rng.sample(best, 1)[0]!;
 }
 
-function circShift(mat: number[][], rowDelta: number, colDelta: number): number[][] {
+export function circShift(mat: number[][], rowDelta: number, colDelta: number): number[][] {
   const n = mat.length;
   const m = mat[0]!.length;
   const out: number[][] = [];
@@ -266,11 +266,11 @@ function circShift(mat: number[][], rowDelta: number, colDelta: number): number[
   return out;
 }
 
-function matSub(a: number[][], b: number[][]): number[][] {
+export function matSub(a: number[][], b: number[][]): number[][] {
   return a.map((row, index) => row.map((v, index_) => v - b[index]![index_]!));
 }
 
-function maxOverColumns(mat: number[][], pred: (v: number) => number): number {
+export function maxOverColumns(mat: number[][], pred: (v: number) => number): number {
   const cols = mat[0]!.length;
   let best = -Infinity;
   for (let index = 0; index < cols; index++) {
@@ -281,7 +281,7 @@ function maxOverColumns(mat: number[][], pred: (v: number) => number): number {
   return best;
 }
 
-function meanAbs(mat: number[][]): number {
+export function meanAbs(mat: number[][]): number {
   let sum = 0;
   let count = 0;
   for (const row of mat)
@@ -292,7 +292,7 @@ function meanAbs(mat: number[][]): number {
   return count === 0 ? 0 : sum / count;
 }
 
-function meanAbsSum(a: number[][], b: number[][]): number {
+export function meanAbsSum(a: number[][], b: number[][]): number {
   let sum = 0;
   let count = 0;
   for (const [index, element] of a.entries()) {
@@ -374,7 +374,7 @@ export function getRankForRb(numberRates: number, numberPlots: number, rng: Rng)
 // ! Per-design-type assignment (R: assign_rates_by_input branches)
 // !===========================================================
 
-function assignLs(
+export function assignLs(
   plots: FeatureCollection,
   ratesData: RateData[],
   rankSeqWsIn: number[] | null,
@@ -463,7 +463,7 @@ function assignLs(
   return result;
 }
 
-function assignRb(
+export function assignRb(
   plots: FeatureCollection,
   ratesData: RateData[],
   rng: Rng
@@ -493,7 +493,7 @@ function assignRb(
   return result;
 }
 
-function assignString(
+export function assignString(
   plots: FeatureCollection,
   ratesData: RateData[],
   rankSeqAsIn: number[] | null,
@@ -510,7 +510,7 @@ function assignString(
   return result;
 }
 
-function assignRstr(
+export function assignRstr(
   plots: FeatureCollection,
   ratesData: RateData[],
   rng: Rng
@@ -555,7 +555,7 @@ function assignSparse(
   return result;
 }
 
-function assignEjca(
+export function assignEjca(
   plots: FeatureCollection,
   ratesData: RateData[],
   rateJumpThreshold: number | null
@@ -674,7 +674,7 @@ export function makeDesignFor2By2(
   return { a, b };
 }
 
-function defaultRateJumpThreshold(numberRates: number): number {
+export function defaultRateJumpThreshold(numberRates: number): number {
   return numberRates <= 4 ? numberRates - 1 : numberRates - 2;
 }
 
@@ -684,7 +684,7 @@ interface CombEntry {
   cases: number;
 }
 
-function variabilityScore(
+export function variabilityScore(
   rowIndex: number,
   plotId: number,
   candidateRank: number,
@@ -713,7 +713,7 @@ function variabilityScore(
  * rate_jump_threshold here — find_rate always uses its hardcoded default of
  * 3, regardless of num_rates. That's an upstream quirk, replicated as-is.
  */
-function findRate(
+export function findRate(
   rowIndex: number,
   plotId: number,
   info: { rateRank1st: number; rateRank2ndNb: number; rateRank2ndPrev: number },
@@ -894,7 +894,7 @@ export function getDesignForSecond(
 // ! Joint-designing eligibility (R: assign_rates two-input branch)
 // !===========================================================
 
-function multipleOfTheOther(a: number, b: number): boolean {
+export function multipleOfTheOther(a: number, b: number): boolean {
   return Math.max(a, b) % Math.min(a, b) === 0;
 }
 

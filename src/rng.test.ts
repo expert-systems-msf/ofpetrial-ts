@@ -19,6 +19,19 @@ describe("createRng", () => {
     expect(seqA).not.toEqual(seqB);
   });
 
+  // Golden snapshot: pins the splitmix32 constants (0x9e3779b9, the >>> shifts,
+  // 0x21f0aaad, 0x735a2d97 and the 2^32 divisor). Any arithmetic mutation to
+  // next() moves these exact values. splitmix32 is integer math (Math.imul plus
+  // unsigned shifts), so the sequence is platform-independent.
+  it("emits the exact splitmix32 sequence for seed 42 (golden)", () => {
+    const rng = createRng(42);
+    const seq = Array.from({ length: 6 }, () => rng.next());
+    expect(seq).toEqual([
+      0.12848330102860928, 0.03353364090435207, 0.07509804493747652,
+      0.7065966189838946, 0.21141720796003938, 0.6166351919528097,
+    ]);
+  });
+
   it("next() returns values in [0, 1)", () => {
     const rng = createRng(7);
     for (let index = 0; index < 1000; index++) {
@@ -49,10 +62,19 @@ describe("createRng", () => {
       }
     });
 
+    it("maps the seed-42 stream to exact integers (golden)", () => {
+      const rng = createRng(42);
+      expect(Array.from({ length: 6 }, () => rng.nextInt(100))).toEqual([12, 3, 7, 70, 21, 61]);
+    });
+
     it("throws on an empty range", () => {
       const rng = createRng(1);
-      expect(() => rng.nextInt(0)).toThrow(ValidationError);
-      expect(() => rng.nextInt(-3)).toThrow(ValidationError);
+      const zero = () => rng.nextInt(0);
+      expect(zero).toThrow(ValidationError);
+      expect(zero).toThrow(/nextInt requires maxExclusive > 0/);
+      const negative = () => rng.nextInt(-3);
+      expect(negative).toThrow(ValidationError);
+      expect(negative).toThrow(/nextInt requires maxExclusive > 0/);
     });
   });
 
@@ -70,6 +92,12 @@ describe("createRng", () => {
       const shuffledA = createRng(11).shuffle([1, 2, 3, 4, 5]);
       const shuffledB = createRng(11).shuffle([1, 2, 3, 4, 5]);
       expect(shuffledA).toEqual(shuffledB);
+    });
+
+    it("matches the golden Fisher-Yates permutation for seed 7", () => {
+      // Pins the loop bounds and nextInt(index + 1) index math, not just that
+      // the output is *a* permutation.
+      expect(createRng(7).shuffle([1, 2, 3, 4, 5, 6, 7, 8])).toEqual([4, 1, 3, 5, 6, 2, 7, 8]);
     });
   });
 
@@ -91,10 +119,18 @@ describe("createRng", () => {
       expect(a).toEqual(b);
     });
 
+    it("matches the golden draw for seed 7 (pins the shuffle + slice)", () => {
+      expect(createRng(7).sample([10, 20, 30, 40, 50], 3)).toEqual([20, 30, 10]);
+    });
+
     it("throws when n is out of range", () => {
       const rng = createRng(4);
-      expect(() => rng.sample([1, 2, 3], 4)).toThrow(ValidationError);
-      expect(() => rng.sample([1, 2, 3], -1)).toThrow(ValidationError);
+      const tooMany = () => rng.sample([1, 2, 3], 4);
+      expect(tooMany).toThrow(ValidationError);
+      expect(tooMany).toThrow(/sample requires 0 <= n <= arr\.length/);
+      const negative = () => rng.sample([1, 2, 3], -1);
+      expect(negative).toThrow(ValidationError);
+      expect(negative).toThrow(/sample requires 0 <= n <= arr\.length/);
     });
   });
 });

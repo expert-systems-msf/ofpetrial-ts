@@ -4,6 +4,7 @@ import {
   FEET_TO_METERS,
   GENERIC_UNIT_CONVERSION_TABLE,
   INPUT_UNIT_CONVERSION_TABLE,
+  LITERS_TO_GALLONS,
   POUNDS_TO_KG,
   acresToHectares,
   convUnit,
@@ -29,6 +30,12 @@ describe("unit constants", () => {
   it("POUNDS_TO_KG is exact", () => {
     expect(POUNDS_TO_KG).toBe(0.45359237);
   });
+
+  it("LITERS_TO_GALLONS is the reciprocal of 3.785411784", () => {
+    expect(LITERS_TO_GALLONS).toBe(1 / 3.785411784);
+    // Pins the value (and rules out the `1 * 3.785411784` mutant, which is ~3.79).
+    expect(LITERS_TO_GALLONS).toBeCloseTo(0.264172052358, 12);
+  });
 });
 
 describe("convUnit", () => {
@@ -42,7 +49,9 @@ describe("convUnit", () => {
   });
 
   it("throws on an unknown pair (unlike R, which returns an empty vector)", () => {
-    expect(() => convUnit(1, "liters", "gallons")).toThrow(ValidationError);
+    const act = () => convUnit(1, "liters", "gallons");
+    expect(act).toThrow(ValidationError);
+    expect(act).toThrow(/No conversion factor from "liters" to "gallons"/);
   });
 });
 
@@ -55,6 +64,11 @@ describe("convertRates", () => {
 
   it("passes through unknown input names unchanged", () => {
     expect(convertRates("seed", "seeds", 34_000)).toBe(34_000);
+    // Even with a metric unit, an unknown input must short-circuit before the
+    // liters/kg branches run — otherwise a "seed" liters rate would be scaled
+    // by the gallons/mass factors instead of passing straight through.
+    expect(convertRates("seed", "liters", 100)).toBe(100);
+    expect(convertRates("seed", "kg", 100)).toBe(100);
   });
 
   it("falls back to factor 1 for an unknown (input, unit) combination (deviation: R yields numeric(0))", () => {
@@ -72,6 +86,15 @@ describe("convertRates", () => {
     expect(convertRates("chicken_manure", "kg", 100)).toBeCloseTo(100, 10);
   });
 
+  it("applies the liters->gallons metric factor (deviation: R yields numeric(0))", () => {
+    // NH3 given in liters: rate * LITERS_TO_GALLONS -> gallons, then the
+    // NH3/gallons factor 4.2, then the metric lb->kg factor (M8). This is the
+    // only path that exercises the `unit === "liters"` branch.
+    const expected = 10 * LITERS_TO_GALLONS * 4.2 * POUNDS_TO_KG;
+    expect(convertRates("NH3", "liters", 10)).toBeCloseTo(expected, 10);
+    expect(convertRates("NH3", "liters", 10)).toBeCloseTo(5.0327, 3);
+  });
+
   it("inverts with from_n_equiv", () => {
     const nEquiv = convertRates("NH3", "gallons", 10);
     expect(convertRates("NH3", "gallons", nEquiv, "from_n_equiv")).toBeCloseTo(10, 12);
@@ -82,6 +105,41 @@ describe("conversion tables", () => {
   it("mirror R's row counts", () => {
     expect(GENERIC_UNIT_CONVERSION_TABLE).toHaveLength(8);
     expect(INPUT_UNIT_CONVERSION_TABLE).toHaveLength(13);
+  });
+
+  // Full row-by-row assertions: pins every `from`/`to`/`type`/`unit` string and
+  // every convFactor, so a blanked object literal or string mutant is caught.
+  // Derived factors are recomputed from the same exact constants, so the
+  // comparison is bit-for-bit.
+  it("mirrors R's generic_unit_conversion_table exactly", () => {
+    expect(GENERIC_UNIT_CONVERSION_TABLE).toEqual([
+      { from: "hectares", to: "acres", convFactor: 1 / ACRES_TO_HECTARES },
+      { from: "acres", to: "hectares", convFactor: ACRES_TO_HECTARES },
+      { from: "meters", to: "feet", convFactor: 1 / FEET_TO_METERS },
+      { from: "feet", to: "meters", convFactor: FEET_TO_METERS },
+      { from: "kg", to: "pounds", convFactor: 1 / POUNDS_TO_KG },
+      { from: "pounds", to: "kg", convFactor: POUNDS_TO_KG },
+      { from: "acres", to: "m2", convFactor: 4046.856422 },
+      { from: "m2", to: "acres", convFactor: 1 / 4046.856422 },
+    ]);
+  });
+
+  it("mirrors R's input_unit_conversion_table exactly", () => {
+    expect(INPUT_UNIT_CONVERSION_TABLE).toEqual([
+      { type: "NH3", unit: "gallons", convFactor: 4.2 },
+      { type: "uan32", unit: "gallons", convFactor: 3.54 },
+      { type: "uan28", unit: "gallons", convFactor: 2.9876 },
+      { type: "n_equiv", unit: "lb", convFactor: 1 },
+      { type: "uan28_ats", unit: "gallons", convFactor: 2.822 },
+      { type: "urea", unit: "lb", convFactor: 0.46 },
+      { type: "ammonium_nitrate", unit: "lb", convFactor: 0.34 },
+      { type: "NH3", unit: "lb", convFactor: 0.82 },
+      { type: "KCL", unit: "gallons", convFactor: 0.91 },
+      { type: "cover", unit: "lb", convFactor: 1 },
+      { type: "chicken_manure", unit: "kg", convFactor: 1 },
+      { type: "24-0-0-3 UAN", unit: "gallons", convFactor: 2.4336 },
+      { type: "general", unit: "given", convFactor: 1 },
+    ]);
   });
 });
 

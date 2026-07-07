@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { findPlotWidth, getLcm, getRates, prepPlot, prepRate } from "./trial-setup.js";
+import { findPlotWidth, getLcm, getRates, prepPlot, prepRate, roundHalfEven } from "./trial-setup.js";
 import { ValidationError } from "./types.js";
 
 describe("getLcm / findPlotWidth", () => {
@@ -16,12 +16,38 @@ describe("getLcm / findPlotWidth", () => {
     expect(findPlotWidth(50, 30, 60)).toBe(100);
   });
 
+  it("returns the section width for ratio > 2", () => {
+    // getLcm(70, 30, 120) finds no near-multiple → ratio 70/30 = 2.33 > 2.
+    expect(findPlotWidth(70, 30, 120)).toBe(70);
+  });
+
+  it("scales up a narrow section (ratio < 1) to cover the harvester", () => {
+    // getLcm(30, 50, 120) is null → ratio 0.6 → ceil(2/0.6)*30 = 4*30 = 120.
+    expect(findPlotWidth(30, 50, 120)).toBe(120);
+  });
+
   it("rejects a bound below the larger width, like R's seq()", () => {
-    expect(() => getLcm(30, 30, 20)).toThrow(ValidationError);
+    const act = () => getLcm(30, 30, 20);
+    expect(act).toThrow(ValidationError);
+    expect(act).toThrow(/is below the larger machine width/);
   });
 
   it("accepts near-multiples within the 0.05 m tolerance", () => {
     expect(getLcm(2.5008, 30, 120)).toBe(30);
+  });
+});
+
+describe("roundHalfEven", () => {
+  it("rounds away from .5 for non-ties", () => {
+    expect(roundHalfEven(2.6)).toBe(3);
+    expect(roundHalfEven(2.3)).toBe(2);
+  });
+
+  it("breaks exact .5 ties toward the even integer (banker's rounding)", () => {
+    expect(roundHalfEven(2.5)).toBe(2); // floor 2 is even
+    expect(roundHalfEven(3.5)).toBe(4); // floor 3 is odd
+    expect(roundHalfEven(4.5)).toBe(4);
+    expect(roundHalfEven(5.5)).toBe(6);
   });
 });
 
@@ -34,8 +60,12 @@ describe("getRates", () => {
   it("puts more levels on the roomier side of gcRate", () => {
     const high = getRates(100, 260, 120, 5);
     expect(high.filter((r) => r > 120).length).toBeGreaterThan(high.filter((r) => r < 120).length);
+    // Exact ladder pins the asymmetric split arithmetic (difMax/difMin > 1.5,
+    // the even/odd level rebalance and the roundHalfEven rounding).
+    expect(high).toEqual([100, 120, 167, 213, 260]);
     const low = getRates(100, 260, 240, 5);
     expect(low.filter((r) => r < 240).length).toBeGreaterThan(low.filter((r) => r > 240).length);
+    expect(low).toEqual([100, 147, 193, 240, 260]);
   });
 
   it("always includes gcRate on asymmetric splits", () => {
@@ -85,6 +115,7 @@ describe("prepPlot", () => {
       harvesterWidth: 30,
     };
     expect(() => prepPlot({ ...base, machineWidth: 0 })).toThrow(ValidationError);
+    expect(() => prepPlot({ ...base, machineWidth: 0 })).toThrow(/must be a positive finite number/);
     expect(() => prepPlot({ ...base, machineWidth: -60 })).toThrow(ValidationError);
     expect(() => prepPlot({ ...base, machineWidth: NaN })).toThrow(ValidationError);
     expect(() => prepPlot({ ...base, sectionNum: 0 })).toThrow(ValidationError);
@@ -157,14 +188,15 @@ describe("prepRate", () => {
   });
 
   it("rejects sparse without gcRate in the rates (R: silent corrupt output)", () => {
-    expect(() =>
+    const act = () =>
       prepRate(pi, {
         gcRate: 34_000,
         unit: "seeds",
         rates: [20_000, 27_000, 41_000, 48_000],
         designType: "sparse",
-      })
-    ).toThrow(ValidationError);
+      });
+    expect(act).toThrow(ValidationError);
+    expect(act).toThrow(/do not include gcRate/);
   });
 
   it("rejects odd ejca rate counts and unknown design types", () => {
@@ -177,7 +209,9 @@ describe("prepRate", () => {
   });
 
   it("requires a rate specification", () => {
-    expect(() => prepRate(pi, { gcRate: 1, unit: "lb" })).toThrow(ValidationError);
+    const act = () => prepRate(pi, { gcRate: 1, unit: "lb" });
+    expect(act).toThrow(ValidationError);
+    expect(act).toThrow(/provide either rates as a vector/);
   });
 
   it("carries rank sequences and the rate jump threshold", () => {
@@ -216,17 +250,18 @@ describe("prepRate", () => {
         rates: [1, 2, 3, 4, 5],
         rankSeqWs: [1, 2, 3, 4, 4], // wrong: 5 missing, 4 duplicated
       })
-    ).toThrow(ValidationError);
+    ).toThrow(/rankSeqWs must be a permutation of 1\.\.5/);
   });
 
-  it("accepts a valid permutation rankSeqAs", () => {
-    expect(() =>
-      prepRate(pi, {
-        gcRate: 1,
-        unit: "lb",
-        rates: [1, 2, 3, 4, 5],
-        rankSeqAs: [5, 4, 3, 2, 1],
-      })
-    ).not.toThrow();
+  it("accepts a valid permutation rankSeqAs and stores it verbatim", () => {
+    const ri = prepRate(pi, {
+      gcRate: 1,
+      unit: "lb",
+      rates: [1, 2, 3, 4, 5],
+      rankSeqAs: [5, 4, 3, 2, 1],
+    });
+    expect(ri.rank_seq_as).toEqual([5, 4, 3, 2, 1]);
+    expect(ri.rates_data.map((r) => r.rate)).toEqual([1, 2, 3, 4, 5]);
+    expect(ri.num_rates).toBe(5);
   });
 });

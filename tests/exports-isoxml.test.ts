@@ -40,7 +40,9 @@ describe("rateToDdiValue — documented worked examples (docs/isoxml-units.md)",
   });
 
   it("throws ExportError on an unmapped rate unit", () => {
-    expect(() => rateToDdiValue(10, "imperial", "furlongs")).toThrow(ExportError);
+    const act = () => rateToDdiValue(10, "imperial", "furlongs");
+    expect(act).toThrow(ExportError);
+    expect(act).toThrow(/No ISOXML DDI mapping for rate unit/);
   });
 });
 
@@ -121,9 +123,81 @@ describe("writeIsoxml — round-trip structure (simple1, imperial, seed)", () =>
   });
 
   it("throws ExportError on an empty plot list", () => {
-    expect(() =>
-      writeIsoxml([], { inputName: "seed", unitSystem: "imperial", rateUnit: "seeds" })
-    ).toThrow(ExportError);
+    const act = () =>
+      writeIsoxml([], { inputName: "seed", unitSystem: "imperial", rateUnit: "seeds" });
+    expect(act).toThrow(ExportError);
+    expect(act).toThrow(/cannot write a task with zero plots/);
+  });
+});
+
+describe("writeIsoxml — MultiPolygon and non-finite coordinates", () => {
+  it("emits one treatment-zone PLN per component of a MultiPolygon plot", () => {
+    const multi: MultiPolygon = {
+      type: "MultiPolygon",
+      coordinates: [
+        [
+          [
+            [0, 0],
+            [0, 0.001],
+            [0.001, 0.001],
+            [0.001, 0],
+            [0, 0],
+          ],
+        ],
+        [
+          [
+            [1, 1],
+            [1, 1.001],
+            [1.001, 1.001],
+            [1.001, 1],
+            [1, 1],
+          ],
+        ],
+      ],
+    };
+    const xml = new TextDecoder().decode(
+      writeIsoxml([{ geometry: multi, rate: 34_000 }], {
+        inputName: "seed",
+        unitSystem: "imperial",
+        rateUnit: "seeds",
+      })
+    );
+    const tags = parseTags(xml);
+    // Parses as a valid single task.
+    expect(countTag(tags, "ISO11783_TaskData")).toBe(1);
+    expect(countTag(tags, "PFD")).toBe(1);
+    expect(countTag(tags, "TSK")).toBe(1);
+    expect(countTag(tags, "TZN")).toBe(1);
+    // The single plot's MultiPolygon expands to one type-2 PLN per component.
+    expect(tags.filter((t) => t.name === "PLN" && t.attrs.A === "2")).toHaveLength(2);
+    // deriveBoundary returns the same MultiPolygon (single plot), so the
+    // boundary also emits one type-1 PLN per component.
+    expect(tags.filter((t) => t.name === "PLN" && t.attrs.A === "1")).toHaveLength(2);
+  });
+
+  it("throws ExportError on a ring containing a non-finite coordinate", () => {
+    for (const bad of [NaN, Infinity, -Infinity]) {
+      const geometry: Polygon = {
+        type: "Polygon",
+        coordinates: [
+          [
+            [0, 0],
+            [0, 0.001],
+            [bad, 0.001],
+            [0.001, 0],
+            [0, 0],
+          ],
+        ],
+      };
+      const act = () =>
+        writeIsoxml([{ geometry, rate: 34_000 }], {
+          inputName: "seed",
+          unitSystem: "imperial",
+          rateUnit: "seeds",
+        });
+      expect(act).toThrow(ExportError);
+      expect(act).toThrow(/non-finite coordinate/);
+    }
   });
 });
 
@@ -145,9 +219,10 @@ describe("writeIsoxml — 254-zone ceiling", () => {
       geometry,
       rate: index,
     }));
-    expect(() =>
-      writeIsoxml(plots, { inputName: "seed", unitSystem: "imperial", rateUnit: "seeds" })
-    ).toThrow(ExportError);
+    const act = () =>
+      writeIsoxml(plots, { inputName: "seed", unitSystem: "imperial", rateUnit: "seeds" });
+    expect(act).toThrow(ExportError);
+    expect(act).toThrow(/exceed the 254 usable TreatmentZoneCode values/);
   });
 });
 

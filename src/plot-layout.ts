@@ -44,7 +44,7 @@ type Interval = [number, number];
 // !===========================================================
 
 /** Area centroid of a closed ring (undefined for degenerate rings). */
-function ringCentroid(ring: Ring): { area: number; cx: number; cy: number } {
+export function ringCentroid(ring: Ring): { area: number; cx: number; cy: number } {
   let a = 0;
   let cx = 0;
   let cy = 0;
@@ -61,7 +61,7 @@ function ringCentroid(ring: Ring): { area: number; cx: number; cy: number } {
 }
 
 /** Drops consecutive duplicate points and guarantees ring closure. */
-function cleanRing(ring: Pt[]): Ring | null {
+export function cleanRing(ring: Pt[]): Ring | null {
   const out: Pt[] = [];
   for (const p of ring) {
     const last = out.at(-1);
@@ -82,7 +82,7 @@ function cleanRing(ring: Pt[]): Ring | null {
 }
 
 /** Sorted merge of possibly overlapping intervals. */
-function mergeIntervals(list: Interval[]): Interval[] {
+export function mergeIntervals(list: Interval[]): Interval[] {
   if (list.length === 0) return [];
   const sorted = list.toSorted((a, b) => a[0] - b[0]);
   const out: Interval[] = [[sorted[0]![0], sorted[0]![1]]];
@@ -99,7 +99,7 @@ function mergeIntervals(list: Interval[]): Interval[] {
 }
 
 /** base minus subtrahend, both merged interval lists. */
-function subtractIntervals(base: Interval[], minus: Interval[]): Interval[] {
+export function subtractIntervals(base: Interval[], minus: Interval[]): Interval[] {
   const out: Interval[] = [];
   for (const [bs, be] of base) {
     let cursor = bs;
@@ -119,7 +119,7 @@ function subtractIntervals(base: Interval[], minus: Interval[]): Interval[] {
  * by the horizontal line v = const. Rings must be individually simple; the
  * union across rings is merged afterwards by the callers.
  */
-function ringIntervalsAt(ring: Ring, v: number): Interval[] {
+export function ringIntervalsAt(ring: Ring, v: number): Interval[] {
   const xs: number[] = [];
   for (let index = 0; index < ring.length - 1; index++) {
     const [x1, y1] = ring[index]!;
@@ -141,14 +141,14 @@ function ringIntervalsAt(ring: Ring, v: number): Interval[] {
   return out;
 }
 
-function ringsIntervalsAt(rings: Ring[], v: number): Interval[] {
+export function ringsIntervalsAt(rings: Ring[], v: number): Interval[] {
   const all: Interval[] = [];
   for (const ring of rings) all.push(...ringIntervalsAt(ring, v));
   return mergeIntervals(all);
 }
 
 /** Minimum distance from a point to any segment of the given rings. */
-function distributionToRings(pt: Pt, rings: Ring[]): number {
+export function distributionToRings(pt: Pt, rings: Ring[]): number {
   let best = Infinity;
   for (const ring of rings) {
     for (let index = 0; index < ring.length - 1; index++) {
@@ -169,7 +169,7 @@ function distributionToRings(pt: Pt, rings: Ring[]): number {
   return best;
 }
 
-function ringToPolygonFeature(ring: Ring): Feature<Polygon> {
+export function ringToPolygonFeature(ring: Ring): Feature<Polygon> {
   return { type: "Feature", properties: {}, geometry: { type: "Polygon", coordinates: [ring] } };
 }
 
@@ -178,7 +178,7 @@ function ringToPolygonFeature(ring: Ring): Feature<Polygon> {
  * diagonal midpoints) first; guaranteed fallback via the scanline midpoint
  * at the ring's median height, which exists for every simple ring.
  */
-function samplePointInRing(ring: Ring): Pt | null {
+export function samplePointInRing(ring: Ring): Pt | null {
   const poly = ringToPolygonFeature(ring);
   let sx = 0;
   let sy = 0;
@@ -223,7 +223,7 @@ function samplePointInRing(ring: Ring): Pt | null {
  * closes one. Arc discretization matches sf's st_buffer default of
  * nQuadSegs = 30.
  */
-function offsetRingRound(ring: Ring, distribution: number): Ring | null {
+export function offsetRingRound(ring: Ring, distribution: number): Ring | null {
   const pts = ring.slice(0, -1);
   const n = pts.length;
   if (n < 3) return null;
@@ -273,7 +273,7 @@ function offsetRingRound(ring: Ring, distribution: number): Ring | null {
 }
 
 /** Splits a possibly self-intersecting offset ring into simple pieces. */
-function unkinkRing(ring: Ring): Ring[] {
+export function unkinkRing(ring: Ring): Ring[] {
   let features: Array<Feature<Polygon>>;
   try {
     features = unkinkPolygon(ringToPolygonFeature(ring)).features;
@@ -292,7 +292,7 @@ function unkinkRing(ring: Ring): Ring[] {
 }
 
 /** Rewinds a ring to counter-clockwise orientation. */
-function toCcw(ring: Ring): Ring {
+export function toCcw(ring: Ring): Ring {
   return signedRingArea(ring) >= 0 ? ring : ring.toReversed();
 }
 
@@ -302,7 +302,7 @@ function toCcw(ring: Ring): Ring {
  * the original ring) — this discards the inverted loops a plain offset
  * produces where the shape is narrower than 2 * dist.
  */
-function shrinkRing(ring: Ring, distribution: number): Ring[] {
+export function shrinkRing(ring: Ring, distribution: number): Ring[] {
   const raw = offsetRingRound(ring, -distribution);
   if (!raw) return [];
   const out: Ring[] = [];
@@ -314,7 +314,7 @@ function shrinkRing(ring: Ring, distribution: number): Ring[] {
 }
 
 /** Grows a CCW ring outward by `dist`, keeping the dominant piece. */
-function growRing(ring: Ring, distribution: number): Ring[] {
+export function growRing(ring: Ring, distribution: number): Ring[] {
   const raw = offsetRingRound(ring, distribution);
   if (!raw) return [];
   const pieces = unkinkRing(raw);
@@ -405,7 +405,7 @@ function collectPolygonFeatures(
 }
 
 /** Whether any two non-adjacent ring segments properly intersect. */
-function ringIsSimple(ring: Ring): boolean {
+export function ringIsSimple(ring: Ring): boolean {
   const n = ring.length - 1;
   for (let index = 0; index < n; index++) {
     const [ax, ay] = ring[index]!;
@@ -541,7 +541,7 @@ interface StripPlots {
 }
 
 /** R get_trial_plot_data: divide a strip's usable length into plot lengths. */
-function trialPlotLengths(tot: number, minLength: number, maxLength: number): number[] {
+export function trialPlotLengths(tot: number, minLength: number, maxLength: number): number[] {
   const numberPlots = Math.floor(tot / minLength);
   if (numberPlots < 1) return [];
   const remainder = tot - numberPlots * minLength;

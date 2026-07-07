@@ -74,11 +74,15 @@ describe("writeTrialFiles — ext=isoxml", () => {
 describe("writeTrialFiles — error cases", () => {
   it("throws ExportError on an unsupported ext", () => {
     const td = loadTrialDesign("simple1", "imperial", ["seed"]);
-    expect(() => writeTrialFiles(td, { ext: "kml" as never })).toThrow(ExportError);
+    const act = () => writeTrialFiles(td, { ext: "kml" as never });
+    expect(act).toThrow(ExportError);
+    expect(act).toThrow(/unsupported ext/);
   });
 
   it("throws ExportError on a TrialDesign with zero inputs", () => {
-    expect(() => writeTrialFiles({ inputs: [], seed: 0 }, { ext: "shp" })).toThrow(ExportError);
+    const act = () => writeTrialFiles({ inputs: [], seed: 0 }, { ext: "shp" });
+    expect(act).toThrow(ExportError);
+    expect(act).toThrow(/TrialDesign has no inputs/);
   });
 });
 
@@ -103,8 +107,12 @@ describe("writeTrialFiles — LOW regressions (L7/L8/L9)", () => {
   it("L7: rejects an input named after a reserved layer basename (would overwrite the design)", () => {
     const td = loadTrialDesign("simple1", "imperial", ["seed"]);
     td.inputs[0]!.plotInfo = { ...td.inputs[0]!.plotInfo, input_name: "ab-line" };
-    expect(() => writeTrialFiles(td, { ext: "geojson" })).toThrow(ExportError);
-    expect(() => writeTrialFiles(td, { ext: "shp" })).toThrow(ExportError);
+    const geojsonAct = () => writeTrialFiles(td, { ext: "geojson" });
+    const shpAct = () => writeTrialFiles(td, { ext: "shp" });
+    expect(geojsonAct).toThrow(ExportError);
+    expect(geojsonAct).toThrow(/reserved input_name/);
+    expect(shpAct).toThrow(ExportError);
+    expect(shpAct).toThrow(/reserved input_name/);
   });
 
   it("L8: an empty guidanceLines does not fail the geojson/shp export (isoxml tolerance)", () => {

@@ -4,7 +4,7 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
-import type { MultiPolygon, Polygon } from "geojson";
+import type { MultiLineString, MultiPolygon, Polygon } from "geojson";
 import { ExportError } from "../src/types.js";
 import { TRIAL_DESIGN_FIELDS, AB_LINE_FIELDS } from "../src/exports/write-trial-files.js";
 import type { ShapefileFeatureInput } from "../src/exports/shapefile.js";
@@ -276,11 +276,46 @@ describe("writeShapefile — MultiPolygon support", () => {
   });
 });
 
+describe("writeShapefile — MultiLineString support", () => {
+  it("round-trips a MultiLineString as a multi-part polyline record", () => {
+    const mls: MultiLineString = {
+      type: "MultiLineString",
+      coordinates: [
+        [
+          [-88.2, 40.1],
+          [-88.2, 40.11],
+          [-88.2, 40.12],
+        ],
+        [
+          [-88.19, 40.2],
+          [-88.19, 40.21],
+        ],
+      ],
+    };
+    const { shp } = writeShapefile([{ geometry: mls, properties: { ab_id: 1 } }], {
+      geometryType: "polyline",
+      fields: AB_LINE_FIELDS,
+    });
+    const result = readShp(shp);
+    expect(result.shapeType).toBe(3); // PolyLine
+    expect(result.features.length).toBe(1);
+    expect(result.features[0]!.parts.length).toBe(2); // one part per line
+    result.features[0]!.parts.forEach((part, partIndex) => {
+      const expected = mls.coordinates[partIndex]!;
+      expect(part.length).toBe(expected.length);
+      part.forEach(([x, y], ptIndex) => {
+        expect(x).toBeCloseTo(expected[ptIndex]![0]!, 12);
+        expect(y).toBeCloseTo(expected[ptIndex]![1]!, 12);
+      });
+    });
+  });
+});
+
 describe("writeShapefile — error cases", () => {
   it("throws ExportError on an empty feature list", () => {
-    expect(() =>
-      writeShapefile([], { geometryType: "polygon", fields: TRIAL_DESIGN_FIELDS })
-    ).toThrow(ExportError);
+    const act = () => writeShapefile([], { geometryType: "polygon", fields: TRIAL_DESIGN_FIELDS });
+    expect(act).toThrow(ExportError);
+    expect(act).toThrow(/cannot write a layer with zero features/);
   });
 
   it("throws ExportError on a geometry/geometryType mismatch", () => {
@@ -288,12 +323,35 @@ describe("writeShapefile — error cases", () => {
       type: "LineString" as const,
       coordinates: [[0, 0] as [number, number], [1, 1] as [number, number]],
     };
-    expect(() =>
+    const act = () =>
       writeShapefile([{ geometry: lineGeom, properties: { ab_id: 1 } }], {
         geometryType: "polygon",
         fields: AB_LINE_FIELDS,
-      })
-    ).toThrow(ExportError);
+      });
+    expect(act).toThrow(ExportError);
+    expect(act).toThrow(/Expected Polygon\/MultiPolygon geometry/);
+  });
+
+  it("throws ExportError on a polygon geometry passed with geometryType 'polyline'", () => {
+    const polyGeom: Polygon = {
+      type: "Polygon",
+      coordinates: [
+        [
+          [0, 0],
+          [0, 1],
+          [1, 1],
+          [1, 0],
+          [0, 0],
+        ],
+      ],
+    };
+    const act = () =>
+      writeShapefile([{ geometry: polyGeom, properties: { ab_id: 1 } }], {
+        geometryType: "polyline",
+        fields: AB_LINE_FIELDS,
+      });
+    expect(act).toThrow(ExportError);
+    expect(act).toThrow(/Expected LineString\/MultiLineString geometry/);
   });
 
   const squareGeom: Polygon = {
@@ -309,60 +367,79 @@ describe("writeShapefile — error cases", () => {
     ],
   };
 
+  it("throws ExportError when a plain-decimal value exceeds the declared field width", () => {
+    // "123456" passes the plain-decimal regex but is 6 chars wide, over the
+    // declared length 3 — exercises the width check (not the scientific /
+    // NaN pre-emption, which never fires for a moderate integer).
+    const act = () =>
+      writeShapefile([{ geometry: squareGeom, properties: { rate: 123_456 } }], {
+        geometryType: "polygon",
+        fields: [{ name: "rate", type: "N", length: 3 }],
+      });
+    expect(act).toThrow(ExportError);
+    expect(act).toThrow(/exceeds width 3/);
+  });
+
   it("throws ExportError on a DBF field name longer than 10 chars", () => {
-    expect(() =>
+    const act = () =>
       writeShapefile([{ geometry: squareGeom, properties: { verylongfieldname: 1 } }], {
         geometryType: "polygon",
         fields: [{ name: "verylongfieldname", type: "N", length: 9 }],
-      })
-    ).toThrow(ExportError);
+      });
+    expect(act).toThrow(ExportError);
+    expect(act).toThrow(/exceeds 10 characters/);
   });
 
   it("throws ExportError on a DBF field length above the single-byte maximum (255)", () => {
-    expect(() =>
+    const act = () =>
       writeShapefile([{ geometry: squareGeom, properties: { big: "x" } }], {
         geometryType: "polygon",
         fields: [{ name: "big", type: "C", length: 256 }],
-      })
-    ).toThrow(ExportError);
+      });
+    expect(act).toThrow(ExportError);
+    expect(act).toThrow(/exceeds the single-byte maximum/);
   });
 
   it("throws ExportError on an empty geometry (zero rings/points)", () => {
     const emptyGeom: Polygon = { type: "Polygon", coordinates: [] };
-    expect(() =>
+    const act = () =>
       writeShapefile([{ geometry: emptyGeom, properties: { ab_id: 1 } }], {
         geometryType: "polygon",
         fields: AB_LINE_FIELDS,
-      })
-    ).toThrow(ExportError);
+      });
+    expect(act).toThrow(ExportError);
+    expect(act).toThrow(/has no rings\/points/);
   });
 
   it("throws ExportError on null in a character ('C') field — '*' NA padding is numeric-only", () => {
-    expect(() =>
+    const act = () =>
       writeShapefile([{ geometry: squareGeom, properties: { label: null } }], {
         geometryType: "polygon",
         fields: [{ name: "label", type: "C", length: 20 }],
-      })
-    ).toThrow(ExportError);
+      });
+    expect(act).toThrow(ExportError);
+    expect(act).toThrow(/null is only supported on numeric/);
   });
 
   it("L5: throws ExportError on a non-finite numeric field instead of writing NaN/Infinity", () => {
     for (const bad of [NaN, Infinity, -Infinity]) {
-      expect(() =>
+      const act = () =>
         writeShapefile([{ geometry: squareGeom, properties: { rate: bad } }], {
           geometryType: "polygon",
           fields: [{ name: "rate", type: "N", length: 24, decimals: 15 }],
-        })
-      ).toThrow(ExportError);
+        });
+      expect(act).toThrow(ExportError);
+      expect(act).toThrow(/does not render as a plain decimal/);
     }
   });
 
   it("L5: throws ExportError on a value that renders in scientific notation (1e+21)", () => {
-    expect(() =>
+    const act = () =>
       writeShapefile([{ geometry: squareGeom, properties: { rate: 1e21 } }], {
         geometryType: "polygon",
         fields: [{ name: "rate", type: "N", length: 30 }],
-      })
-    ).toThrow(ExportError);
+      });
+    expect(act).toThrow(ExportError);
+    expect(act).toThrow(/does not render as a plain decimal/);
   });
 });

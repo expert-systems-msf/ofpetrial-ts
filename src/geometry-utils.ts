@@ -31,5 +31,8 @@ export function utmEpsgFromVertexMean(points: Iterable<Position>): number {
     latSum += p[1]!;
     n++;
   }
-  return utmEpsg(lonSum / n, latSum / n);
+  const meanLon = lonSum / n;
+  // Stryker disable next-line all: equivalent — utmEpsg uses lat only via its sign (lat >= 0), which n > 0 preserves, so latSum/n and latSum*n select the same hemisphere.
+  const meanLat = latSum / n;
+  return utmEpsg(meanLon, meanLat);
 }

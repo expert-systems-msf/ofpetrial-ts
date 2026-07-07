@@ -137,16 +137,18 @@ export function convertRates(
     isMetricReporting = true;
   }
 
-  let convFactorN: number;
-  if (inputName === "N_equiv") {
-    convFactorN = 1;
-  } else {
-    const row = INPUT_UNIT_CONVERSION_TABLE.find(
-      (r) => `${r.type}_${r.unit}` === `${inputName}_${newUnit}`
-    );
-    // R: "no combination ... we will assume the conversion is 1"
-    convFactorN = row ? row.convFactor : 1;
-  }
+  // NOTE: R short-circuits `input_name == "N_equiv"` to factor 1 here, but that
+  // branch is dead in this port. The guard above only admits input names that
+  // match a table `type`, and the nitrogen-equivalent row is `n_equiv`
+  // (lowercase), so the capitalized comparison never held for a reachable
+  // input. The table lookup below already returns factor 1 for `n_equiv`, so
+  // dropping the branch is behavior-identical for every reachable input and
+  // removes an untestable (equivalent-mutant) dead branch.
+  const row = INPUT_UNIT_CONVERSION_TABLE.find(
+    (r) => `${r.type}_${r.unit}` === `${inputName}_${newUnit}`
+  );
+  // R: "no combination ... we will assume the conversion is 1"
+  let convFactorN = row ? row.convFactor : 1;
 
   if (isMetricReporting) {
     // M8 — DELIBERATE divergence from R 0.1.3 (recorded in parity-map.json).
