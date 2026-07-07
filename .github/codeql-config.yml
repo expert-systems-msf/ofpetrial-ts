@@ -1,9 +1,24 @@
 name: "CodeQL Configuration"
 
-# Exclude test files from analysis (reduces false positives)
+# Analyze only the shipped library source. `src/` is the sole security-relevant
+# surface (the npm tarball whitelists dist/ built from src/); everything else is
+# tests, build tooling, or non-Node examples.
+#
+# Scoping to `paths: [src]` also fixes the JS/TS extraction that was being
+# canceled after blowing past the job timeout: without it the extractor walked
+# the whole repo, including examples/supabase-edge-function/index.ts — a Deno
+# edge function whose `npm:` import specifier and `Deno` globals the TypeScript
+# extractor cannot resolve — plus the tools/ scripts, none of which is analysed
+# code we ship.
+paths:
+  - src
+
+# Belt-and-suspenders: exclude test files even if any ever land under src/.
 paths-ignore:
   - "**/*.test.ts"
   - "**/*.spec.ts"
   - "tests/**"
   - "test-cases/**"
   - "test-cases-runner/**"
+  - "examples/**"
+  - "tools/**"
