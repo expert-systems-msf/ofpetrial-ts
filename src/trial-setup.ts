@@ -68,13 +68,18 @@ export function findPlotWidth(
   if (lcm !== null) return lcm;
 
   const widthRatio = sectionWidth / harvesterWidth;
-  // Stryker disable next-line all: unreachable — getLcm returns the width itself (absDif 0) when sectionWidth === harvesterWidth, so ratio 1 never falls through to here.
+  // NOTE (mutation testing): these branches mirror R's find_plotwidth cascade.
+  // The `=== 1` / `=== 2` conditions are unreachable (getLcm returns non-null
+  // when the ratio is exactly 1 or 2), and for every *reachable* ratio the
+  // (1,2) and >2 branches happen to return the same value as the final
+  // `ceil(2/ratio)*sectionWidth` fallback — so their `-> false` / boundary
+  // (`>=`/`<=`) mutants are genuinely equivalent and survive. We deliberately do
+  // NOT `// Stryker disable` them: an `all` suppression would also hide the
+  // *killable* `-> true` / `!==` condition mutants, which the ratio>2 and
+  // ratio<1 findPlotWidth tests do catch. Leaving them scored keeps the score honest.
   if (widthRatio === 1) return harvesterWidth;
-  // Stryker disable next-line all: the surviving mutants here are equivalent — for any reachable ratio in (1,2) the fallback `ceil(2/ratio)*sectionWidth` is exactly `2*sectionWidth`, and the `>1`/`<2` bounds only differ at ratio 1|2 (unreachable, getLcm short-circuits). The killable `-> true` mutant is caught by the ratio>2 test.
   if (widthRatio > 1 && widthRatio < 2) return 2 * sectionWidth;
-  // Stryker disable next-line all: unreachable — getLcm returns 2·harvesterWidth (absDif 0) when sectionWidth === 2·harvesterWidth, so ratio 2 never falls through to here.
   if (widthRatio === 2) return harvesterWidth;
-  // Stryker disable next-line all: the surviving mutants here are equivalent — for any reachable ratio > 2 the fallback `ceil(2/ratio)*sectionWidth` is exactly `sectionWidth`, and `>2` vs `>=2` only differ at ratio 2 (unreachable). The killable `-> true` mutant is caught by the ratio<1 test.
   if (widthRatio > 2) return sectionWidth;
   return Math.ceil(2 / widthRatio) * sectionWidth;
 }
