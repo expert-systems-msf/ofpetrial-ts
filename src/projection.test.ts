@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { toUtm, toWgs, utmEpsg, utmZone } from "./projection.js";
+import { toUtm, toWgs, utmEpsg, utmProjString, utmZone } from "./projection.js";
 
 describe("utmZone", () => {
   it("computes the UTM zone from longitude", () => {
@@ -27,6 +27,16 @@ describe("utmEpsg", () => {
   });
 });
 
+describe("utmProjString", () => {
+  it("appends +south only for southern-hemisphere zones", () => {
+    expect(utmProjString(32_721)).toBe(
+      "+proj=utm +zone=21 +datum=WGS84 +units=m +no_defs +south"
+    );
+    expect(utmProjString(32_616)).toBe("+proj=utm +zone=16 +datum=WGS84 +units=m +no_defs");
+    expect(utmProjString(32_616)).not.toContain("+south");
+  });
+});
+
 describe("toUtm / toWgs round-trip", () => {
   it("round-trips within 1 mm at an Illinois point", () => {
     const lon = -88.2;
@@ -44,6 +54,17 @@ describe("toUtm / toWgs round-trip", () => {
     const lon = -71.2;
     const lat = 46.8;
     const { point, epsg } = toUtm([lon, lat]);
+    const [backLon, backLat] = toWgs(point, epsg);
+    const { point: roundTripUtm } = toUtm([backLon, backLat]);
+    expect(Math.hypot(roundTripUtm[0] - point[0], roundTripUtm[1] - point[1])).toBeLessThan(0.001);
+  });
+
+  it("round-trips within 1 mm at a Buenos Aires (southern) point", () => {
+    // Exercises the +south proj string (327xx zone) end to end.
+    const lon = -58.4;
+    const lat = -34.6;
+    const { point, epsg } = toUtm([lon, lat]);
+    expect(epsg).toBe(32_721);
     const [backLon, backLat] = toWgs(point, epsg);
     const { point: roundTripUtm } = toUtm([backLon, backLat]);
     expect(Math.hypot(roundTripUtm[0] - point[0], roundTripUtm[1] - point[1])).toBeLessThan(0.001);

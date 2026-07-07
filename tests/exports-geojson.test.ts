@@ -2,7 +2,7 @@
 // trial-design.geojson fixture (itself the ground truth R would export as
 // GeoJSON, per write_trial_files()'s sf::st_write(ext="geojson") path).
 import { describe, expect, it } from "vitest";
-import type { MultiPolygon, Polygon } from "geojson";
+import type { LineString, MultiLineString, MultiPolygon, Polygon } from "geojson";
 import { ExportError } from "../src/types.js";
 import type { GeoJsonFeatureInput } from "../src/exports/geojson.js";
 import { writeGeoJson } from "../src/exports/geojson.js";
@@ -88,6 +88,96 @@ describe("writeGeoJson — RFC 7946 shape", () => {
     const act = () => writeGeoJson([]);
     expect(act).toThrow(ExportError);
     expect(act).toThrow(/cannot write a layer with zero features/);
+  });
+});
+
+describe("writeGeoJson — non-polygon and multi-polygon geometries", () => {
+  it("reorients a MultiPolygon to the right-hand rule (each exterior CCW, each hole CW)", () => {
+    // Two component polygons, both fed in with the WRONG (shapefile) winding:
+    // exterior CW (area < 0), hole CCW (area > 0). The writer must flip both.
+    const multi: MultiPolygon = {
+      type: "MultiPolygon",
+      coordinates: [
+        [
+          // exterior, clockwise
+          [
+            [0, 0],
+            [0, 10],
+            [10, 10],
+            [10, 0],
+            [0, 0],
+          ],
+          // hole, counter-clockwise
+          [
+            [2, 2],
+            [4, 2],
+            [4, 4],
+            [2, 4],
+            [2, 2],
+          ],
+        ],
+        [
+          // second polygon exterior, clockwise, no hole
+          [
+            [20, 20],
+            [20, 30],
+            [30, 30],
+            [30, 20],
+            [20, 20],
+          ],
+        ],
+      ],
+    };
+    const bytes = writeGeoJson([{ geometry: multi, properties: { rate: 1 } }]);
+    const fc = JSON.parse(new TextDecoder().decode(bytes)) as {
+      features: Array<{ geometry: { type: string; coordinates: number[][][][] } }>;
+    };
+    const geom = fc.features[0]!.geometry;
+    expect(geom.type).toBe("MultiPolygon");
+    expect(geom.coordinates).toHaveLength(2);
+    for (const polygon of geom.coordinates) {
+      expect(signedArea(polygon[0]!)).toBeGreaterThan(0); // exterior CCW
+      for (const hole of polygon.slice(1)) {
+        expect(signedArea(hole)).toBeLessThan(0); // holes CW
+      }
+    }
+  });
+
+  it("passes a LineString geometry through unchanged (RFC 7946 does not constrain line winding)", () => {
+    const line: LineString = {
+      type: "LineString",
+      coordinates: [
+        [-88.2, 40.1],
+        [-88.19, 40.12],
+        [-88.18, 40.11],
+      ],
+    };
+    const bytes = writeGeoJson([{ geometry: line, properties: { ab_id: 1 } }]);
+    const fc = JSON.parse(new TextDecoder().decode(bytes)) as {
+      features: Array<{ geometry: LineString }>;
+    };
+    expect(fc.features[0]!.geometry).toEqual(line);
+  });
+
+  it("passes a MultiLineString geometry through unchanged", () => {
+    const mls: MultiLineString = {
+      type: "MultiLineString",
+      coordinates: [
+        [
+          [-88.2, 40.1],
+          [-88.2, 40.11],
+        ],
+        [
+          [-88.19, 40.12],
+          [-88.19, 40.13],
+        ],
+      ],
+    };
+    const bytes = writeGeoJson([{ geometry: mls, properties: { ab_id: 1 } }]);
+    const fc = JSON.parse(new TextDecoder().decode(bytes)) as {
+      features: Array<{ geometry: MultiLineString }>;
+    };
+    expect(fc.features[0]!.geometry).toEqual(mls);
   });
 });
 

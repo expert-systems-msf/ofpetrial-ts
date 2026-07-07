@@ -4,7 +4,7 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
-import type { MultiPolygon, Polygon } from "geojson";
+import type { MultiLineString, MultiPolygon, Polygon } from "geojson";
 import { ExportError } from "../src/types.js";
 import { TRIAL_DESIGN_FIELDS, AB_LINE_FIELDS } from "../src/exports/write-trial-files.js";
 import type { ShapefileFeatureInput } from "../src/exports/shapefile.js";
@@ -276,6 +276,41 @@ describe("writeShapefile — MultiPolygon support", () => {
   });
 });
 
+describe("writeShapefile — MultiLineString support", () => {
+  it("round-trips a MultiLineString as a multi-part polyline record", () => {
+    const mls: MultiLineString = {
+      type: "MultiLineString",
+      coordinates: [
+        [
+          [-88.2, 40.1],
+          [-88.2, 40.11],
+          [-88.2, 40.12],
+        ],
+        [
+          [-88.19, 40.2],
+          [-88.19, 40.21],
+        ],
+      ],
+    };
+    const { shp } = writeShapefile([{ geometry: mls, properties: { ab_id: 1 } }], {
+      geometryType: "polyline",
+      fields: AB_LINE_FIELDS,
+    });
+    const result = readShp(shp);
+    expect(result.shapeType).toBe(3); // PolyLine
+    expect(result.features.length).toBe(1);
+    expect(result.features[0]!.parts.length).toBe(2); // one part per line
+    result.features[0]!.parts.forEach((part, partIndex) => {
+      const expected = mls.coordinates[partIndex]!;
+      expect(part.length).toBe(expected.length);
+      part.forEach(([x, y], ptIndex) => {
+        expect(x).toBeCloseTo(expected[ptIndex]![0]!, 12);
+        expect(y).toBeCloseTo(expected[ptIndex]![1]!, 12);
+      });
+    });
+  });
+});
+
 describe("writeShapefile — error cases", () => {
   it("throws ExportError on an empty feature list", () => {
     const act = () => writeShapefile([], { geometryType: "polygon", fields: TRIAL_DESIGN_FIELDS });
@@ -297,6 +332,28 @@ describe("writeShapefile — error cases", () => {
     expect(act).toThrow(/Expected Polygon\/MultiPolygon geometry/);
   });
 
+  it("throws ExportError on a polygon geometry passed with geometryType 'polyline'", () => {
+    const polyGeom: Polygon = {
+      type: "Polygon",
+      coordinates: [
+        [
+          [0, 0],
+          [0, 1],
+          [1, 1],
+          [1, 0],
+          [0, 0],
+        ],
+      ],
+    };
+    const act = () =>
+      writeShapefile([{ geometry: polyGeom, properties: { ab_id: 1 } }], {
+        geometryType: "polyline",
+        fields: AB_LINE_FIELDS,
+      });
+    expect(act).toThrow(ExportError);
+    expect(act).toThrow(/Expected LineString\/MultiLineString geometry/);
+  });
+
   const squareGeom: Polygon = {
     type: "Polygon",
     coordinates: [
@@ -309,6 +366,19 @@ describe("writeShapefile — error cases", () => {
       ],
     ],
   };
+
+  it("throws ExportError when a plain-decimal value exceeds the declared field width", () => {
+    // "123456" passes the plain-decimal regex but is 6 chars wide, over the
+    // declared length 3 — exercises the width check (not the scientific /
+    // NaN pre-emption, which never fires for a moderate integer).
+    const act = () =>
+      writeShapefile([{ geometry: squareGeom, properties: { rate: 123_456 } }], {
+        geometryType: "polygon",
+        fields: [{ name: "rate", type: "N", length: 3 }],
+      });
+    expect(act).toThrow(ExportError);
+    expect(act).toThrow(/exceeds width 3/);
+  });
 
   it("throws ExportError on a DBF field name longer than 10 chars", () => {
     const act = () =>
