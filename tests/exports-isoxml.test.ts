@@ -4,7 +4,7 @@
 // reader (tests/exports-isoxml-reader.ts) -> assert element/attribute
 // counts and the documented DDI conversion.
 import { describe, expect, it } from "vitest";
-import type { MultiPolygon, Polygon } from "geojson";
+import type { Feature, MultiLineString, MultiPolygon, Polygon } from "geojson";
 import { ExportError } from "../src/types.js";
 import type { IsoxmlPlotInput } from "../src/exports/isoxml.js";
 import { rateToDdiValue, writeIsoxml } from "../src/exports/isoxml.js";
@@ -87,6 +87,37 @@ describe("writeIsoxml — round-trip structure (simple1, imperial, seed)", () =>
     const headlandPdv = pdvs.find((p) => p.attrs.B === "8402");
     expect(headlandPdv).toBeDefined();
     expect(headlandPdv!.attrs.A).toBe("000B");
+  });
+
+  it("M2: a multi-part ab-line emits one GPN per part (ab-line-1, ab-line-2)", () => {
+    const mlsAbLine: Feature<MultiLineString> = {
+      type: "Feature",
+      properties: {},
+      geometry: {
+        type: "MultiLineString",
+        coordinates: [
+          [
+            [-88.2, 40.1],
+            [-88.2, 40.11],
+          ],
+          [
+            [-88.2, 40.12],
+            [-88.2, 40.13],
+          ],
+        ],
+      },
+    };
+    const mlsXml = new TextDecoder().decode(
+      writeIsoxml(plots, {
+        inputName: "seed",
+        unitSystem: "imperial",
+        rateUnit: "seeds",
+        abLine: mlsAbLine,
+      })
+    );
+    const gpns = parseTags(mlsXml).filter((t) => t.name === "GPN");
+    expect(gpns).toHaveLength(2);
+    expect(gpns.map((g) => g.attrs.B)).toEqual(["ab-line-1", "ab-line-2"]);
   });
 
   it("throws ExportError on an empty plot list", () => {

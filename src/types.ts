@@ -1,5 +1,5 @@
 // Public data types — see openspec/changes/port-ofpetrial-ts/design.md (D3).
-import type { Feature, FeatureCollection, LineString } from "geojson";
+import type { Feature, FeatureCollection, LineString, MultiLineString } from "geojson";
 
 /**
  * Plot layout parameters (R: prep_plot output, one row).
@@ -54,7 +54,7 @@ export interface InputLayout {
   plotInfo: PlotInfo;
   plots: FeatureCollection; // Feature<Polygon>, props: plot_id, strip_id
   headlands: FeatureCollection; // Feature<Polygon>, props: type: "headland"
-  abLine: Feature<LineString>;
+  abLine: Feature<LineString | MultiLineString>;
   guidanceLines: FeatureCollection;
 }
 
@@ -72,7 +72,7 @@ export interface InputDesign {
   rateInfo: RateInfo | null;
   plots: FeatureCollection; // props: plot_id, strip_id, type (inherited from InputLayout) + rate, rate_rank when rateInfo != null
   headlands: FeatureCollection;
-  abLine: Feature<LineString>;
+  abLine: Feature<LineString | MultiLineString>;
   guidanceLines: FeatureCollection; // carried over from InputLayout (never dropped)
 }
 
