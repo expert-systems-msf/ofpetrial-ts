@@ -463,7 +463,10 @@ describe("spatialJoin + checkOrthoWithChars integration (task 6.3b, 1e-3)", () =
     expect(() => checkOrthoWithChars(td, patched, ["clay"])).not.toThrow();
     const result = checkOrthoWithChars(td, patched, ["clay"]);
     const clay = result[0]!.correlations.find((c) => c.var === "clay");
-    expect(clay, "clay must be a numeric correlation, not rejected or routed to factor").toBeDefined();
+    expect(
+      clay,
+      "clay must be a numeric correlation, not rejected or routed to factor"
+    ).toBeDefined();
     expect(result[0]!.factorSummaries.find((s) => s.var === "clay")).toBeUndefined();
   });
 });

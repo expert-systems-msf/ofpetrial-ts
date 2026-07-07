@@ -41,17 +41,51 @@ function writeTiff(values: number[], opts: TiffOpts): Uint8Array {
 
 // row-major affine: [a,b,0,c, d,e,0,f, 0,0,0,0, 0,0,0,1] maps (col,row)->(x,y)
 // as x = a*col + b*row + c, y = d*col + e*row + f.
-const northUpTransform = (originX: number, originY: number, xres: number, yres: number): number[] => [
-  xres, 0, 0, originX,
-  0, -yres, 0, originY, // e = -yres < 0 => row grows southward => north-up
-  0, 0, 0, 0,
-  0, 0, 0, 1,
+const northUpTransform = (
+  originX: number,
+  originY: number,
+  xres: number,
+  yres: number
+): number[] => [
+  xres,
+  0,
+  0,
+  originX,
+  0,
+  -yres,
+  0,
+  originY, // e = -yres < 0 => row grows southward => north-up
+  0,
+  0,
+  0,
+  0,
+  0,
+  0,
+  0,
+  1,
 ];
-const southUpTransform = (originX: number, originY: number, xres: number, yres: number): number[] => [
-  xres, 0, 0, originX,
-  0, yres, 0, originY, // e = +yres > 0 => row grows northward => south-up
-  0, 0, 0, 0,
-  0, 0, 0, 1,
+const southUpTransform = (
+  originX: number,
+  originY: number,
+  xres: number,
+  yres: number
+): number[] => [
+  xres,
+  0,
+  0,
+  originX,
+  0,
+  yres,
+  0,
+  originY, // e = +yres > 0 => row grows northward => south-up
+  0,
+  0,
+  0,
+  0,
+  0,
+  0,
+  0,
+  1,
 ];
 
 describe("readGeoTiffRaster — M6 orientation from affine origin", () => {
@@ -98,7 +132,15 @@ describe("extractRasterMeans — M6 samples the correct row for a north-up Model
       properties: { rate: 100, type: "experiment", strip_id: 1, plot_id: 1 },
       geometry: {
         type: "Polygon",
-        coordinates: [[[0.1, 1.1], [1.9, 1.1], [1.9, 1.9], [0.1, 1.9], [0.1, 1.1]]],
+        coordinates: [
+          [
+            [0.1, 1.1],
+            [1.9, 1.1],
+            [1.9, 1.9],
+            [0.1, 1.9],
+            [0.1, 1.1],
+          ],
+        ],
       },
     };
     const design: FeatureCollection = { type: "FeatureCollection", features: [northPolygon] };
