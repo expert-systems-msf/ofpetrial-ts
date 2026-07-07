@@ -332,6 +332,10 @@ function writeDbf(features: ShapefileFeatureInput[], fields: ShapefileFieldSpec[
   view.setUint32(4, numberRecords, true);
   view.setUint16(8, headerSize, true);
   view.setUint16(10, recordSize, true);
+  // LDID (Language driver ID) byte: 0x57 = Windows ANSI (cp1252), matching R's
+  // sf::st_write output. Left at 0x00 before (L6), a cosmetic header-parity gap
+  // — all fields this writer emits are ASCII, so decoding is unaffected.
+  bytes[29] = 0x57;
 
   let o = 32;
   for (const field of fields) {

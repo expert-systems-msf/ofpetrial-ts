@@ -452,7 +452,10 @@ export function checkOrthoInputs(td: TrialDesign, fragments?: OrthoInputsFragmen
     );
   }
   if (fragments) {
-    return weightedCorrelation(fragments.map((f) => ({ x: f.rate_1, y: f.rate_2, w: f.area })));
+    const pairs = fragments
+      .map((f) => ({ x: f.rate_1, y: f.rate_2, w: f.area }))
+      .filter((p) => Number.isFinite(p.x) && Number.isFinite(p.y) && p.w > 0);
+    return correlationOrThrow(pairs);
   }
   const [inputA, inputB] = td.inputs as [InputDesign, InputDesign];
   const featuresA = inputA.plots.features as Array<Feature<Polygon | MultiPolygon>>;
@@ -474,8 +477,27 @@ export function checkOrthoInputs(td: TrialDesign, fragments?: OrthoInputsFragmen
       if (!ov) continue;
       const area = planarArea(ov);
       if (area <= 0) continue;
+      if (!Number.isFinite(a.rate) || !Number.isFinite(b.rate)) continue;
       pairs.push({ x: a.rate, y: b.rate, w: area });
     }
+  }
+  return correlationOrThrow(pairs);
+}
+
+/**
+ * weightedCorrelation, but refuse to return a silent NaN (L1). An empty pair
+ * list means no overlapping fragments with finite rates — an empty fragment
+ * table, or an undosed (rateInfo: null) input whose plots have no rate. R's
+ * check_ortho_inputs errors here (cov.wt on zero weights), and a bare NaN would
+ * pass a downstream `cor > threshold` gate (NaN comparisons are false), silently
+ * reporting a degenerate design as orthogonal.
+ */
+function correlationOrThrow(pairs: Array<{ x: number; y: number; w: number }>): number {
+  if (pairs.length === 0) {
+    throw new ValidationError(
+      "checkOrthoInputs: no overlapping plot fragments with finite rates for both inputs " +
+        "(an empty fragment table, or an input that is not dosed). Cannot compute a correlation."
+    );
   }
   return weightedCorrelation(pairs);
 }
@@ -527,7 +549,12 @@ export function spatialJoin(
 ): SoilFragment[] {
   const soilFeatures = soilLayer.features;
   if (soilFeatures.length === 0) return [];
-  const isPointLayer = soilFeatures.every((f) => f.geometry?.type === "Point");
+  // A layer is a point layer if every geometry-bearing feature is a Point
+  // (L3): null-geometry features — common in ogr2ogr output — must not flip the
+  // classification and drop the whole layer into the polygon branch.
+  const isPointLayer =
+    soilFeatures.some((f) => f.geometry?.type === "Point") &&
+    soilFeatures.every((f) => !f.geometry || f.geometry.type === "Point");
 
   const fragments: SoilFragment[] = [];
   if (isPointLayer) {
@@ -555,7 +582,10 @@ export function spatialJoin(
       const properties = designFeature.properties as DesignProperties;
       for (const soilFeature of soilFeatures) {
         const sGeom = soilFeature.geometry as Polygon | MultiPolygon | null;
-        if (!sGeom) continue;
+        // Skip non-polygon geometries (L3): a stray Point (mixed layer) or a
+        // null geometry must be skipped, not fed to bboxOfGeom which would
+        // destructure a Point coordinate and throw a raw TypeError.
+        if (!sGeom || (sGeom.type !== "Polygon" && sGeom.type !== "MultiPolygon")) continue;
         if (!bboxOverlap(dBbox, bboxOfGeom(sGeom))) continue;
         const ov = intersectPolygons(dGeom, sGeom);
         if (!ov) continue;
@@ -692,8 +722,12 @@ function summarizeFactorVar(fragments: SoilFragment[], v: string): FactorClassSu
   const order: string[] = [];
   for (const f of fragments) {
     const raw = f.values[v];
-    if (raw === undefined) continue;
-    const cls = String(raw);
+    // NA handling (L2): fold both a missing key (live path — extractJoinableValues
+    // drops null-valued keys) and an explicit null (precomputed path) into one
+    // canonical <NA> group, matching R's data.table `by = var` which keeps NA as
+    // its own group. Previously live dropped the group and precomputed invented a
+    // class literally named "null".
+    const cls = raw === undefined || raw === null ? "<NA>" : String(raw);
     let rates = groups.get(cls);
     if (!rates) {
       rates = [];
@@ -908,6 +942,17 @@ export function checkOrthoWithChars(
       );
     }
     varType.set(v, t);
+  }
+
+  // A SoilFragment[] table carries a single rate column, so it cannot represent
+  // more than one input's distinct rates (L4). Reusing it for every input would
+  // return byte-identical, meaningless correlations per input. Require a
+  // per-input FeatureCollection/raster soil layer for multi-input designs.
+  if (isFragmentTable && td.inputs.length > 1) {
+    throw new ValidationError(
+      "checkOrthoWithChars: a SoilFragment[] table cannot be used with a multi-input TrialDesign " +
+        "(it has one rate column). Pass a soil FeatureCollection or raster, or call once per single-input design."
+    );
   }
 
   return td.inputs.map((input) => {
