@@ -2,9 +2,10 @@
 // matrix (.github/workflows/mutation.yml) into a single report, and emit an
 // actionable digest of the mutants that escaped the tests.
 //
-// The shards mutate disjoint files, so their `files` maps never collide — the
-// merge is a plain union. From the union we recompute the *global* mutation
-// score (a shard-by-shard average would be wrong) and write
+// The shards mutate disjoint files, so their `files` maps never collide. We
+// union them into a status-only combined report (mutant ids namespaced per
+// shard; test-id-namespaced fields dropped — see below), recompute the
+// *global* mutation score (a shard-by-shard average would be wrong) and write
 // `surviving-mutants.md`: every Survived (test too weak) and NoCoverage (test
 // missing) mutant, grouped by file with its source line, mutator, and the
 // original -> mutated code. That markdown is what you hand to Claude Code to
@@ -41,21 +42,40 @@ if (reportPaths.length === 0) {
 }
 
 let merged = null;
-for (const p of reportPaths) {
+reportPaths.forEach((p, shardIdx) => {
   const report = JSON.parse(readFileSync(p, "utf8"));
   if (!merged) {
-    merged = { ...report, files: {} };
+    merged = {
+      schemaVersion: report.schemaVersion,
+      thresholds: report.thresholds,
+      projectRoot: report.projectRoot,
+      config: report.config,
+      files: {},
+      // testFiles intentionally omitted. Every shard re-runs the full test
+      // suite under its own Stryker invocation, so each numbers tests (and
+      // mutants) from its own namespace; there is no cross-shard test-id
+      // authority to merge them under. The per-shard artifacts keep the full
+      // coveredBy/killedBy detail; this combined report is status-only.
+    };
   }
   for (const [file, data] of Object.entries(report.files ?? {})) {
+    // Namespace mutant ids by shard so the union has unique ids, and drop the
+    // test-id-namespaced fields we cannot reconcile across shards (all three
+    // are optional in the mutation-testing schema) rather than mis-attribute
+    // the covering/killing tests.
+    const mutants = data.mutants.map((m) => {
+      const { coveredBy: _c, killedBy: _k, testsCompleted: _t, ...rest } = m;
+      return { ...rest, id: `${shardIdx}:${m.id}` };
+    });
     if (merged.files[file]) {
-      // Same file mutated by two shards should never happen (disjoint split);
-      // keep both mutant sets rather than silently dropping one.
-      merged.files[file].mutants.push(...data.mutants);
+      // Same file in two shards should never happen (disjoint split); keep
+      // both mutant sets rather than silently dropping one.
+      merged.files[file].mutants.push(...mutants);
     } else {
-      merged.files[file] = data;
+      merged.files[file] = { ...data, mutants };
     }
   }
-}
+});
 
 // Tally statuses across the whole run and collect the actionable escapees.
 const counts = {};
