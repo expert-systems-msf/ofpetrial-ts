@@ -120,10 +120,17 @@ const md = [];
 md.push("# Surviving mutants — tests to strengthen");
 md.push("");
 md.push(
-  `**Global mutation score: ${score.toFixed(2)}%** ` +
-    `(detected ${detected} / valid ${valid})`
+  `**Global mutation score: ${score.toFixed(2)}%** ` + `(detected ${detected} / valid ${valid})`
 );
-const order = ["Killed", "Timeout", "Survived", "NoCoverage", "CompileError", "RuntimeError", "Ignored"];
+const order = [
+  "Killed",
+  "Timeout",
+  "Survived",
+  "NoCoverage",
+  "CompileError",
+  "RuntimeError",
+  "Ignored",
+];
 md.push("");
 md.push(
   order
