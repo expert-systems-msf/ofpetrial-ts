@@ -219,6 +219,7 @@ function syntheticGrid(orientation: "north-up" | "south-up"): RasterGrid {
     xres: 1,
     // Signed y-resolution: negative = row 0 at maxY, positive = row 0 at minY.
     yres: northUp ? -1 : 1,
+    northUp,
     // Row-major storage flips with orientation for the SAME geographic scene.
     data: northUp ? new Float64Array([10, 20, 30, 40]) : new Float64Array([30, 40, 10, 20]),
     epsg: 4326,

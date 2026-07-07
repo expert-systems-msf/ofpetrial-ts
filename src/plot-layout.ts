@@ -1074,13 +1074,24 @@ export function makeExpPlots(options: MakeExpPlotsOptions): ExpData {
     return fc;
   };
 
-  const inputs: InputLayout[] = perInput.map(({ plotInfo, strips, abLine, guidance }) => ({
-    plotInfo,
-    plots: plotsFor(strips, plotInfo.plot_width / 2),
-    headlands: headlandsFor(strips, plotInfo.plot_width / 2),
-    abLine,
-    guidanceLines: featureCollection([guidance]),
-  }));
+  const inputs: InputLayout[] = perInput.map(({ plotInfo, strips, abLine, guidance }, index) => {
+    const halfW = plotInfo.plot_width / 2;
+    const plots = plotsFor(strips, halfW);
+    const headlands = headlandsFor(strips, halfW);
+    // Equal-plot-width inputs share the same `strips` array, so plotsFor/
+    // headlandsFor (cached by strips reference) hand both inputs the SAME
+    // FeatureCollection objects, and `guidance` (harvest1) is shared too.
+    // Deep-clone for every input after the first so each owns independent
+    // Feature/properties objects — R gives each input an independent tibble
+    // (value semantics), and callers mutate input plots in place (M3).
+    return {
+      plotInfo,
+      plots: index === 0 ? plots : structuredClone(plots),
+      headlands: index === 0 ? headlands : structuredClone(headlands),
+      abLine,
+      guidanceLines: featureCollection([index === 0 ? guidance : structuredClone(guidance)]),
+    };
+  });
 
   return { inputs };
 }

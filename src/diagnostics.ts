@@ -646,6 +646,32 @@ function availableJoinableKeys(properties: Record<string, unknown>): string[] {
   );
 }
 
+/**
+ * Column type + presence for variable `v`, decided by scanning EVERY row
+ * rather than only the first (M5). A GDAL/sf-exported layer serialises an NA
+ * as JSON `null`, so the first observed value of a column may be null while
+ * the column is numeric elsewhere. Matches R's `class(joined_data[[var]])`:
+ * a variable is a factor iff some observed (non-null) value is a string,
+ * numeric iff some observed value is a number, and "absent" only when no row
+ * carries the key at all (an all-null present column reads as numeric, i.e.
+ * an all-NA numeric column, matching cor() on NA).
+ */
+function classifyVar(
+  records: Record<string, unknown>[],
+  v: string
+): "numeric" | "factor" | "absent" {
+  let present = false;
+  for (const rec of records) {
+    if (!Object.hasOwn(rec, v)) continue;
+    present = true;
+    const val = rec[v];
+    if (val === null || val === undefined) continue;
+    if (typeof val === "string") return "factor";
+    if (typeof val === "number") return "numeric";
+  }
+  return present ? "numeric" : "absent";
+}
+
 /** R sample standard deviation (n - 1); NaN for n < 2, matching stats::sd(). */
 function sampleStdDev(values: number[]): number {
   const n = values.length;
@@ -704,8 +730,8 @@ function isUtmEpsg(epsg: number): boolean {
  * `rate_design = select(trial_design, rate)` is plots + headlands). Unlike
  * the vector-fragment path, this is a per-polygon mean, not per-fragment.
  *
- * Row orientation follows `raster.yres`'s sign (negative = north-up, row 0
- * at maxY; positive = south-up, row 0 at minY) — both are handled.
+ * Row orientation follows `raster.northUp` (row 0 at maxY when north-up,
+ * else row 0 at minY) — both are handled.
  *
  * If the raster's CRS is not WGS84, the design polygons are reprojected into
  * it (proj4, reusing projection.ts's UTM helpers) rather than resampling the
@@ -740,9 +766,10 @@ export function extractRasterMeans(
 
   const [minX, minY, , maxY] = raster.bbox;
   const { width, height, xres, data } = raster;
-  // yres is SIGNED (see RasterGrid): negative = north-up (row 0 at maxY),
-  // positive = south-up (row 0 at minY).
-  const northUp = raster.yres < 0;
+  // Orientation comes from raster.northUp (derived from the affine origin),
+  // NOT the sign of yres — a north-up ModelTransformation raster can report a
+  // positive yres (see M6). yres is used only for the cell height here.
+  const { northUp } = raster;
   const yresAbs = Math.abs(raster.yres);
   // Fractional row index of a y coordinate, respecting orientation.
   const rowOf = (y: number): number => (northUp ? (maxY - y) / yresAbs : (y - minY) / yresAbs);
@@ -844,8 +871,9 @@ export function checkOrthoWithChars(
     });
   }
 
-  let sampleValues: Record<string, unknown>;
-  if (Array.isArray(soilData)) {
+  const isFragmentTable = Array.isArray(soilData);
+  let records: Record<string, unknown>[];
+  if (isFragmentTable) {
     if (soilData.length === 0) {
       throw new ValidationError("checkOrthoWithChars received an empty soil fragment table.");
     }
@@ -857,26 +885,29 @@ export function checkOrthoWithChars(
           "into the values object first: rows.map(({ plotKey, rate, ...values }) => ({ plotKey, rate, values }))."
       );
     }
-    sampleValues = first.values;
-    for (const v of variables) {
-      if (!Object.hasOwn(sampleValues, v)) {
-        throw new ValidationError(
-          `Variable "${v}" not found in the soil fragment table. Available columns: ${Object.keys(sampleValues).join(", ")}.`
-        );
-      }
-    }
+    records = soilData.map((f) => f.values);
   } else {
     if (soilData.features.length === 0) {
       throw new ValidationError("checkOrthoWithChars received an empty soil layer (no features).");
     }
-    sampleValues = (soilData.features[0]!.properties ?? {}) as Record<string, unknown>;
-    for (const v of variables) {
-      if (typeof sampleValues[v] !== "number" && typeof sampleValues[v] !== "string") {
-        throw new ValidationError(
-          `Variable "${v}" not found (or not numeric/character) in the soil layer. Available columns: ${availableJoinableKeys(sampleValues).join(", ")}.`
-        );
-      }
+    records = soilData.features.map((f) => (f.properties ?? {}) as Record<string, unknown>);
+  }
+
+  // Classify each requested variable over the WHOLE column (M5), never from
+  // record[0] alone, so a leading NA (JSON null) neither hides a numeric
+  // column nor mis-routes a numeric one to the factor branch.
+  const varType = new Map<string, "numeric" | "factor">();
+  for (const v of variables) {
+    const t = classifyVar(records, v);
+    if (t === "absent") {
+      const available = isFragmentTable
+        ? [...new Set(records.flatMap((r) => Object.keys(r)))]
+        : [...new Set(records.flatMap((r) => availableJoinableKeys(r)))];
+      throw new ValidationError(
+        `Variable "${v}" not found in the soil ${isFragmentTable ? "fragment table" : "layer"}. Available columns: ${available.join(", ")}.`
+      );
     }
+    varType.set(v, t);
   }
 
   return td.inputs.map((input) => {
@@ -888,7 +919,7 @@ export function checkOrthoWithChars(
     const factorSummaries: FactorVarSummary[] = [];
 
     for (const v of variables) {
-      if (typeof sampleValues[v] === "string") {
+      if (varType.get(v) === "factor") {
         factorSummaries.push({ var: v, classes: summarizeFactorVar(fragments, v) });
       } else {
         correlations.push({

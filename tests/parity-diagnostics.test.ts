@@ -421,6 +421,51 @@ describe("spatialJoin + checkOrthoWithChars integration (task 6.3b, 1e-3)", () =
     const fragments = spatialJoin(designGeojson, soilLayer);
     expect(fragments).toEqual([]);
   });
+
+  // Regression for audit M5: type/presence must be decided over the whole
+  // column, not from the first feature. A GDAL/sf layer serialises an NA as
+  // JSON null, so a numeric variable that is null on the FIRST feature must
+  // still be treated as a numeric correlation, not rejected as "not found".
+  it("M5: a leading null value does not reject a numeric column (FeatureCollection mode)", () => {
+    const caseDir = "fixtures/simple1/imperial";
+    const designGeojson = load<FeatureCollection>(`${caseDir}/seed/trial-design.geojson`);
+    const soilLayer = load<FeatureCollection>("fixtures/ssurgo-simple1.geojson");
+    const plotInfo = load<PlotInfo[][]>(`${caseDir}/plot-info.json`)[0]![0]!;
+
+    // null out `clay` on the FIRST feature only
+    const patched: FeatureCollection = {
+      type: "FeatureCollection",
+      features: soilLayer.features.map((f, i) =>
+        i === 0 ? { ...f, properties: { ...f.properties, clay: null } } : f
+      ),
+    };
+
+    const plots: Feature[] = [];
+    const headlands: Feature[] = [];
+    for (const f of designGeojson.features) {
+      const type = (f.properties as { type: string }).type;
+      (type === "headland" ? headlands : plots).push(f);
+    }
+    const td: TrialDesign = {
+      inputs: [
+        {
+          plotInfo,
+          rateInfo: null,
+          plots: { type: "FeatureCollection", features: plots },
+          headlands: { type: "FeatureCollection", features: headlands },
+          abLine: emptyAbLine,
+          guidanceLines: { type: "FeatureCollection", features: [] },
+        },
+      ],
+      seed: 1,
+    };
+
+    expect(() => checkOrthoWithChars(td, patched, ["clay"])).not.toThrow();
+    const result = checkOrthoWithChars(td, patched, ["clay"]);
+    const clay = result[0]!.correlations.find((c) => c.var === "clay");
+    expect(clay, "clay must be a numeric correlation, not rejected or routed to factor").toBeDefined();
+    expect(result[0]!.factorSummaries.find((s) => s.var === "clay")).toBeUndefined();
+  });
 });
 
 describe("checkOrthoWithChars error cases (task 6.3)", () => {

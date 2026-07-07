@@ -270,6 +270,25 @@ export function prepRate(plotInfo: PlotInfo, options: PrepRateOptions): RateInfo
     designType
   );
 
+  // A user-supplied rank sequence must be a permutation of 1..num_rates
+  // (M4): a shorter/ill-formed sequence would otherwise index out of bounds in
+  // assignLs and silently emit duplicated tail strips. R fails loudly here.
+  const numRates = ratesData.length;
+  const rankSeqOptions = [
+    ["rankSeqWs", options.rankSeqWs],
+    ["rankSeqAs", options.rankSeqAs],
+  ] as const;
+  for (const [name, seq] of rankSeqOptions) {
+    if (seq === undefined) continue;
+    const sorted = seq.toSorted((a, b) => a - b);
+    const isPermutation = sorted.length === numRates && sorted.every((v, i) => v === i + 1);
+    if (!isPermutation) {
+      throw new ValidationError(
+        `${name} must be a permutation of 1..${numRates} (the number of rates), got [${seq.join(", ")}].`
+      );
+    }
+  }
+
   const tgtRateOriginal = ratesData.map((r) => r.rate);
   const tgtRateEquiv = tgtRateOriginal.map((r) => convertRates(plotInfo.input_name, unit, r));
 

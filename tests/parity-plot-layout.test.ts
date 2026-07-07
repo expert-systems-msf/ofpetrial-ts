@@ -337,3 +337,38 @@ describe("makeExpPlots error cases (task 4.5)", () => {
     expect(result.inputs[0]!.plots.features.length).toBeGreaterThan(0);
   });
 });
+
+describe("makeExpPlots — M3: equal-width inputs own independent objects", () => {
+  const boundary = load<FeatureCollection>("fixtures/boundary-simple1.geojson");
+  const abLine = load<FeatureCollection>("fixtures/ab-line-simple1.geojson");
+  const equalWidth = (name: string): PlotInfo =>
+    prepPlot({
+      inputName: name,
+      unitSystem: "imperial",
+      machineWidth: 60,
+      sectionNum: 24,
+      harvesterWidth: 30,
+    });
+
+  it("does not share plots/headlands/guidance between two equal-plot-width inputs", () => {
+    const exp = makeExpPlots({
+      inputPlotInfo: [equalWidth("A"), equalWidth("B")],
+      boundary,
+      abLine,
+    });
+    const [a, b] = exp.inputs;
+
+    // Distinct collections AND distinct feature objects.
+    expect(a!.plots).not.toBe(b!.plots);
+    expect(a!.plots.features[0]).not.toBe(b!.plots.features[0]);
+    expect(a!.headlands).not.toBe(b!.headlands);
+    expect(a!.guidanceLines.features[0]).not.toBe(b!.guidanceLines.features[0]);
+
+    // Same geometry, though (shared plot width): mutating A must not touch B.
+    const before = (b!.plots.features[0]!.properties as { strip_id: number }).strip_id;
+    (a!.plots.features[0]!.properties as { rate?: number }).rate = 999;
+    (a!.plots.features[0]!.properties as { strip_id: number }).strip_id = -1;
+    expect((b!.plots.features[0]!.properties as { rate?: number }).rate).toBeUndefined();
+    expect((b!.plots.features[0]!.properties as { strip_id: number }).strip_id).toBe(before);
+  });
+});
