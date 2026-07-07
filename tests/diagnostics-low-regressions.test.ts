@@ -45,7 +45,9 @@ const design: FeatureCollection = { type: "FeatureCollection", features: [square
 
 describe("checkOrthoInputs — L1: no silent NaN", () => {
   it("throws on an empty fragment table instead of returning NaN", () => {
-    expect(() => checkOrthoInputs(stubTd(["a", "b"]), [])).toThrow(ValidationError);
+    const act = () => checkOrthoInputs(stubTd(["a", "b"]), []);
+    expect(act).toThrow(ValidationError);
+    expect(act).toThrow(/no overlapping plot fragments with finite rates/);
   });
 
   it("throws when a fragment carries a non-finite rate", () => {
@@ -53,7 +55,9 @@ describe("checkOrthoInputs — L1: no silent NaN", () => {
       { rate_1: 100, rate_2: NaN, area: 50 },
       { rate_1: 120, rate_2: NaN, area: 50 },
     ] as never;
-    expect(() => checkOrthoInputs(stubTd(["a", "b"]), fragments)).toThrow(ValidationError);
+    const act = () => checkOrthoInputs(stubTd(["a", "b"]), fragments);
+    expect(act).toThrow(ValidationError);
+    expect(act).toThrow(/no overlapping plot fragments with finite rates/);
   });
 });
 
@@ -90,7 +94,13 @@ describe("spatialJoin — L3: non-homogeneous soil layers do not crash", () => {
       type: "FeatureCollection",
       features: [polygonSoil, pointFeature],
     };
-    expect(() => spatialJoin(design, soil)).not.toThrow();
+    const act = () => spatialJoin(design, soil);
+    expect(act).not.toThrow();
+    // Mixed layer -> polygon branch: the Polygon soil joins the design square and
+    // the stray Point is skipped, so exactly one fragment carrying "silt".
+    const frags = act();
+    expect(frags).toHaveLength(1);
+    expect(frags[0]!.values.soil).toBe("silt");
   });
 
   it("does not throw on a Point layer containing a null-geometry feature (ogr2ogr output)", () => {

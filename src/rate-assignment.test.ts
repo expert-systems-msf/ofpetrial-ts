@@ -145,7 +145,9 @@ describe("assignRates: single input (ls design, task 5.2)", () => {
 
   it("rejects a RateInfo whose input_name has no match in expData", () => {
     const badRateInfo: RateInfo = { ...rateInfo, input_name: "nope" };
-    expect(() => assignRates(expData, badRateInfo)).toThrow(ValidationError);
+    const act = () => assignRates(expData, badRateInfo);
+    expect(act).toThrow(ValidationError);
+    expect(act).toThrow(/has no matching input in expData/);
   });
 });
 
@@ -289,19 +291,25 @@ describe("assignRatesConditional (task 5.3)", () => {
   it("rejects an array of RateInfo", () => {
     const { expData, riA, riB } = twoJointInputs(5);
     const partial = assignRates(expData, riA, { seed: 1 });
-    expect(() => assignRatesConditional(expData, [riB], partial)).toThrow(ValidationError);
+    const act = () => assignRatesConditional(expData, [riB], partial);
+    expect(act).toThrow(ValidationError);
+    expect(act).toThrow(/accepts a single RateInfo/);
   });
 
   it("rejects a mono-input existingDesign", () => {
     const { expData, riA, riB } = twoJointInputs(5);
     const monoInput = assignRates({ inputs: [expData.inputs[0]!] }, riA, { seed: 1 });
-    expect(() => assignRatesConditional(expData, riB, monoInput)).toThrow(ValidationError);
+    const act = () => assignRatesConditional(expData, riB, monoInput);
+    expect(act).toThrow(ValidationError);
+    expect(act).toThrow(/two-input TrialDesign/);
   });
 
   it("rejects an existingDesign whose second input is already dosed", () => {
     const { expData, riA, riB } = twoJointInputs(5);
     const fullyDosed = assignRates(expData, [riA, riB], { seed: 1 });
-    expect(() => assignRatesConditional(expData, riB, fullyDosed)).toThrow(ValidationError);
+    const act = () => assignRatesConditional(expData, riB, fullyDosed);
+    expect(act).toThrow(ValidationError);
+    expect(act).toThrow(/two-input TrialDesign/);
   });
 });
 

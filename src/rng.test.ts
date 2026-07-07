@@ -51,8 +51,12 @@ describe("createRng", () => {
 
     it("throws on an empty range", () => {
       const rng = createRng(1);
-      expect(() => rng.nextInt(0)).toThrow(ValidationError);
-      expect(() => rng.nextInt(-3)).toThrow(ValidationError);
+      const zero = () => rng.nextInt(0);
+      expect(zero).toThrow(ValidationError);
+      expect(zero).toThrow(/nextInt requires maxExclusive > 0/);
+      const negative = () => rng.nextInt(-3);
+      expect(negative).toThrow(ValidationError);
+      expect(negative).toThrow(/nextInt requires maxExclusive > 0/);
     });
   });
 
@@ -93,8 +97,12 @@ describe("createRng", () => {
 
     it("throws when n is out of range", () => {
       const rng = createRng(4);
-      expect(() => rng.sample([1, 2, 3], 4)).toThrow(ValidationError);
-      expect(() => rng.sample([1, 2, 3], -1)).toThrow(ValidationError);
+      const tooMany = () => rng.sample([1, 2, 3], 4);
+      expect(tooMany).toThrow(ValidationError);
+      expect(tooMany).toThrow(/sample requires 0 <= n <= arr\.length/);
+      const negative = () => rng.sample([1, 2, 3], -1);
+      expect(negative).toThrow(ValidationError);
+      expect(negative).toThrow(/sample requires 0 <= n <= arr\.length/);
     });
   });
 });

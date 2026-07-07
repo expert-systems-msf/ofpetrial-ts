@@ -68,8 +68,10 @@ export function findPlotWidth(
   if (lcm !== null) return lcm;
 
   const widthRatio = sectionWidth / harvesterWidth;
+  // Stryker disable next-line all: unreachable — getLcm returns the width itself (absDif 0) when sectionWidth === harvesterWidth, so ratio 1 never falls through to here.
   if (widthRatio === 1) return harvesterWidth;
   if (widthRatio > 1 && widthRatio < 2) return 2 * sectionWidth;
+  // Stryker disable next-line all: unreachable — getLcm returns 2·harvesterWidth (absDif 0) when sectionWidth === 2·harvesterWidth, so ratio 2 never falls through to here.
   if (widthRatio === 2) return harvesterWidth;
   if (widthRatio > 2) return sectionWidth;
   return Math.ceil(2 / widthRatio) * sectionWidth;

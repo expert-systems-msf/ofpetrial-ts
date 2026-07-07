@@ -40,7 +40,9 @@ describe("rateToDdiValue — documented worked examples (docs/isoxml-units.md)",
   });
 
   it("throws ExportError on an unmapped rate unit", () => {
-    expect(() => rateToDdiValue(10, "imperial", "furlongs")).toThrow(ExportError);
+    const act = () => rateToDdiValue(10, "imperial", "furlongs");
+    expect(act).toThrow(ExportError);
+    expect(act).toThrow(/No ISOXML DDI mapping for rate unit/);
   });
 });
 
@@ -121,9 +123,10 @@ describe("writeIsoxml — round-trip structure (simple1, imperial, seed)", () =>
   });
 
   it("throws ExportError on an empty plot list", () => {
-    expect(() =>
-      writeIsoxml([], { inputName: "seed", unitSystem: "imperial", rateUnit: "seeds" })
-    ).toThrow(ExportError);
+    const act = () =>
+      writeIsoxml([], { inputName: "seed", unitSystem: "imperial", rateUnit: "seeds" });
+    expect(act).toThrow(ExportError);
+    expect(act).toThrow(/cannot write a task with zero plots/);
   });
 });
 
@@ -145,9 +148,10 @@ describe("writeIsoxml — 254-zone ceiling", () => {
       geometry,
       rate: index,
     }));
-    expect(() =>
-      writeIsoxml(plots, { inputName: "seed", unitSystem: "imperial", rateUnit: "seeds" })
-    ).toThrow(ExportError);
+    const act = () =>
+      writeIsoxml(plots, { inputName: "seed", unitSystem: "imperial", rateUnit: "seeds" });
+    expect(act).toThrow(ExportError);
+    expect(act).toThrow(/exceed the 254 usable TreatmentZoneCode values/);
   });
 });
 

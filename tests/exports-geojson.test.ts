@@ -85,7 +85,9 @@ describe("writeGeoJson — RFC 7946 shape", () => {
   });
 
   it("throws ExportError on an empty feature list", () => {
-    expect(() => writeGeoJson([])).toThrow(ExportError);
+    const act = () => writeGeoJson([]);
+    expect(act).toThrow(ExportError);
+    expect(act).toThrow(/cannot write a layer with zero features/);
   });
 });
 

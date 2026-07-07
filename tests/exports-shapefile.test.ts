@@ -278,9 +278,9 @@ describe("writeShapefile — MultiPolygon support", () => {
 
 describe("writeShapefile — error cases", () => {
   it("throws ExportError on an empty feature list", () => {
-    expect(() =>
-      writeShapefile([], { geometryType: "polygon", fields: TRIAL_DESIGN_FIELDS })
-    ).toThrow(ExportError);
+    const act = () => writeShapefile([], { geometryType: "polygon", fields: TRIAL_DESIGN_FIELDS });
+    expect(act).toThrow(ExportError);
+    expect(act).toThrow(/cannot write a layer with zero features/);
   });
 
   it("throws ExportError on a geometry/geometryType mismatch", () => {
@@ -288,12 +288,13 @@ describe("writeShapefile — error cases", () => {
       type: "LineString" as const,
       coordinates: [[0, 0] as [number, number], [1, 1] as [number, number]],
     };
-    expect(() =>
+    const act = () =>
       writeShapefile([{ geometry: lineGeom, properties: { ab_id: 1 } }], {
         geometryType: "polygon",
         fields: AB_LINE_FIELDS,
-      })
-    ).toThrow(ExportError);
+      });
+    expect(act).toThrow(ExportError);
+    expect(act).toThrow(/Expected Polygon\/MultiPolygon geometry/);
   });
 
   const squareGeom: Polygon = {
@@ -310,59 +311,65 @@ describe("writeShapefile — error cases", () => {
   };
 
   it("throws ExportError on a DBF field name longer than 10 chars", () => {
-    expect(() =>
+    const act = () =>
       writeShapefile([{ geometry: squareGeom, properties: { verylongfieldname: 1 } }], {
         geometryType: "polygon",
         fields: [{ name: "verylongfieldname", type: "N", length: 9 }],
-      })
-    ).toThrow(ExportError);
+      });
+    expect(act).toThrow(ExportError);
+    expect(act).toThrow(/exceeds 10 characters/);
   });
 
   it("throws ExportError on a DBF field length above the single-byte maximum (255)", () => {
-    expect(() =>
+    const act = () =>
       writeShapefile([{ geometry: squareGeom, properties: { big: "x" } }], {
         geometryType: "polygon",
         fields: [{ name: "big", type: "C", length: 256 }],
-      })
-    ).toThrow(ExportError);
+      });
+    expect(act).toThrow(ExportError);
+    expect(act).toThrow(/exceeds the single-byte maximum/);
   });
 
   it("throws ExportError on an empty geometry (zero rings/points)", () => {
     const emptyGeom: Polygon = { type: "Polygon", coordinates: [] };
-    expect(() =>
+    const act = () =>
       writeShapefile([{ geometry: emptyGeom, properties: { ab_id: 1 } }], {
         geometryType: "polygon",
         fields: AB_LINE_FIELDS,
-      })
-    ).toThrow(ExportError);
+      });
+    expect(act).toThrow(ExportError);
+    expect(act).toThrow(/has no rings\/points/);
   });
 
   it("throws ExportError on null in a character ('C') field — '*' NA padding is numeric-only", () => {
-    expect(() =>
+    const act = () =>
       writeShapefile([{ geometry: squareGeom, properties: { label: null } }], {
         geometryType: "polygon",
         fields: [{ name: "label", type: "C", length: 20 }],
-      })
-    ).toThrow(ExportError);
+      });
+    expect(act).toThrow(ExportError);
+    expect(act).toThrow(/null is only supported on numeric/);
   });
 
   it("L5: throws ExportError on a non-finite numeric field instead of writing NaN/Infinity", () => {
     for (const bad of [NaN, Infinity, -Infinity]) {
-      expect(() =>
+      const act = () =>
         writeShapefile([{ geometry: squareGeom, properties: { rate: bad } }], {
           geometryType: "polygon",
           fields: [{ name: "rate", type: "N", length: 24, decimals: 15 }],
-        })
-      ).toThrow(ExportError);
+        });
+      expect(act).toThrow(ExportError);
+      expect(act).toThrow(/does not render as a plain decimal/);
     }
   });
 
   it("L5: throws ExportError on a value that renders in scientific notation (1e+21)", () => {
-    expect(() =>
+    const act = () =>
       writeShapefile([{ geometry: squareGeom, properties: { rate: 1e21 } }], {
         geometryType: "polygon",
         fields: [{ name: "rate", type: "N", length: 30 }],
-      })
-    ).toThrow(ExportError);
+      });
+    expect(act).toThrow(ExportError);
+    expect(act).toThrow(/does not render as a plain decimal/);
   });
 });

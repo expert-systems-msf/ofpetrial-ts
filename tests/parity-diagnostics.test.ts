@@ -213,7 +213,9 @@ describe("checkAlignment parity with R — precomputed fragments (task 6.1, 1e-6
 
   it("throws ValidationError when the fragment table count does not match the inputs", () => {
     const td = trialDesignFromFixture("fixtures/simple1/imperial", ["seed"]);
-    expect(() => checkAlignment(td, [])).toThrow(ValidationError);
+    const act = () => checkAlignment(td, []);
+    expect(act).toThrow(ValidationError);
+    expect(act).toThrow(/checkAlignment received/);
   });
 });
 
@@ -293,7 +295,9 @@ describe("checkOrthoInputs live-geometry integration (task 6.2)", () => {
   it("throws ValidationError on a single-input design (R: cor_input never assigned)", () => {
     const caseDir = "fixtures/simple1/imperial";
     const td = trialDesignFromFixture(caseDir, ["seed"]);
-    expect(() => checkOrthoInputs(td)).toThrow(ValidationError);
+    const act = () => checkOrthoInputs(td);
+    expect(act).toThrow(ValidationError);
+    expect(act).toThrow(/requires a two-input trial design/);
   });
 });
 
@@ -488,9 +492,9 @@ describe("checkOrthoWithChars error cases (task 6.3)", () => {
   };
 
   it("throws ValidationError when vars is empty", () => {
-    expect(() =>
-      checkOrthoWithChars(stubTd, { type: "FeatureCollection", features: [] }, [])
-    ).toThrow(ValidationError);
+    const act = () => checkOrthoWithChars(stubTd, { type: "FeatureCollection", features: [] }, []);
+    expect(act).toThrow(ValidationError);
+    expect(act).toThrow(/requires a non-empty vars list/);
   });
 
   it("throws ValidationError naming the missing variable (FeatureCollection mode)", () => {
@@ -508,9 +512,10 @@ describe("checkOrthoWithChars error cases (task 6.3)", () => {
   });
 
   it("throws ValidationError on an empty soil layer (FeatureCollection mode)", () => {
-    expect(() =>
-      checkOrthoWithChars(stubTd, { type: "FeatureCollection", features: [] }, ["clay"])
-    ).toThrow(ValidationError);
+    const act = () =>
+      checkOrthoWithChars(stubTd, { type: "FeatureCollection", features: [] }, ["clay"]);
+    expect(act).toThrow(ValidationError);
+    expect(act).toThrow(/received an empty soil layer/);
   });
 
   it("throws ValidationError on an empty fragment table (precomputed mode)", () => {
