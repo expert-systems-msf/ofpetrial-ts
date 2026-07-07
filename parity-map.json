@@ -36,7 +36,8 @@
       "deviations": [
         "ablineType \"non\": R yields NULL ab_lines; TS computes the free-mode ab-line (InputLayout.abLine is non-nullable)",
         "band-boundary clipping via exact scanline in the rotated frame (equivalent to st_intersection on axis-aligned strips); @turf/union//difference for headland dissolve/subtract",
-        "plot_id can repeat within a strip split by boundary holes (R restarts per piece) — matches R behavior, contradicts naive key uniqueness"
+        "plot_id can repeat within a strip split by boundary holes (R restarts per piece) — matches R behavior, contradicts naive key uniqueness",
+        "on strips split by a boundary hole, the specific (strip_id, plot_id) assignment, the per-piece poly_line value, and the intra-strip feature order can differ from R (e.g. R 1_1/1_2 vs TS 1_1/2_1). Geometry still matches (>=99% overlap, <=10cm centroid); the plot-layout parity test pairs duplicate keys by coordinate order and does not assert poly_line or feature order (L10)"
       ]
     },
     {

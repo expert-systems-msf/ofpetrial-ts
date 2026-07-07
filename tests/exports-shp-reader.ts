@@ -127,7 +127,17 @@ export function readDbf(bytes: Uint8Array): ReadDbfResult {
       } else if (/^\*+$/.test(raw)) {
         record[field.name] = null;
       } else {
-        record[field.name] = Number(raw.trim());
+        // L17: this is the independent DBF re-reader (design.md D8). Parse
+        // strictly so a malformed numeric field ("NaN"/"Infinity"/"1e+21"/
+        // "0x10"/"") is rejected rather than silently coerced by Number() —
+        // otherwise it would round-trip the L5 writer bug undetected.
+        const trimmed = raw.trim();
+        if (!/^[+-]?\d+(?:\.\d+)?$/.test(trimmed)) {
+          throw new Error(
+            `readDbf: field "${field.name}" is not a plain DBF numeric: ${JSON.stringify(raw)}`
+          );
+        }
+        record[field.name] = Number(trimmed);
       }
       fieldOffset += field.length;
     }

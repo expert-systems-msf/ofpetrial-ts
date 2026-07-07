@@ -130,6 +130,22 @@ describe("changeRates (task 5.5)", () => {
     }
   });
 
+  it("rateBy strip: accepts a scalar newRates for a single strip (L11)", () => {
+    const td = trialDesignFromFixture();
+    const before = rateByKey(td);
+
+    // A scalar (not [150]) — R accepts this for a single strip; the old code
+    // rejected it with a self-contradictory "length (1), got 1" message.
+    const result = changeRates(td, { stripIds: [3], newRates: 150, rateBy: "strip" });
+    const after = rateByKey(result);
+
+    for (const [key, rate] of after) {
+      const [stripId] = key.split(":").map(Number);
+      if (stripId === 3) expect(rate).toBe(150);
+      else expect(rate).toBe(before.get(key));
+    }
+  });
+
   it('rateBy "all": changes only the targeted plot positions within the targeted strips', () => {
     const td = trialDesignFromFixture();
     const before = rateByKey(td);
