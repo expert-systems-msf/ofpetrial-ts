@@ -13,7 +13,9 @@ import { makeExpPlots } from "./plot-layout.js";
 import {
   addBlocks,
   assignEjca,
+  assignLs,
   assignRates,
+  assignRatesByInput,
   assignRatesConditional,
   circShift,
   defaultRateJumpThreshold,
@@ -37,7 +39,7 @@ import type { RateData } from "./types.js";
 import { createRng } from "./rng.js";
 import { prepPlot, prepRate } from "./trial-setup.js";
 import { ValidationError } from "./types.js";
-import type { ExpData, InputDesign, PlotInfo, RateInfo } from "./types.js";
+import type { ExpData, InputDesign, InputLayout, PlotInfo, RateInfo } from "./types.js";
 
 const ROOT = join(import.meta.dirname, "..");
 
@@ -802,5 +804,238 @@ describe("assignEjca (exact tier-by-strip-parity)", () => {
       if (strip % 2 === 1) expect([10, 20]).toContain(rate);
       else expect([30, 40]).toContain(rate);
     }
+  });
+});
+
+// !===========================================================
+// ! Throw-path error messages (Stryker NoCoverage round 2)
+// !===========================================================
+describe("rate-assignment throw paths (class + message)", () => {
+  const plotInfo = seedPlotInfo();
+  const rateInfo = prepRate(plotInfo, {
+    gcRate: 34_000,
+    unit: "seeds",
+    rates: [20_000, 26_000, 32_000, 38_000, 44_000],
+  });
+
+  it("firstEpsg: assignRates on an input with an empty plot collection throws", () => {
+    const emptyLayout: InputLayout = {
+      plotInfo,
+      plots: { type: "FeatureCollection", features: [] },
+      headlands: { type: "FeatureCollection", features: [] },
+      abLine,
+      guidanceLines: { type: "FeatureCollection", features: [] },
+    };
+    const expData: ExpData = { inputs: [emptyLayout] };
+    const act = (): unknown => assignRates(expData, rateInfo, { seed: 1 });
+    expect(act).toThrow(ValidationError);
+    expect(act).toThrow(/Cannot assign rates to an empty plot collection/);
+  });
+
+  it("genBasicRankWs: no permutation satisfies an impossibly small rate_jump_threshold", () => {
+    // For 6 distinct ranks arranged in a cycle, some adjacent (cyclic) jump is
+    // always > 1, so the search exhausts and throws.
+    const act = (): unknown => genBasicRankWs(6, 1);
+    expect(act).toThrow(ValidationError);
+    expect(act).toThrow(/No rank sequence for 6 rates satisfies rate_jump_threshold=1/);
+  });
+
+  it("assignRatesByInput: an unknown design_type hits the default case and throws", () => {
+    const emptyPlots: FeatureCollection = { type: "FeatureCollection", features: [] };
+    const act = (): unknown =>
+      assignRatesByInput(emptyPlots, [], "bogus-design", null, null, null, createRng(1));
+    expect(act).toThrow(ValidationError);
+    expect(act).toThrow(/design_type "bogus-design" does not match any of the design type options/);
+  });
+
+  it("assignRates: an empty RateInfo array throws", () => {
+    const expData = makeSingleInputExpData(plotInfo);
+    const act = (): unknown => assignRates(expData, []);
+    expect(act).toThrow(ValidationError);
+    expect(act).toThrow(/assignRates requires at least one RateInfo/);
+  });
+});
+
+describe("assignRatesConditional throw paths (class + message)", () => {
+  function partialTwoInput(): { expData: ExpData; riA: RateInfo; riB: RateInfo } {
+    return twoJointInputs(5);
+  }
+
+  it("rejects a RateInfo whose input_name is not the undosed input", () => {
+    const { expData, riA, riB } = partialTwoInput();
+    const partial = assignRates(expData, riA, { seed: 1 }); // A dosed, B undosed
+    // riA targets the ALREADY-dosed input "A", not the undosed "B".
+    const act = (): unknown => assignRatesConditional(expData, riA, partial);
+    expect(act).toThrow(ValidationError);
+    expect(act).toThrow(/RateInfo is for input "A", but the undosed input .* is "B"/);
+    // sanity: riB (the correct target) does NOT hit this message
+    void riB;
+  });
+
+  it("rejects when the undosed input has no matching input in expData", () => {
+    const { expData, riA, riB } = partialTwoInput();
+    const partial = assignRates(expData, riA, { seed: 1 });
+    const undosed = partial.inputs.find((index) => index.rateInfo === null)!;
+    // Rename the undosed input so its name is absent from expData, but still
+    // matches the RateInfo we pass (so we get past the input_name check).
+    const renamed: InputDesign = {
+      ...undosed,
+      plotInfo: { ...undosed.plotInfo, input_name: "GHOST" },
+    };
+    const existing = {
+      ...partial,
+      inputs: partial.inputs.map((index) => (index === undosed ? renamed : index)),
+    };
+    const ri: RateInfo = { ...riB, input_name: "GHOST" };
+    const act = (): unknown => assignRatesConditional(expData, ri, existing);
+    expect(act).toThrow(ValidationError);
+    expect(act).toThrow(/RateInfo for input "GHOST" has no matching input in expData/);
+  });
+
+  it("rejects a geometry mismatch (would be a third input)", () => {
+    const { expData, riA, riB } = partialTwoInput();
+    const partial = assignRates(expData, riA, { seed: 1 });
+    const undosed = partial.inputs.find((index) => index.rateInfo === null)!;
+    // Give the existing design's undosed input a DIFFERENT geometry (one fewer
+    // feature) than expData's same-named input, so geometryIdentical is false.
+    const trimmed: InputDesign = {
+      ...undosed,
+      plots: { ...undosed.plots, features: undosed.plots.features.slice(1) },
+    };
+    const existing = {
+      ...partial,
+      inputs: partial.inputs.map((index) => (index === undosed ? trimmed : index)),
+    };
+    const act = (): unknown => assignRatesConditional(expData, riB, existing);
+    expect(act).toThrow(ValidationError);
+    expect(act).toThrow(/trying to add a third input/);
+  });
+});
+
+// !===========================================================
+// ! getStartingRankAsLs: >= 9 deterministic interleave branch (L319-331)
+// !===========================================================
+describe("getStartingRankAsLs: num_rates >= 9 interleave (exact, deterministic)", () => {
+  it("interleaves odd positions ascending and even positions reversed", () => {
+    // The >= 9 branch ignores rankSeqWs content (uses only its length) and uses
+    // no RNG: temporary = 1..9; odd positions keep 1,3,5,7,9; even positions get
+    // 2,4,6,8 reversed -> 8,6,4,2. Verified against R's get_starting_rank_as_ls.
+    const rankSeqWs = genBasicRankWs(9, null); // length 9
+    const seq = getStartingRankAsLs(rankSeqWs, createRng(1));
+    expect(seq).toEqual([1, 8, 3, 6, 5, 4, 7, 2, 9]);
+    // deterministic (branch is RNG-free)
+    expect(getStartingRankAsLs(rankSeqWs, createRng(999))).toEqual([1, 8, 3, 6, 5, 4, 7, 2, 9]);
+    // still a permutation of 1..9
+    expect(seq.toSorted((a, b) => a - b)).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9]);
+  });
+});
+
+// !===========================================================
+// ! rstr block-shuffle across strips (L513-532)
+// !===========================================================
+describe("assignRstr: block-shuffled starting ranks across strips", () => {
+  const plotInfo = seedPlotInfo();
+  const expData = makeSingleInputExpData(plotInfo);
+  const RATES_5 = [20_000, 26_000, 32_000, 38_000, 44_000];
+  const rstrInfo = prepRate(plotInfo, {
+    gcRate: 34_000,
+    unit: "seeds",
+    rates: RATES_5,
+    designType: "rstr",
+  });
+
+  it("assigns one constant rate per strip and, within each complete block of numRates strips, uses each rate exactly once", () => {
+    const td = assignRates(expData, rstrInfo, { seed: 21 });
+    const byStrip = groupByStripIds(td.inputs[0]!);
+
+    // per-strip constant rate (defining rstr invariant), drawn from the ladder
+    const rateByStrip = new Map<number, number>();
+    for (const [stripId, plots] of byStrip) {
+      const rates = new Set(plots.map((p) => p.rate));
+      expect(rates.size).toBe(1);
+      const rate = plots[0]!.rate;
+      expect(RATES_5).toContain(rate);
+      rateByStrip.set(stripId, rate);
+    }
+
+    // block-shuffle: strips grouped into blocks of numRates (=5) consecutive
+    // strip ids; a COMPLETE block must contain each of the 5 rates once.
+    const numberRates = 5;
+    const blocks = new Map<number, number[]>();
+    for (const [stripId, rate] of rateByStrip) {
+      const block = Math.floor((stripId - 1) / numberRates);
+      const array = blocks.get(block) ?? [];
+      array.push(rate);
+      blocks.set(block, array);
+    }
+    let completeBlocks = 0;
+    for (const rates of blocks.values()) {
+      if (rates.length !== numberRates) continue; // partial trailing block
+      completeBlocks += 1;
+      expect(new Set(rates).size).toBe(numberRates); // a permutation of the ladder
+    }
+    expect(completeBlocks).toBeGreaterThan(1);
+  });
+
+  it("is deterministic by seed", () => {
+    const a = assignRates(expData, rstrInfo, { seed: 21 }).inputs[0]!.plots.features.map(
+      (f) => expProperties(f).rate
+    );
+    const b = assignRates(expData, rstrInfo, { seed: 21 }).inputs[0]!.plots.features.map(
+      (f) => expProperties(f).rate
+    );
+    expect(a).toEqual(b);
+  });
+});
+
+// !===========================================================
+// ! assignLs neighbor-avoidance shift branch (L448-456)
+// !===========================================================
+describe("assignLs: neighbor-avoidance shift branch", () => {
+  const HALF = 0.0002; // square half-size in degrees (< inter-plot spacing)
+  function square(cx: number, cy: number, stripId: number, plotId: number): Feature {
+    return {
+      type: "Feature",
+      properties: { strip_id: stripId, plot_id: plotId },
+      geometry: {
+        type: "Polygon",
+        coordinates: [
+          [
+            [cx - HALF, cy - HALF],
+            [cx + HALF, cy - HALF],
+            [cx + HALF, cy + HALF],
+            [cx - HALF, cy + HALF],
+            [cx - HALF, cy - HALF],
+          ],
+        ],
+      },
+    };
+  }
+
+  it("re-rotates a strip when its initial start duplicates the neighbour ranks (>50%)", () => {
+    // Two vertically-aligned strips. rankSeqWs=[1,2], rankSeqAs=[1,1,2]:
+    //  - strip 1 starts at rank 1 -> ranks [1,2]
+    //  - strip 2's INITIAL start (rankSeqAs[1]=1) reproduces [1,2], duplicating
+    //    strip 1's neighbours 100% -> shift to rankSeqAs[2]=2 -> ranks [2,1].
+    // Without the shift branch, strip 2 would (wrongly) stay [1,2].
+    const features: Feature[] = [
+      square(-89, 40, 1, 1),
+      square(-89, 40.001, 1, 2),
+      square(-89.001, 40, 2, 1),
+      square(-89.001, 40.001, 2, 2),
+    ];
+    const plots: FeatureCollection = { type: "FeatureCollection", features };
+    const ratesData: RateData[] = [
+      { rate: 10, rate_rank: 1 },
+      { rate: 20, rate_rank: 2 },
+    ];
+
+    const assigned = assignLs(plots, ratesData, [1, 2], [1, 1, 2], null, createRng(1));
+    const rankOf = (f: Feature): number => assigned.get(f)!.rate_rank;
+
+    // strip 1 keeps its rotation [1, 2]
+    expect([rankOf(features[0]!), rankOf(features[1]!)]).toEqual([1, 2]);
+    // strip 2 was shifted to start at rank 2 -> [2, 1]
+    expect([rankOf(features[2]!), rankOf(features[3]!)]).toEqual([2, 1]);
   });
 });

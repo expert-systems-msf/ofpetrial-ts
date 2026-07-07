@@ -84,6 +84,23 @@ describe("writeTrialFiles — error cases", () => {
     expect(act).toThrow(ExportError);
     expect(act).toThrow(/TrialDesign has no inputs/);
   });
+
+  it("throws when an input has neither plots nor headlands", () => {
+    const td = loadTrialDesign("simple1", "imperial", ["seed"]);
+    td.inputs[0]!.plots = { type: "FeatureCollection", features: [] };
+    td.inputs[0]!.headlands = { type: "FeatureCollection", features: [] };
+    const act = () => writeTrialFiles(td, { ext: "geojson" });
+    expect(act).toThrow(ExportError);
+    expect(act).toThrow(/has no plots or headlands/);
+  });
+
+  it("throws on isoxml when an input has no rateInfo", () => {
+    const td = loadTrialDesign("simple1", "imperial", ["seed"]);
+    td.inputs[0]!.rateInfo = null;
+    const act = () => writeTrialFiles(td, { ext: "isoxml" });
+    expect(act).toThrow(ExportError);
+    expect(act).toThrow(/has no rateInfo/);
+  });
 });
 
 describe("writeTrialFilesToDisk", () => {

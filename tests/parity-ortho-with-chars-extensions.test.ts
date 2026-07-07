@@ -196,7 +196,24 @@ describe("checkOrthoWithChars raster branch — full TS GeoTIFF path (1e-3)", ()
     const td = buildTrialDesign(caseDir, "seed");
     const raster = await readGeoTiffRaster(loadBytes("fixtures/slope.tif"));
     const soilData: RasterSoilData = { raster, variable: "slope" };
-    expect(() => checkOrthoWithChars(td, soilData, ["not_slope"])).toThrow(/slope/);
+    // Wrong NAME (length 1): pin both distinctive fragments of the raster
+    // single-band guard message, not just that "slope" appears somewhere.
+    const wrongName = () => checkOrthoWithChars(td, soilData, ["not_slope"]);
+    expect(wrongName).toThrow(ValidationError);
+    expect(wrongName).toThrow(/carries a single band/);
+    expect(wrongName).toThrow(/vars must be exactly/);
+    // Wrong LENGTH (variables.length !== 1) takes the same throw.
+    const wrongLength = () => checkOrthoWithChars(td, soilData, ["slope", "clay"]);
+    expect(wrongLength).toThrow(ValidationError);
+    expect(wrongLength).toThrow(/vars must be exactly/);
+  });
+
+  it("throws a distinctively-worded ValidationError on an empty soil fragment table", () => {
+    const caseDir = "fixtures/simple1/imperial";
+    const td = buildTrialDesign(caseDir, "seed");
+    const act = () => checkOrthoWithChars(td, [] as SoilFragment[], ["clay"]);
+    expect(act).toThrow(ValidationError);
+    expect(act).toThrow(/received an empty soil fragment table/);
   });
 });
 
@@ -273,8 +290,12 @@ describe("extractRasterMeans orientation and CRS guards", () => {
 
   it("throws ValidationError when the raster carries no CRS (epsg: null)", () => {
     const grid = { ...syntheticGrid("north-up"), epsg: null };
-    expect(() => extractRasterMeans(rectDesign(0, 0, 2, 2), grid)).toThrow(ValidationError);
-    expect(() => extractRasterMeans(rectDesign(0, 0, 2, 2), grid)).toThrow(/georeferenced/);
+    const act = () => extractRasterMeans(rectDesign(0, 0, 2, 2), grid);
+    expect(act).toThrow(ValidationError);
+    // Pin the epsg === null branch's own message (distinct from the
+    // unsupported-CRS branch below): both mention "georeferenced".
+    expect(act).toThrow(/the raster carries no CRS/);
+    expect(act).toThrow(/georeferenced/);
   });
 
   it("throws ValidationError on a non-WGS84, non-UTM raster CRS", () => {
