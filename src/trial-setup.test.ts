@@ -193,4 +193,40 @@ describe("prepRate", () => {
     expect(ri.rank_seq_as).toEqual([2, 4, 1, 3, 5]);
     expect(ri.rate_jump_threshold).toBe(2);
   });
+
+  // Regression for audit M4: a rankSeqAs/rankSeqWs that is not a permutation of
+  // 1..num_rates previously indexed out of bounds in assignLs and silently
+  // produced duplicated tail strips. prepRate must reject it (R fails loudly).
+  it("rejects a rankSeqAs shorter than num_rates", () => {
+    expect(() =>
+      prepRate(pi, {
+        gcRate: 1,
+        unit: "lb",
+        rates: [1, 2, 3, 4, 5],
+        rankSeqAs: [2, 4],
+      })
+    ).toThrow(/permutation of 1\.\.5/);
+  });
+
+  it("rejects a rankSeqWs that is not a permutation of 1..num_rates", () => {
+    expect(() =>
+      prepRate(pi, {
+        gcRate: 1,
+        unit: "lb",
+        rates: [1, 2, 3, 4, 5],
+        rankSeqWs: [1, 2, 3, 4, 4], // wrong: 5 missing, 4 duplicated
+      })
+    ).toThrow(ValidationError);
+  });
+
+  it("accepts a valid permutation rankSeqAs", () => {
+    expect(() =>
+      prepRate(pi, {
+        gcRate: 1,
+        unit: "lb",
+        rates: [1, 2, 3, 4, 5],
+        rankSeqAs: [5, 4, 3, 2, 1],
+      })
+    ).not.toThrow();
+  });
 });

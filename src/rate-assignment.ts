@@ -399,7 +399,13 @@ function assignLs(
   const stripGroups = groupByStrip(plots);
   const stripIds = stripGroups.keys().toArray();
   const maxStripId = stripIds.length === 0 ? 0 : Math.max(...stripIds);
-  const fullStartSeqLong = repeatArray(rankSeqAs!, Math.ceil(maxStripId / numberRates) + 5);
+  // Size the repeat off maxStripId, not numberRates (M4): the access index is
+  // `index - 1 + shiftCounter`, with shiftCounter growing up to once per strip,
+  // so the worst-case index approaches 2*maxStripId. Deriving reps from
+  // rankSeqAs.length keeps this correct even if a caller supplies a rankSeqAs
+  // shorter than numberRates (prepRate now rejects that, but stay defensive).
+  const reps = Math.ceil((2 * maxStripId + 5) / rankSeqAs!.length) + 1;
+  const fullStartSeqLong = repeatArray(rankSeqAs!, reps);
 
   const epsg = firstEpsg(plots.features);
   const centroidsByStrip = new Map<number, Array<[number, number]>>();
@@ -932,7 +938,15 @@ function assignRatesTwoInput(
     if (numberRatesLs[0] === 2 && numberRatesLs[1] === 2) {
       const { a, b } = makeDesignFor2By2(layoutA.plots, riA.rates_data, riB.rates_data);
       result.set(layoutA.plotInfo.input_name, a);
-      result.set(layoutB.plotInfo.input_name, b);
+      // makeDesignFor2By2 keys both maps on layoutA's features (the 2x2 design
+      // is computed on the shared geometry). layoutB owns positionally-aligned
+      // but distinct feature objects (see makeExpPlots M3 clone), so re-key b
+      // onto layoutB's features by index before it reaches buildInputDesign.
+      const bByLayoutB = new Map<Feature, RateData>();
+      layoutA.plots.features.forEach((fa, index) =>
+        bByLayoutB.set(layoutB.plots.features[index]!, b.get(fa)!)
+      );
+      result.set(layoutB.plotInfo.input_name, bByLayoutB);
     } else {
       const firstAssigned = assignRatesByInput(
         layoutA.plots,
