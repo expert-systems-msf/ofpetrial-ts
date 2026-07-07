@@ -149,7 +149,17 @@ export function convertRates(
   }
 
   if (isMetricReporting) {
-    convFactorN = convFactorN * convUnit(1, "pounds", "kg") * convUnit(1, "hectares", "acres");
+    // M8 — DELIBERATE divergence from R 0.1.3 (recorded in parity-map.json).
+    // R additionally multiplies by hectares->acres here. Because the rate is
+    // already converted to a mass (kg->lb / liters->gallons), the per-area
+    // basis is implicit, so the extra area factor double-counts area and
+    // inflates every metric tgt_rate_equiv by ~2.471x (e.g. urea 100 kg/ha ->
+    // 113.67 instead of the agronomically correct 46 kg N/ha). The N-equiv is a
+    // nitrogen MASS, so the metric branch needs only the lb->kg factor on the
+    // (per-area) product; the rate's own /ha basis is preserved. tgt_rate_equiv
+    // is informational and never consumed downstream in src/, so correcting it
+    // changes only the reported agronomic value.
+    convFactorN *= convUnit(1, "pounds", "kg");
   }
 
   return conversionType === "to_n_equiv"

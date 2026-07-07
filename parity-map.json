@@ -175,7 +175,8 @@
       ],
       "status": "ported",
       "deviations": [
-        "liters/unknown-combo/metric-kg-only paths return sane values; R returns numeric(0) (dead factor-1 fallback)"
+        "liters/unknown-combo/metric-kg-only paths return sane values; R returns numeric(0) (dead factor-1 fallback)",
+        "metric reporting (kg/liters): R multiplies the N-equiv factor by hectares->acres on top of the mass conversion, double-counting area and inflating tgt_rate_equiv ~2.471x (e.g. urea 100 kg/ha -> 113.67). TS drops that factor to report an agronomically correct kg N/ha (urea 100 kg/ha -> 46) — DELIBERATE divergence from R 0.1.3 (M8). tgt_rate_equiv is informational and never consumed downstream in src/"
       ]
     },
     {
