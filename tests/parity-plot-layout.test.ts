@@ -382,3 +382,180 @@ describe("makeExpPlots — M3: equal-width inputs own independent objects", () =
     expect((b!.plots.features[0]!.properties as { strip_id: number }).strip_id).toBe(before);
   });
 });
+
+// Round-2 coverage of makeExpPlots error/edge branches that the fixture parity
+// cases never exercise. Geometry is built directly in metres via a local
+// equirectangular map around (40 N, 88 W) so the strip grid is controllable;
+// the ab-lines run east-west so the ab-line frame's cross-machine axis (v) is
+// the field's north-south extent.
+describe("makeExpPlots — round-2 error and edge branches", () => {
+  const LAT0 = 40;
+  const LON0 = -88;
+  const M_PER_DEG_LAT = 110_574;
+  const M_PER_DEG_LON = 111_320 * Math.cos((LAT0 * Math.PI) / 180);
+  const toLon = (xm: number): number => LON0 + xm / M_PER_DEG_LON;
+  const toLat = (ym: number): number => LAT0 + ym / M_PER_DEG_LAT;
+
+  const rectCoords = (wm: number, hm: number, x0 = 0, y0 = 0): number[][][] => [
+    [
+      [toLon(x0), toLat(y0)],
+      [toLon(x0 + wm), toLat(y0)],
+      [toLon(x0 + wm), toLat(y0 + hm)],
+      [toLon(x0), toLat(y0 + hm)],
+      [toLon(x0), toLat(y0)],
+    ],
+  ];
+  const rect = (wm: number, hm: number, x0 = 0, y0 = 0): Feature<Polygon> => ({
+    type: "Feature",
+    properties: {},
+    geometry: { type: "Polygon", coordinates: rectCoords(wm, hm, x0, y0) },
+  });
+  const ewAbLine = (ym: number, x0: number, x1: number): Feature<LineString> => ({
+    type: "Feature",
+    properties: {},
+    geometry: {
+      type: "LineString",
+      coordinates: [
+        [toLon(x0), toLat(ym)],
+        [toLon(x1), toLat(ym)],
+      ],
+    },
+  });
+  const metricPlot = (o: Partial<Parameters<typeof prepPlot>[0]> = {}): PlotInfo =>
+    prepPlot({
+      inputName: "seed",
+      unitSystem: "metric",
+      machineWidth: 12,
+      sectionNum: 1,
+      harvesterWidth: 12,
+      headlandLength: 6,
+      sideLength: 6,
+      minPlotLength: 20,
+      maxPlotLength: 40,
+      ...o,
+    });
+
+  it("throws when no experiment plot fits (plot length larger than the field)", () => {
+    const act = () =>
+      makeExpPlots({
+        inputPlotInfo: metricPlot({ minPlotLength: 100_000, maxPlotLength: 200_000 }),
+        boundary: rect(200, 60),
+        abLine: ewAbLine(30, 0, 200),
+      });
+    expect(act).toThrow(GeometryError);
+    expect(act).toThrow(/No experiment plots fit inside the field boundary/);
+  });
+
+  it("throws when the ab-line direction check has too few strips (single strip, machine > plot)", () => {
+    // 16 m tall field with 3 m side + 3 m plot half-width erodes to a ~4 m
+    // window -> exactly one strip. machine_width (12) > plot_width (6) makes the
+    // orientation check look for a strip 5*plot_width away, which does not exist.
+    const act = () =>
+      makeExpPlots({
+        inputPlotInfo: metricPlot({
+          plotWidth: 6,
+          machineWidth: 12,
+          sideLength: 3,
+          headlandLength: 3,
+        }),
+        boundary: rect(200, 16),
+        abLine: ewAbLine(8, 0, 200),
+      });
+    expect(act).toThrow(GeometryError);
+    expect(act).toThrow(/Could not orient the ab-line: too few strips/);
+  });
+
+  it("throws when the generated ab-line is shifted off the field (machine >> plot)", () => {
+    // Many strips (60 m tall) so the direction check passes, but the free
+    // ab-line is re-centred by |machine - plot|/2 = 97 m, which lands well
+    // outside the +20 m dilated field -> empty intersection.
+    const act = () =>
+      makeExpPlots({
+        inputPlotInfo: metricPlot({ plotWidth: 6, machineWidth: 200 }),
+        boundary: rect(200, 60),
+        abLine: ewAbLine(30, 0, 200),
+      });
+    expect(act).toThrow(GeometryError);
+    expect(act).toThrow(/generated ab-line does not intersect the field/);
+  });
+
+  it("throws ValidationError for a zero-length ab-line", () => {
+    const degenerateLine: Feature<LineString> = {
+      type: "Feature",
+      properties: {},
+      geometry: {
+        type: "LineString",
+        coordinates: [
+          [toLon(50), toLat(30)],
+          [toLon(50), toLat(30)],
+        ],
+      },
+    };
+    const act = () =>
+      makeExpPlots({
+        inputPlotInfo: metricPlot(),
+        boundary: rect(200, 60),
+        abLine: degenerateLine,
+      });
+    expect(act).toThrow(ValidationError);
+    expect(act).toThrow(/ab-line is degenerate \(zero length\)/);
+  });
+
+  it("throws ValidationError for three inputs", () => {
+    const p = metricPlot();
+    const act = () =>
+      makeExpPlots({
+        inputPlotInfo: [p, p, p],
+        boundary: rect(200, 60),
+        abLine: ewAbLine(30, 0, 200),
+      });
+    expect(act).toThrow(ValidationError);
+    expect(act).toThrow(/supports one or two inputs, got 3/);
+  });
+
+  it("throws GeometryError when a hole is larger than its shell (negative area)", () => {
+    // Malformed boundary: the second ring (treated as a hole) is bigger than
+    // the shell, so the field's signed area is negative -> collapse guard.
+    const invalid: Feature<Polygon> = {
+      type: "Feature",
+      properties: {},
+      geometry: {
+        type: "Polygon",
+        coordinates: [rectCoords(50, 50)[0]!, rectCoords(200, 200, -75, -75)[0]!],
+      },
+    };
+    const act = () =>
+      makeExpPlots({
+        inputPlotInfo: metricPlot(),
+        boundary: invalid,
+        abLine: ewAbLine(25, 0, 50),
+      });
+    expect(act).toThrow(GeometryError);
+    expect(act).toThrow(/collapsed to zero area after projection/);
+  });
+
+  it("lays plots into both parts of a MultiPolygon boundary", () => {
+    const mp: Feature<MultiPolygon> = {
+      type: "Feature",
+      properties: {},
+      geometry: {
+        type: "MultiPolygon",
+        coordinates: [rectCoords(150, 60, 0, 0), rectCoords(150, 60, 250, 0)],
+      },
+    };
+    const result = makeExpPlots({
+      inputPlotInfo: metricPlot(),
+      boundary: mp,
+      abLine: ewAbLine(30, -50, 450),
+    });
+    const plots = result.inputs[0]!.plots.features;
+    expect(plots.length).toBeGreaterThan(0);
+    // The two field parts are separated by the gap [150, 250] m -> plots must
+    // appear on both sides of it (a single strip crosses both).
+    const firstLon = (f: (typeof plots)[number]): number =>
+      (f.geometry as Polygon).coordinates[0]![0]![0]!;
+    const gapLon = toLon(200);
+    expect(plots.some((f) => firstLon(f) < gapLon)).toBe(true);
+    expect(plots.some((f) => firstLon(f) >= gapLon)).toBe(true);
+  });
+});

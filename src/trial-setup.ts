@@ -68,10 +68,17 @@ export function findPlotWidth(
   if (lcm !== null) return lcm;
 
   const widthRatio = sectionWidth / harvesterWidth;
-  // Stryker disable next-line all: unreachable — getLcm returns the width itself (absDif 0) when sectionWidth === harvesterWidth, so ratio 1 never falls through to here.
+  // NOTE (mutation testing): these branches mirror R's find_plotwidth cascade.
+  // The `=== 1` / `=== 2` conditions are unreachable (getLcm returns non-null
+  // when the ratio is exactly 1 or 2), and for every *reachable* ratio the
+  // (1,2) and >2 branches happen to return the same value as the final
+  // `ceil(2/ratio)*sectionWidth` fallback — so their `-> false` / boundary
+  // (`>=`/`<=`) mutants are genuinely equivalent and survive. We deliberately do
+  // NOT `// Stryker disable` them: an `all` suppression would also hide the
+  // *killable* `-> true` / `!==` condition mutants, which the ratio>2 and
+  // ratio<1 findPlotWidth tests do catch. Leaving them scored keeps the score honest.
   if (widthRatio === 1) return harvesterWidth;
   if (widthRatio > 1 && widthRatio < 2) return 2 * sectionWidth;
-  // Stryker disable next-line all: unreachable — getLcm returns 2·harvesterWidth (absDif 0) when sectionWidth === 2·harvesterWidth, so ratio 2 never falls through to here.
   if (widthRatio === 2) return harvesterWidth;
   if (widthRatio > 2) return sectionWidth;
   return Math.ceil(2 / widthRatio) * sectionWidth;

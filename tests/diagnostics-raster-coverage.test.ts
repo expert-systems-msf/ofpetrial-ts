@@ -150,6 +150,53 @@ describe("extractRasterMeans — south-up orientation arms", () => {
   });
 });
 
+describe("extractRasterMeans — raster-edge scan-window clamps (Math.max/min pinned)", () => {
+  // wgsGrid(true): bbox [0,0]..[2,2], 1x1 cells, centers x,y in {0.5, 1.5}.
+  //   row 0 (north, y=1.5): col0=10, col1=20 ; row 1 (south, y=0.5): col0=30, col1=40.
+  // Each design plot pokes PAST one raster edge so that, WITHOUT the clamp, the
+  // scan window's phantom out-of-range index either wraps into a neighbouring
+  // row's real cell (left/right edges -> a wrong finite mean) or reads past the
+  // flat array (top/bottom edges -> undefined -> NaN). The clamp is therefore
+  // load-bearing: each exact mean below differs from the unclamped result.
+  const grid = wgsGrid(true);
+
+  it("col 0 / left edge: Math.max(0, ...) prevents col -1 wrapping into the prior row", () => {
+    // Plot x[-1,1] y[0,1] contains only the south-row col0 center (0.5, 0.5)=30.
+    // colLo = max(0, floor((-1-0)/1) - 1) = max(0, -2) = 0.  Without the clamp
+    // colLo=-1 -> cellX=-0.5 (inside the plot) -> data[1*2 + (-1)] = data[1] = 20
+    // wrongly averaged in, giving 25. Clamped mean = 30.
+    const [result] = extractRasterMeans(rectDesign(-1, 0, 1, 1), grid);
+    expect(result!.mean).toBe(30);
+  });
+
+  it("last col / right edge: Math.min(width-1, ...) prevents col=width wrapping into the next row", () => {
+    // Plot x[1,3] y[1,2] contains only the north-row col1 center (1.5, 1.5)=20.
+    // colHi = min(1, ceil((3-0)/1) + 1) = min(1, 4) = 1.  Without the clamp
+    // colHi=... reaches col=2 -> cellX=2.5 (inside) -> data[0*2 + 2] = data[2] = 30
+    // wrongly averaged in, giving 25. Clamped mean = 20.
+    const [result] = extractRasterMeans(rectDesign(1, 1, 3, 2), grid);
+    expect(result!.mean).toBe(20);
+  });
+
+  it("row 0 / top edge: Math.max(0, ...) prevents row -1 reading before the array", () => {
+    // Plot x[0,1] y[1,3] contains only the north-row col0 center (0.5, 1.5)=10.
+    // rowLo = max(0, floor(min(rowOf(1),rowOf(3))) - 1) = max(0, -2) = 0. Without
+    // the clamp row=-1 -> cellY=2.5 (inside) -> data[-1*2 + 0] = data[-2] =
+    // undefined -> mean NaN. Clamped mean = 10.
+    const [result] = extractRasterMeans(rectDesign(0, 1, 1, 3), grid);
+    expect(result!.mean).toBe(10);
+  });
+
+  it("last row / bottom edge: Math.min(height-1, ...) prevents row=height reading past the array", () => {
+    // Plot x[0,1] y[-1,1] contains only the south-row col0 center (0.5, 0.5)=30.
+    // rowHi = min(1, ceil(max(rowOf(-1),rowOf(1))) + 1) = min(1, 4) = 1. Without
+    // the clamp row=2 -> cellY=-0.5 (inside) -> data[2*2 + 0] = data[4] =
+    // undefined -> mean NaN. Clamped mean = 30.
+    const [result] = extractRasterMeans(rectDesign(0, -1, 1, 1), grid);
+    expect(result!.mean).toBe(30);
+  });
+});
+
 describe("extractRasterMeans — NaN fallback when no valid cell center is covered", () => {
   it("returns NaN when the only covered cell center is nodata (count === 0 arm)", () => {
     // North-up grid whose north-west cell (center 0.5, 1.5) is nodata (NaN).

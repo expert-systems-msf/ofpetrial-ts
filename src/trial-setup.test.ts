@@ -79,6 +79,25 @@ describe("getRates", () => {
     expect(getRates(100, 260, 120, 4)).toContain(120);
     expect(getRates(100, 260, 190, 5)).toContain(190);
   });
+
+  it("pins the difMax/difMin == 1.5 boundary (rules out the >= mutant)", () => {
+    // difMax/difMin = 3/2 = 1.5 exactly -> takes the else (balanced) branch, so
+    // `> 1.5` and `>= 1.5` produce different ladders here.
+    expect(getRates(0, 5, 2, 3)).toEqual([0, 2, 5]);
+    // symmetric case on the low side: difMin/difMax = 1.5 exactly.
+    expect(getRates(0, 5, 3, 3)).toEqual([0, 3, 5]);
+  });
+
+  it("pins the odd numberLevelsTemporary branch", () => {
+    // numberLevels 4 -> numberLevelsTemporary 5 (odd), difMax > difMin.
+    expect(getRates(0, 10, 4, 4)).toEqual([0, 4, 7, 10]);
+  });
+
+  it("handles numberLevels == 1 on a boundary gcRate (seqLength n === 1)", () => {
+    // gcRate == maxRate (or minRate) -> seqLength(min, max, 1) -> [min].
+    expect(getRates(100, 260, 260, 1)).toEqual([100]);
+    expect(getRates(100, 260, 100, 1)).toEqual([100]);
+  });
 });
 
 describe("prepPlot", () => {

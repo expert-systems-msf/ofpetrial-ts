@@ -133,8 +133,50 @@ describe("checkOrthoWithChars — L2/L4", () => {
 
   it("L4: a SoilFragment[] table is rejected for a multi-input design", () => {
     const fragments: SoilFragment[] = [{ plotKey: "1:1", rate: 10, values: { clay: 1 } }];
-    expect(() => checkOrthoWithChars(stubTd(["seed", "NH3"]), fragments, ["clay"])).toThrow(
-      ValidationError
-    );
+    const act = () => checkOrthoWithChars(stubTd(["seed", "NH3"]), fragments, ["clay"]);
+    expect(act).toThrow(ValidationError);
+    expect(act).toThrow(/cannot be used with a multi-input TrialDesign/);
+  });
+
+  it("rejects a SoilFragment whose values is null with the mapping-guidance message", () => {
+    // typeof null === "object" but values === null -> the shape guard fires.
+    const fragments = [{ plotKey: "1:1", rate: 10, values: null }] as unknown as SoilFragment[];
+    const act = () => checkOrthoWithChars(stubTd(["seed"]), fragments, ["clay"]);
+    expect(act).toThrow(ValidationError);
+    expect(act).toThrow(/each SoilFragment must be/);
+  });
+});
+
+describe("property-key filter — only number/string props are joinable", () => {
+  // A soil feature carrying one numeric, one string, one boolean and one object
+  // property. The join-key filter (typeof === "number" || "string") must keep
+  // clay + musym and drop flag + meta.
+  const mixedPoint = {
+    type: "Feature",
+    properties: { clay: 25, musym: "A", flag: true, meta: { nested: 1 } },
+    geometry: { type: "Point", coordinates: [5, 5] },
+  } as unknown as Feature<Point>;
+  const mixedSoil: FeatureCollection = { type: "FeatureCollection", features: [mixedPoint] };
+
+  it("spatialJoin keeps number/string values and drops boolean/object (extractJoinableValues)", () => {
+    const frags = spatialJoin(design, mixedSoil);
+    expect(frags).toHaveLength(1);
+    // Exact value set: boolean flag and object meta are excluded.
+    expect(frags[0]!.values).toEqual({ clay: 25, musym: "A" });
+    expect("flag" in frags[0]!.values).toBe(false);
+    expect("meta" in frags[0]!.values).toBe(false);
+  });
+
+  it("checkOrthoWithChars' absent-variable error lists only number/string columns (availableJoinableKeys)", () => {
+    // "missing" is absent -> the error enumerates available columns via the same
+    // typeof filter; boolean/object keys must not appear as join-key candidates.
+    const act = () => checkOrthoWithChars(stubTd(["seed"]), mixedSoil, ["missing"]);
+    expect(act).toThrow(ValidationError);
+    expect(act).toThrow(/Available columns:/);
+    expect(act).toThrow(/clay/);
+    expect(act).toThrow(/musym/);
+    // The boolean and object keys are filtered out of the candidate list.
+    expect(act).not.toThrow(/flag/);
+    expect(act).not.toThrow(/meta/);
   });
 });

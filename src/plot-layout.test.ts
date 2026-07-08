@@ -1,3 +1,4 @@
+import booleanPointInPolygon from "@turf/boolean-point-in-polygon";
 import { describe, expect, it } from "vitest";
 
 import { signedRingArea } from "./geometry-utils.js";
@@ -10,6 +11,7 @@ import {
   ringCentroid,
   ringIntervalsAt,
   ringIsSimple,
+  ringToPolygonFeature,
   samplePointInRing,
   shrinkRing,
   subtractIntervals,
@@ -223,6 +225,55 @@ describe("samplePointInRing", () => {
       [0, 0],
     ];
     expect(samplePointInRing(ell)).toEqual([3, 1]);
+  });
+
+  it("uses the scanline-median fallback when the mean and every diagonal midpoint miss", () => {
+    // The deep fallback (mean outside AND every (i, i+2) diagonal midpoint
+    // outside) is unreachable for a SIMPLE ring: by the Two Ears Theorem every
+    // simple polygon (n >= 4) has >= 2 ears, and an ear's neighbour midpoint
+    // (exactly one of the (i, i+2) midpoints) lies in the interior — so the
+    // diagonal-midpoint loop always returns first. A self-intersecting ring is
+    // not bound by that theorem: a pentagram {5/2} has its centre OUTSIDE under
+    // the even-odd rule (crossed twice), its vertex mean is the centre, and
+    // every diagonal midpoint falls in an outer notch — so the fallback fires.
+    const R = 10;
+    const outer: Pt[] = [];
+    for (let k = 0; k < 5; k++) {
+      const ang = Math.PI / 2 + (2 * Math.PI * k) / 5;
+      outer.push([R * Math.cos(ang), R * Math.sin(ang)]);
+    }
+    // ring order {5/2}: skip every other point -> self-intersecting star
+    const ring: Pt[] = [0, 2, 4, 1, 3].map((k) => outer[k]!);
+    ring.push([ring[0]![0], ring[0]![1]]);
+    const poly = ringToPolygonFeature(ring);
+
+    // Preconditions that force the fallback: mean outside and no diagonal
+    // midpoint inside.
+    const n = ring.length - 1;
+    const mean: Pt = [
+      ring.slice(0, n).reduce((s, p) => s + p[0], 0) / n,
+      ring.slice(0, n).reduce((s, p) => s + p[1], 0) / n,
+    ];
+    expect(booleanPointInPolygon(mean, poly)).toBe(false);
+    for (let i = 0; i < n; i++) {
+      const a = ring[i]!;
+      const b = ring[(i + 2) % n]!;
+      expect(booleanPointInPolygon([(a[0] + b[0]) / 2, (a[1] + b[1]) / 2], poly)).toBe(false);
+    }
+
+    // Fallback result: midpoint of the widest interval at the median vertex
+    // height nudged up by 1e-9. Re-derive the nudged v the same way the code
+    // does and pin it exactly; x is the centre of the star's widest span (0).
+    const ys = ring
+      .slice(0, n)
+      .map((p) => p[1])
+      .toSorted((a, b) => a - b);
+    const vExpected = ys[Math.floor(n / 2)]! + 1e-9;
+    const point = samplePointInRing(ring);
+    expect(point).not.toBeNull();
+    expect(point![1]).toBe(vExpected);
+    expect(point![0]).toBeCloseTo(0, 9);
+    expect(booleanPointInPolygon(point!, poly)).toBe(true);
   });
 });
 
